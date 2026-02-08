@@ -1,6 +1,6 @@
 const CONFIG_APP = {
     APP: {
-        NAME: "APP_DEV",
+        NAME: "APP PRIVATE",
         VERSION: "2026.02.07",
         SCAN_LIMIT: false,
         AUTORUN: true,
