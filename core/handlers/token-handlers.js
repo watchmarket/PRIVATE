@@ -194,7 +194,8 @@
 
         // ========== LOADING INDICATOR ==========
         const $saveBtn = $('#SaveEditkoin');
-        const originalBtnHtml = $saveBtn.html();
+        // FIX: Always use the correct default button text, not the current HTML which might be a spinner
+        const originalBtnHtml = 'Simpan';
         $saveBtn.prop('disabled', true).html('<span uk-spinner="ratio: 0.6"></span> Menyimpan...');
 
         // Show overlay for visual feedback
