@@ -464,16 +464,34 @@
          * Docs: https://0x.org/docs/api
          * Dashboard: https://dashboard.0x.org
          *
-         * IMPORTANT: 0x officially supports EVM chains only (NOT Solana)
-         * - For Solana, use DZAP as configured fallback
-         * - Supported chains: https://0x.org/docs/developer-resources/supported-chains
+         * CHAIN SUPPORT:
+         * - EVM chains: Official 0x API (api.0x.org)
+         * - Solana: Matcha Solana API (matcha.xyz/api/swap/quote/solana)
          */
 
-        // Solana is NOT officially supported by Matcha API - should use fallback
-        if (chainName && String(chainName).toLowerCase() === 'solana') {
-          throw new Error('Matcha API does not support Solana - use DZAP fallback');
+        const isSolana = chainName && String(chainName).toLowerCase() === 'solana';
+
+        // ========== SOLANA CHAIN ==========
+        if (isSolana) {
+          // Matcha Solana API endpoint
+          const baseUrl = 'https://matcha.xyz/api/swap/quote/solana';
+
+          const params = new URLSearchParams({
+            sellTokenAddress: sc_input_in,        // Solana token address (base58, case-sensitive)
+            buyTokenAddress: sc_output_in,         // Solana token address (base58, case-sensitive)
+            sellAmount: String(amount_in_big),     // Amount in base units (lamports)
+            dynamicSlippage: 'true',               // Enable dynamic slippage
+            slippageBps: '50'                      // 0.5% slippage (50 basis points)
+          });
+
+          const url = `${baseUrl}?${params.toString()}`;
+
+          console.log(`[Matcha Solana] Request: ${sc_input_in} -> ${sc_output_in}`);
+
+          return { url, method: 'GET', headers: {} };
         }
 
+        // ========== EVM CHAINS ==========
         const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
 
         // Get 0x API key
@@ -509,6 +527,91 @@
         return { url, method: 'GET', headers };
       },
       parseResponse: (response, { des_output, des_input, chainName }) => {
+        const isSolana = chainName && String(chainName).toLowerCase() === 'solana';
+
+        // ========== SOLANA RESPONSE PARSING ==========
+        if (isSolana) {
+          /**
+           * Matcha Solana API Response Format:
+           * {
+           *   "buyAmount": "37124",
+           *   "sellAmount": "1000000",
+           *   "totalNetworkFee": "1400",
+           *   "route": {
+           *     "fills": [
+           *       { "from": "token", "to": "token", "source": "DEX", "proportionBps": 100 }
+           *     ],
+           *     "tokens": [...]
+           *   },
+           *   "transaction": "base64_encoded",
+           *   "isDynamicSlippage": true,
+           *   "maxSlippageBps": 80
+           * }
+           */
+
+          if (!response?.buyAmount) {
+            throw new Error("Invalid Matcha Solana response - missing buyAmount");
+          }
+
+          // Parse buyAmount from response (already in base units)
+          const buyAmount = parseFloat(response.buyAmount);
+          const amount_out = buyAmount / Math.pow(10, des_output);
+
+          // Parse network fee from totalNetworkFee (in lamports, convert to SOL then USD)
+          let FeeSwap = getFeeSwap(chainName);
+          try {
+            const networkFeeLamports = parseFloat(response.totalNetworkFee || 0);
+            if (networkFeeLamports > 0) {
+              // Convert lamports to SOL (1 SOL = 1e9 lamports)
+              const networkFeeSol = networkFeeLamports / 1e9;
+
+              // Get SOL price from gas data
+              const allGasData = (typeof getFromLocalStorage === 'function')
+                ? getFromLocalStorage("ALL_GAS_FEES")
+                : null;
+
+              if (allGasData) {
+                const gasInfo = allGasData.find(g =>
+                  String(g.chain || '').toLowerCase() === 'solana'
+                );
+
+                if (gasInfo && gasInfo.nativeTokenPrice) {
+                  const feeUsd = networkFeeSol * gasInfo.nativeTokenPrice;
+                  if (Number.isFinite(feeUsd) && feeUsd > 0) {
+                    FeeSwap = feeUsd;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('[Matcha Solana] Could not parse network fee, using default');
+          }
+
+          // Log route information
+          if (response.route?.fills) {
+            const sources = response.route.fills
+              .map(f => f.source)
+              .filter((v, i, a) => v && a.indexOf(v) === i);
+            console.log(`[Matcha Solana] Route: ${sources.join(' → ')}`);
+          }
+
+          console.log(`[Matcha Solana] Response parsed:`, {
+            buyAmount: response.buyAmount,
+            amountOut: amount_out.toFixed(6),
+            networkFee: response.totalNetworkFee,
+            feeSwap: FeeSwap.toFixed(4),
+            hops: response.route?.fills?.length || 0
+          });
+
+          return {
+            amount_out,
+            FeeSwap,
+            dexTitle: 'MATCHA',
+            routeTool: 'MATCHA SOLANA'
+          };
+        }
+
+        // ========== EVM RESPONSE PARSING ==========
         /**
          * Parse 0x API response (allowance-holder endpoint)
          * Response format: https://0x.org/docs/api#tag/Swap/operation/swap::allowanceHolder::getQuote
@@ -2237,36 +2340,89 @@
   // =============================
   // DFLOW Strategy - Solana DEX Aggregator
   // =============================
+  // Official API: https://pond.dflow.net/build/trading-api/imperative/quote
   dexStrategies.dflow = {
-    buildRequest: ({ sc_input_in, sc_output_in, amount_in_big }) => {
-      // DFlow Quote API endpoint
+    buildRequest: ({ sc_input_in, sc_output_in, amount_in_big, SavedSettingData }) => {
+      /**
+       * DFlow Quote API
+       * Endpoint: GET https://quote-api.dflow.net/quote
+       * 
+       * Required Headers:
+       * - x-api-key: API key for authentication (contact [email protected])
+       * 
+       * Query Parameters:
+       * - inputMint: Base58-encoded input mint address (required)
+       * - outputMint: Base58-encoded output mint address (required)
+       * - amount: Input amount as scaled integer, e.g., 1 SOL = 1000000000 (required)
+       * - slippageBps: Max slippage in basis points OR "auto" for automatic (optional)
+       * - dexes: Comma-separated list of DEXes to include (optional)
+       * - excludeDexes: Comma-separated list of DEXes to exclude (optional)
+       * - onlyDirectRoutes: If true, only use single-leg routes (optional)
+       * - maxRouteLength: Max number of legs in route (optional)
+       */
+
+      // Get DFlow API key from settings
+      const apiKey = SavedSettingData?.apiKeyDFlow || '';
+
+      // ⚠️ API KEY REQUIRED - DFlow API returns 403 without authentication
+      if (!apiKey) {
+        throw new Error('DFlow API requires API key. Contact [email protected] to obtain one. Use Jupiter or Matcha for Solana swaps without API key.');
+      }
+
       // Use original addresses (base58 is case-sensitive for Solana)
       const params = new URLSearchParams({
         inputMint: sc_input_in,
         outputMint: sc_output_in,
         amount: amount_in_big.toString(),
-        slippageBps: 'auto' // Auto slippage
+        slippageBps: 'auto' // Auto slippage (can also be a number like 50 for 0.5%)
       });
 
       return {
         url: `https://quote-api.dflow.net/quote?${params.toString()}`,
-        method: 'GET'
+        method: 'GET',
+        headers: { 'x-api-key': apiKey }
       };
     },
     parseResponse: (response, { des_output }) => {
+      /**
+       * DFlow Response Format:
+       * {
+       *   "contextSlot": 1,
+       *   "inAmount": "1000000000",           // Input amount (scaled)
+       *   "inputMint": "So11111...",          // Input mint address
+       *   "outAmount": "37124000",            // Expected output amount (scaled)
+       *   "minOutAmount": "36753000",         // Minimum output (with slippage)
+       *   "otherAmountThreshold": "36753000", // Same as minOutAmount
+       *   "outputMint": "Es9vMFr...",         // Output mint address
+       *   "priceImpactPct": "0.01",           // Price impact percentage
+       *   "routePlan": [                      // Route details
+       *     {
+       *       "venue": "Raydium",
+       *       "inputMint": "...",
+       *       "outputMint": "...",
+       *       "inAmount": "...",
+       *       "outAmount": "..."
+       *     }
+       *   ],
+       *   "slippageBps": 50,                  // Applied slippage in bps
+       *   "simulatedComputeUnits": 300000,    // Compute units consumed
+       *   "requestId": "..."                  // Request identifier
+       * }
+       */
+
       // Check for error response
       if (response?.error || response?.errorMessage) {
         throw new Error(response.errorMessage || response.error || 'DFlow API Error');
       }
 
-      // Parse DFlow response
+      // Parse DFlow response - use outAmount (expected output)
       if (!response?.outAmount) {
-        throw new Error("Invalid DFlow response structure");
+        throw new Error("Invalid DFlow response - missing outAmount");
       }
 
       const amount_out = parseFloat(response.outAmount) / Math.pow(10, des_output);
 
-      // Parse fees - DFlow doesn't return explicit gas fee, estimate from Solana
+      // Parse fees - DFlow doesn't return explicit gas fee, estimate from simulatedComputeUnits
       let FeeSwap = 0;
       try {
         // Get SOL price from gas data for fee estimation
@@ -2279,26 +2435,36 @@
             String(g.chain || '').toLowerCase() === 'solana'
           );
           if (solGasInfo && solGasInfo.nativeTokenPrice) {
-            // Estimate compute units to SOL (~0.00001 SOL typical)
+            // Use simulatedComputeUnits from response for accurate fee estimation
             const computeUnits = response.simulatedComputeUnits || 300000;
-            const estimatedSolFee = (computeUnits / 1e6) * 0.00001 * 5000; // rough estimate
-            FeeSwap = estimatedSolFee * solGasInfo.nativeTokenPrice;
+            // Solana fee calculation: compute_units * microlamports_per_cu / 1e6 lamports
+            // Typical: 5000 microlamports per CU, so 300k CU = 1.5M microlamports = 0.0015 SOL
+            const lamports = (computeUnits * 5000) / 1e6; // Convert to lamports
+            const solFee = lamports / 1e9; // Convert lamports to SOL
+            FeeSwap = solFee * solGasInfo.nativeTokenPrice;
           }
         }
 
         // Final fallback
         if (!Number.isFinite(FeeSwap) || FeeSwap <= 0) {
-          FeeSwap = 0.001; // Default minimal fee for Solana
+          FeeSwap = 0.001; // Default minimal fee for Solana (~$0.001)
         }
       } catch (e) {
         FeeSwap = 0.001;
+      }
+
+      // Log route information if available
+      if (response.routePlan && Array.isArray(response.routePlan)) {
+        const venues = response.routePlan.map(leg => leg.venue).filter(v => v);
+        console.log(`[DFlow] Route: ${venues.join(' → ')} (${response.routePlan.length} legs)`);
       }
 
       // Return simple format like Kyber
       return {
         amount_out: amount_out,
         FeeSwap: FeeSwap,
-        dexTitle: 'DFLOW'
+        dexTitle: 'DFLOW',
+        routeTool: 'DFLOW'
       };
     }
   };
@@ -2847,6 +3013,25 @@
       const cfg = (root.CONFIG_DEXS || {})[key] || {};
       const map = cfg.fetchdex || {};
       const ak = actionKey(action);
+
+      // ✅ CHAIN-SPECIFIC OVERRIDE: Check if there's a chain-specific strategy
+      // Example: matcha.fetchdex.solana = { tokentopair: 'matcha', pairtotoken: 'matcha' }
+      const chainKey = String(chainName || '').toLowerCase();
+      if (map[chainKey] && map[chainKey][ak]) {
+        // Use chain-specific override as both primary and only strategy
+        const chainStrategy = String(map[chainKey][ak]).toLowerCase();
+        console.log(`[CHAIN OVERRIDE] ${key} + ${ak} + ${chainKey} → ${chainStrategy}`);
+        return {
+          primary: chainStrategy,
+          secondary: null,
+          alternative: null,
+          mode: 'primary-only',
+          normalizedKey: key,
+          chainOverride: true  // Flag to indicate chain-specific override was used
+        };
+      }
+
+
       let primary = map.primary && map.primary[ak] ? String(map.primary[ak]).toLowerCase() : null;
 
       // Parse secondary (rotation mode) dan alternative (fallback mode)

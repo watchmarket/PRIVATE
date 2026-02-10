@@ -2355,105 +2355,11 @@ async function deferredInit() {
     // ❌ REMOVED DUPLICATE IMPORT HANDLER (main.js:1819-1822)
     // Import handler is registered in core/handlers/token-handlers.js:177-180
     // Removed to fix double-click issue when uploading CSV file
-    $(document).on('submit', '#multiTokenForm', function (e) {
-        e.preventDefault();
-        const id = $('#multiTokenIndex').val();
-        if (!id) return (typeof toast !== 'undefined' && toast.error) ? toast.error('ID token tidak ditemukan.') : undefined;
-
-        // ========== LOADING INDICATOR ==========
-        const $saveBtn = $('#SaveEditkoin');
-        const originalBtnHtml = $saveBtn.html();
-        $saveBtn.prop('disabled', true).html('<span uk-spinner="ratio: 0.6"></span> Menyimpan...');
-
-        // Show overlay for visual feedback
-        let overlayId = null;
-        try {
-            if (window.AppOverlay) {
-                overlayId = window.AppOverlay.show('Memperbarui data koin...');
-            }
-        } catch (_) { }
-        // ======================================
-
-        const updatedToken = {
-            id,
-            symbol_in: ($('#inputSymbolToken').val() || '').trim(),
-            des_in: Number($('#inputDesToken').val() || 0),
-            sc_in: ($('#inputSCToken').val() || '').trim(),
-            symbol_out: ($('#inputSymbolPair').val() || '').trim(),
-            des_out: Number($('#inputDesPair').val() || 0),
-            sc_out: ($('#inputSCPair').val() || '').trim(),
-            chain: String($('#FormEditKoinModal #mgrChain').val() || '').toLowerCase(),
-            status: readStatusRadio(),
-            ...readCexSelectionFromForm(),
-            ...readDexSelectionFromForm()
-        };
-
-        if (!updatedToken.symbol_in || !updatedToken.symbol_out) {
-            // Restore button state
-            $saveBtn.prop('disabled', false).html(originalBtnHtml);
-            if (overlayId && window.AppOverlay) window.AppOverlay.hide(overlayId);
-            return (typeof toast !== 'undefined' && toast.warning) ? toast.warning('Symbol Token & Pair tidak boleh kosong') : undefined;
-        }
-
-        const m = getAppMode();
-        let tokens = (m.type === 'single') ? getTokensChain(m.chain) : getTokensMulti();
-        const idx = tokens.findIndex(t => String(t.id) === String(id));
-
-        const buildDataCexs = (prev = {}) => {
-            const obj = {};
-            (updatedToken.selectedCexs || []).forEach(cx => {
-                const up = String(cx).toUpperCase();
-                obj[up] = prev[up] || { feeWDToken: 0, feeWDPair: 0, depositToken: false, withdrawToken: false, depositPair: false, withdrawPair: false };
-            });
-            return obj;
-        };
-        updatedToken.dataCexs = buildDataCexs(idx !== -1 ? tokens[idx].dataCexs : {});
-
-        if (idx !== -1) {
-            tokens[idx] = { ...tokens[idx], ...updatedToken };
-        } else {
-            tokens.push(updatedToken);
-        }
-
-        if (m.type === 'single') setTokensChain(m.chain, tokens); else setTokensMulti(tokens);
-
-        // ========== TIDAK Auto-Refresh Setelah Simpan ==========
-        setTimeout(() => {
-            try {
-                if (typeof toast !== 'undefined' && toast.success) {
-                    const msg = idx !== -1 ? 'Perubahan token berhasil disimpan' : 'Token baru berhasil ditambahkan';
-                    toast.success(msg);
-                }
-
-                // Restore button state
-                $saveBtn.prop('disabled', false).html(originalBtnHtml);
-
-                // Hide overlay
-                if (overlayId && window.AppOverlay) {
-                    window.AppOverlay.hide(overlayId);
-                }
-
-                // Token management list tetap di-refresh (tidak mengganggu)
-                try {
-                    renderTokenManagementList();
-                } catch (e) {
-                    console.error('[Update Token] Management list refresh error:', e);
-                }
-
-                try {
-                    const action = (idx !== -1) ? 'UBAH KOIN' : 'TAMBAH KOIN';
-                    setLastAction(`${action}`);
-                } catch (_) { setLastAction('UBAH KOIN'); }
-
-                if (window.UIkit?.modal) UIkit.modal('#FormEditKoinModal').hide();
-            } catch (e) {
-                console.error('[Update Token] Error:', e);
-                $saveBtn.prop('disabled', false).html(originalBtnHtml);
-                if (overlayId && window.AppOverlay) window.AppOverlay.hide(overlayId);
-            }
-        }, 50); // Small delay for smooth UI transition
-        // ================================================
-    });
+    // ❌ REMOVED DUPLICATE SUBMIT HANDLER (main.js:2358-2456)
+    // Submit handler is registered in core/handlers/token-handlers.js:190-289
+    // Removed to fix button stuck at "Menyimpan..." loading state.
+    // Root cause: duplicate handler captured already-modified button HTML (spinner)
+    // then restored it back to the spinner, overriding the correct restore.
 
     $(document).on('click', '#HapusEditkoin', function (e) {
         e.preventDefault();

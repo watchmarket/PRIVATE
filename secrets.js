@@ -20,11 +20,11 @@ function getCEXCredentials(cexName) {
         if (typeof getFromLocalStorage === 'function') {
             const cexKeys = getFromLocalStorage('CEX_API_KEYS', {});
             if (cexKeys && cexKeys[cexName]) {
-                try { if (window.SCAN_LOG_ENABLED) console.log(`[CEX] Using API key from IndexedDB for ${cexName}`); } catch(_) {}
+                try { if (window.SCAN_LOG_ENABLED) console.log(`[CEX] Using API key from IndexedDB for ${cexName}`); } catch (_) { }
                 return cexKeys[cexName];
             }
         }
-        try { if (window.SCAN_LOG_ENABLED) console.warn(`[CEX] No API keys found for ${cexName}! Please configure in Settings.`); } catch(_) {}
+        try { if (window.SCAN_LOG_ENABLED) console.warn(`[CEX] No API keys found for ${cexName}! Please configure in Settings.`); } catch (_) { }
         return null;
     } catch (error) {
         console.error(`[CEX] Error getting credentials for ${cexName}:`, error);
@@ -40,20 +40,21 @@ function migrateCEXKeysToIndexedDB() {
     try {
         const migrationDone = localStorage.getItem('CEX_KEYS_MIGRATED');
         if (migrationDone === 'true') {
-            try { if (window.SCAN_LOG_ENABLED) console.log('[CEX Migration] Migration already completed, skipping'); } catch(_) {}
+            try { if (window.SCAN_LOG_ENABLED) console.log('[CEX Migration] Migration already completed, skipping'); } catch (_) { }
             return;
         }
 
         if (typeof getFromLocalStorage === 'function') {
             const existingKeys = getFromLocalStorage('CEX_API_KEYS', {});
             if (existingKeys && Object.keys(existingKeys).length > 0) {
-                try { if (window.SCAN_LOG_ENABLED) console.log('[CEX Migration] IndexedDB already has keys, skipping migration'); } catch(_) {}
+                try { if (window.SCAN_LOG_ENABLED) console.log('[CEX Migration] IndexedDB already has keys, skipping migration'); } catch (_) { }
                 localStorage.setItem('CEX_KEYS_MIGRATED', 'true');
                 return;
             }
         }
 
-        const cexList = ['GATE', 'BINANCE', 'MEXC', 'KUCOIN', 'BITGET', 'INDODAX', 'BYBIT'];
+        // ✅ Get CEX list dynamically from CONFIG_CEX (no hardcode!)
+        const cexList = (typeof CONFIG_CEX !== 'undefined') ? Object.keys(CONFIG_CEX) : [];
         const migratedKeys = {};
         let migratedCount = 0;
 
@@ -77,9 +78,9 @@ function migrateCEXKeysToIndexedDB() {
         if (migratedCount > 0 && typeof saveToLocalStorage === 'function') {
             saveToLocalStorage('CEX_API_KEYS', migratedKeys);
             localStorage.setItem('CEX_KEYS_MIGRATED', 'true');
-            try { if (window.SCAN_LOG_ENABLED) console.log(`[CEX Migration] Migrated ${migratedCount} CEX API key(s) to IndexedDB:`, Object.keys(migratedKeys)); } catch(_) {}
+            try { if (window.SCAN_LOG_ENABLED) console.log(`[CEX Migration] Migrated ${migratedCount} CEX API key(s) to IndexedDB:`, Object.keys(migratedKeys)); } catch (_) { }
         } else {
-            try { if (window.SCAN_LOG_ENABLED) console.log('[CEX Migration] No legacy API keys found to migrate'); } catch(_) {}
+            try { if (window.SCAN_LOG_ENABLED) console.log('[CEX Migration] No legacy API keys found to migrate'); } catch (_) { }
             localStorage.setItem('CEX_KEYS_MIGRATED', 'true');
         }
     } catch (error) {

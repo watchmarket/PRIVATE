@@ -202,7 +202,8 @@
             console.log(`[SETTINGS] Saved ${cexSavedCount} CEX API key(s) to IndexedDB`);
 
             // Cleanup legacy localStorage MULTI_* keys
-            const allCexList = ['GATE', 'BINANCE', 'MEXC', 'KUCOIN', 'BITGET', 'INDODAX', 'BYBIT', 'LBANK', 'HTX'];
+            // ✅ Get CEX list dynamically from CONFIG_CEX (no hardcode!)
+            const allCexList = (typeof CONFIG_CEX !== 'undefined') ? Object.keys(CONFIG_CEX) : [];
             allCexList.forEach(cex => {
                 localStorage.removeItem(`MULTI_apikey${cex}`);
                 localStorage.removeItem(`MULTI_secretkey${cex}`);
