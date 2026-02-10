@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
         NAME: "APP PRIVATE",
-        VERSION: "2026.02.08",
+        VERSION: "2026.02.10",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
@@ -211,7 +211,7 @@ const CONFIG_CHAINS = {
             KUCOIN: { address: '0x58edF78281334335EfFa23101bBe3371b6a36A51', address2: '0xD6216fC19DB775Df9774a6E33526131dA7D19a2c', chainCEX: 'BEP20' },
             BITGET: { address: '0x0639556F03714A74a5fEEaF5736a4A64fF70D206', address2: '0xBDf5bAfEE1291EEc45Ae3aadAc89BE8152D4E673', address3: '0x1AB4973a48dc892Cd9971ECE8e01DcC7688f8F23', chainCEX: 'BEP20' },
             BYBIT: { address: '0xf89d7b9c864f589bbf53a82105107622b35eaa40', chainCEX: 'BSC' },
-            LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'BSC' },
+            // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'BSC' },
             HTX: { address: '0xafdfd157d9361e621e476036FEE62f688450692B', address2: '0xdd3CB5c974601BC3974d908Ea4A86020f9999E0c', chainCEX: 'BSC' },
         },
         PAIRDEXS: {
@@ -246,7 +246,7 @@ const CONFIG_CHAINS = {
             BITGET: { address: '0x0639556F03714A74a5fEEaF5736a4A64fF70D206', address2: '0x51971c86b04516062c1e708CDC048CB04fbe959f', address3: '0xBDf5bAfEE1291EEc45Ae3aadAc89BE8152D4E673', chainCEX: 'Polygon' },
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Polygon PoS' },
             INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6', address2: '0x91Dca37856240E5e1906222ec79278b16420Dc92', chainCEX: 'POLYGON' },
-            LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'MATIC' },
+            // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'MATIC' },
             HTX: { address: '0x9a7ffd7f6c42ab805e0edf16c25101964c6326b6', chainCEX: 'MATIC' },
         },
         PAIRDEXS: {
@@ -273,7 +273,7 @@ const CONFIG_CHAINS = {
             KUCOIN: { address: '0x03E6FA590CAdcf15A38e86158E9b3D06FF3399Ba', chainCEX: 'ARBITRUM' },
             BITGET: { address: '0x5bdf85216ec1e38d6458c870992a69e38e03f7ef', chainCEX: 'ArbitrumOne' },
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Arbitrum One' },
-            LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'ARBITRUM' },
+            // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'ARBITRUM' },
             HTX: { address: '0x82D015d74670d8645b56c3f453398a3E799Ee582', chainCEX: 'ARBITRUM' },
         },
         PAIRDEXS: {
@@ -300,7 +300,7 @@ const CONFIG_CHAINS = {
             KUCOIN: { address: '0x58edF78281334335EfFa23101bBe3371b6a36A51', address2: '0xD6216fC19DB775Df9774a6E33526131dA7D19a2c', chainCEX: 'ERC20' },
             BITGET: { address: '0x0639556F03714A74a5fEEaF5736a4A64fF70D206', address2: '0x51971c86b04516062c1e708CDC048CB04fbe959f', address3: '0xBDf5bAfEE1291EEc45Ae3aadAc89BE8152D4E673', chainCEX: 'ERC20' },
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', address2: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Ethereum' },
-            LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'erc20' },
+            // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'erc20' },
             HTX: { address: '0xa03400E098F4421b34a3a44A1B4e571419517687', chainCEX: 'ETH' },
         },
         PAIRDEXS: {
@@ -329,7 +329,7 @@ const CONFIG_CHAINS = {
             KUCOIN: { address: '0x58edF78281334335EfFa23101bBe3371b6a36A51', address2: '0xD6216fC19DB775Df9774a6E33526131dA7D19a2c', chainCEX: 'Base' },
             BITGET: { address: '0x0639556F03714A74a5fEEaF5736a4A64fF70D206', address2: '0x51971c86b04516062c1e708CDC048CB04fbe959f', address3: '0xBDf5bAfEE1291EEc45Ae3aadAc89BE8152D4E673', chainCEX: 'BASE' },
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', address2: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Base Mainnet' },
-            LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'BASE' },
+            //  LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'BASE' },
             HTX: { address: '0x7A8bA143F8866242782E5b3A5Ad1410Bb6722206', chainCEX: 'BASE' },
         },
         PAIRDEXS: {
@@ -358,7 +358,7 @@ const CONFIG_CHAINS = {
                 tx: (hash) => `https://solscan.io/tx/${hash}`
             }
         },
-        DEXS: ["matcha", "okx", "jupiter", "dflow"],  // ✅ Removed Meta-DEX: lifi, kamino
+        DEXS: ["matcha", "okx", "jupiter"],  // ✅ DFlow requires API key - enable manually if you have one
         WALLET_CEX: {
             GATE: { address: 'HiRpdAZifEsZGdzQ5Xo5wcnaH3D2Jj9SoNsUzcYNK78J', address2: 'u6PJ8DtQuPFnfmwHbGFULQ4u4EgjDiyYKjVEsynXq2w', chainCEX: 'SOL' },
             BINANCE: { address: '28nYGHJyUVcVdxZtzKByBXEj127XnrUkrE3VaGuWj1ZU', address2: '2ojv9BAiHUrvsm9gxDe7fJSzbNZSJcxZvf8dqmWGHG8S', chainCEX: 'SOL' },
@@ -368,7 +368,7 @@ const CONFIG_CHAINS = {
             BYBIT: { address: 'AC5RDfQFmDS1deWZos921JfqscXdByf8BKHs5ACWjtW2', address2: '42brAgAVNzMBP7aaktPvAmBSPEkehnFQejiZc53EpJFd', chainCEX: 'SOL' },
             OKX: { address: 'AC5RDfQFmDS1deWZos921JfqscXdByf8BKHs5ACWjtW2', address2: '42brAgAVNzMBP7aaktPvAmBSPEkehnFQejiZc53EpJFd', chainCEX: 'Solana' },
             INDODAX: { address: 'AC5RDfQFmDS1deWZos921JfqscXdByf8BKHs5ACWjtW2', chainCEX: 'SOL' },
-            LBANK: { address: '', chainCEX: 'SOL' },
+            // LBANK: { address: '', chainCEX: 'SOL' },
             HTX: { address: '', chainCEX: 'SOL' },
         },
         PAIRDEXS: {
@@ -388,7 +388,8 @@ const CONFIG_UI = {
         { key: 'BITGET', label: 'Bitget', short: 'BITG', badgeClass: 'bg-bitget' },
         { key: 'KUCOIN', label: 'KuCoin', short: 'KUCN', badgeClass: 'bg-kucoin' },
         { key: 'INDODAX', label: 'INDODAX', short: 'INDX', badgeClass: 'bg-indodax' },
-        { key: 'LBANK', label: 'LBank', short: 'LBNK', badgeClass: 'bg-lbank' }
+        { key: 'HTX', label: 'HTX', short: 'HTX', badgeClass: 'bg-htx' }
+        //  { key: 'LBANK', label: 'LBank', short: 'LBNK', badgeClass: 'bg-lbank' }
     ],
     DEXES: [
         { key: 'kyber', label: 'KyberSwap', badgeClass: 'bg-kyberswap', fallbackSlug: 'kyberswap' },
@@ -853,15 +854,20 @@ const CONFIG_DEXS = {
             }
             return `https://matcha.xyz/tokens/${chainName}/${String(tokenAddress || '').toLowerCase()}?buyChain=${chainCode}&buyAddress=${String(pairAddress || '').toLowerCase()}`;
         },
-        // ⚡ ROTATION STRATEGY: Alternate between different aggregators (no LIFI support for Matcha)
+        // ⚡ CHAIN-SPECIFIC STRATEGY: Solana uses direct endpoint, EVM uses proxies
         fetchdex: {
             primary: {
-                tokentopair: 'delta-matcha',   // CEX→DEX: 1Delta proxy (fast, free)
-                pairtotoken: 'swoop-matcha'    // DEX→CEX: SWOOP filtered
+                tokentopair: 'delta-matcha',   // CEX→DEX: 1Delta proxy (fast, free) - EVM only
+                pairtotoken: 'swoop-matcha'    // DEX→CEX: SWOOP filtered - EVM only
             },
             alternative: {
-                tokentopair: 'matcha',    // ✅ FIX: CEX→DEX: DZAP filtered (use dzap-matcha, not matcha)
-                pairtotoken: 'matcha'    // ✅ FIX: DEX→CEX: Rango filtered (use rango-matcha, not matcha)
+                tokentopair: 'matcha',    // CEX→DEX: Direct Matcha API (Solana) or fallback (EVM)
+                pairtotoken: 'matcha'     // DEX→CEX: Direct Matcha API (Solana) or fallback (EVM)
+            },
+            // ✅ SOLANA OVERRIDE: For Solana chain, always use direct matcha endpoint
+            solana: {
+                tokentopair: 'matcha',    // CEX→DEX: Direct Matcha Solana API
+                pairtotoken: 'matcha'     // DEX→CEX: Direct Matcha Solana API
             }
         },
         allowFallback: true,  // ✅ Enable rotation between primary and alternative
@@ -933,7 +939,7 @@ const CONFIG_DEXS = {
         label: 'DFlow',
         badgeClass: 'bg-dflow',
         supportsSolana: true,  // Solana-only DEX
-        proxy: false, // Enable CORS proxy
+        proxy: false, // No CORS proxy needed
         warna: "#00d4aa", // DFlow teal/cyan
         builder: ({ tokenAddress, pairAddress }) =>
             `https://dflow.net/?sendToken=${tokenAddress}&receiveToken=${pairAddress}`,
