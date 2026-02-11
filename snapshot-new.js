@@ -322,6 +322,78 @@
     }
 
     // ====================
+    // DATAJSON TOKEN DATABASE LOADER
+    // ====================
+    // Memuat database token per-chain dari localStorage/DATAJSON sebagai sumber recovery
+    // Cache per-session agar tidak fetch ulang
+
+    let _chainTokenDbCache = new Map();
+
+    /**
+     * Load chain token database (DATAJSON) as symbol → { sc, decimals, name } map.
+     * Used for:
+     * 1. Token recovery: CEX tokens rejected by chain filter but exist in DATAJSON
+     * 2. INDODAX enrichment: Additional source for contract address lookup
+     * @param {string} chainKey - Chain key (e.g., 'ethereum', 'bsc')
+     * @returns {Promise<Map>} Map of symbol → { sc, decimals, name }
+     */
+    async function loadChainTokenDatabase(chainKey) {
+        const key = String(chainKey || '').toLowerCase();
+
+        // Return cached if available (per-session cache)
+        if (_chainTokenDbCache.has(key)) return _chainTokenDbCache.get(key);
+
+        const map = new Map();
+        const chainUpper = key.toUpperCase();
+        const tokenDbKey = `TOKEN_${chainUpper}`;
+        let tokenDatabase = [];
+
+        // Step 1: Try local TOKEN_<CHAIN> database (fastest)
+        try {
+            if (typeof window !== 'undefined' && typeof window.getFromLocalStorage === 'function') {
+                tokenDatabase = window.getFromLocalStorage(tokenDbKey, []);
+            }
+        } catch (_) { }
+
+        // Step 2: If empty, try fetching DATAJSON from remote
+        if (!Array.isArray(tokenDatabase) || tokenDatabase.length === 0) {
+            try {
+                const chainConfig = CONFIG_CHAINS[key];
+                if (chainConfig?.DATAJSON) {
+                    console.log(`[loadChainTokenDatabase] Fetching DATAJSON for ${key}...`);
+                    const resp = await fetch(chainConfig.DATAJSON);
+                    if (resp.ok) {
+                        tokenDatabase = await resp.json();
+                        console.log(`[loadChainTokenDatabase] Fetched ${tokenDatabase.length} tokens for ${key}`);
+                    }
+                }
+            } catch (e) {
+                console.warn('[loadChainTokenDatabase] Failed to fetch DATAJSON:', e.message);
+            }
+        }
+
+        // Build lookup: SYMBOL → { sc, decimals, name }
+        if (Array.isArray(tokenDatabase)) {
+            tokenDatabase.forEach(token => {
+                const symbol = String(token.ticker || token.symbol_in || token.symbol || '').toUpperCase();
+                const sc = String(token.sc || token.sc_in || '').trim();
+                const decimals = token.decimals || token.des_in || 18;
+                const name = token.nama_token || token.token_name || token.name || '';
+                if (symbol && sc && sc !== '0x' && sc.length > 6) {
+                    // Only store first match per symbol (higher priority token)
+                    if (!map.has(symbol)) {
+                        map.set(symbol, { sc, decimals, name });
+                    }
+                }
+            });
+        }
+
+        console.log(`[loadChainTokenDatabase] ${key}: ${map.size} unique tokens in database`);
+        _chainTokenDbCache.set(key, map);
+        return map;
+    }
+
+    // ====================
     // PRICE FETCH HELPERS
     // ====================
 
@@ -686,6 +758,125 @@
     // INDODAX ENRICHMENT FROM TOKEN DATABASE
     // ====================
 
+    /**
+     * Enrich Indodax tokens dengan data dari CEX lain (cross-CEX enrichment)
+     * @param {Array} indodaxTokens - Raw tokens dari Indodax API
+     * @param {string} chainKey - Chain key (ethereum, bsc, polygon)
+     * @returns {Promise<Array>} Enriched tokens dengan SC, decimals, dll
+     */
+    async function enrichIndodaxFromOtherCEX(indodaxTokens, chainKey) {
+        try {
+            // Load snapshot database
+            const snapshotMap = await snapshotDbGet(SNAPSHOT_DB_CONFIG.snapshotKey) || {};
+            const chainSnapshot = snapshotMap[chainKey] || [];
+
+            // NEW: Load DATAJSON as additional enrichment source
+            let tokenDbMap = new Map();
+            try {
+                tokenDbMap = await loadChainTokenDatabase(chainKey);
+            } catch (_) { }
+
+            if ((!Array.isArray(chainSnapshot) || chainSnapshot.length === 0) && tokenDbMap.size === 0) {
+                console.warn(`[INDODAX] No snapshot data and no DATAJSON for chain ${chainKey}. Trying fallback to TOKEN database...`);
+                return await enrichIndodaxFromTokenDatabase(chainKey, indodaxTokens);
+            }
+
+            // CEX priority order (most reliable first)
+            const sourceCEXs = ['BINANCE', 'MEXC', 'GATE', 'KUCOIN', 'BITGET', 'BYBIT', 'OKX', 'HTX', 'LBANK'];
+
+            console.log(`[INDODAX] Enriching ${indodaxTokens.length} tokens from ${sourceCEXs.join(', ')} snapshots + DATAJSON (${tokenDbMap.size} entries)...`);
+
+            let matchCexCount = 0;
+            let matchDbCount = 0;
+            let noMatchCount = 0;
+            const enriched = indodaxTokens.map(indoToken => {
+                const symbol = String(indoToken.symbol_in || indoToken.tokenName || '').toUpperCase();
+
+                if (!symbol) return indoToken;
+
+                // Step 1: Try CEX snapshot (existing logic)
+                if (Array.isArray(chainSnapshot) && chainSnapshot.length > 0) {
+                    for (const cexName of sourceCEXs) {
+                        const match = chainSnapshot.find(t =>
+                            String(t.cex || '').toUpperCase() === cexName &&
+                            String(t.symbol_in || '').toUpperCase() === symbol &&
+                            t.sc_in && String(t.sc_in).trim() !== '' // Must have contract address
+                        );
+
+                        if (match) {
+                            matchCexCount++;
+
+                            return {
+                                ...indoToken,
+                                cex: 'INDODAX',
+                                symbol_in: symbol,
+                                sc_in: match.sc_in,
+                                des_in: match.des_in || match.decimals || 18,
+                                symbol_out: indoToken.symbol_out || 'USDT',
+                                sc_out: match.sc_out || '',
+                                des_out: match.des_out || 6,
+                                chain: chainKey,
+                                token_name: match.token_name || symbol,
+                                deposit: indoToken.deposit !== undefined ? indoToken.deposit : '1',
+                                withdraw: indoToken.withdraw !== undefined ? indoToken.withdraw : '1',
+                                feeWD: indoToken.feeWD || indoToken.feeWDs || 0,
+                                tradeable: indoToken.tradeable !== undefined ? indoToken.tradeable : true,
+                                decimals: match.des_in || match.decimals || 18,
+                                enrichedFrom: cexName
+                            };
+                        }
+                    }
+                }
+
+                // Step 2: NEW — Try DATAJSON database
+                if (tokenDbMap.has(symbol)) {
+                    matchDbCount++;
+                    const dbEntry = tokenDbMap.get(symbol);
+                    return {
+                        ...indoToken,
+                        cex: 'INDODAX',
+                        symbol_in: symbol,
+                        sc_in: dbEntry.sc,
+                        des_in: dbEntry.decimals || 18,
+                        decimals: dbEntry.decimals || 18,
+                        token_name: dbEntry.name || symbol,
+                        symbol_out: indoToken.symbol_out || 'USDT',
+                        sc_out: '',
+                        des_out: 6,
+                        chain: chainKey,
+                        deposit: indoToken.deposit !== undefined ? indoToken.deposit : '1',
+                        withdraw: indoToken.withdraw !== undefined ? indoToken.withdraw : '1',
+                        feeWD: indoToken.feeWD || indoToken.feeWDs || 0,
+                        tradeable: true,
+                        enrichedFrom: 'DATAJSON'
+                    };
+                }
+
+                // Step 3: Not found anywhere — return as-is (tanpa SC, CEX-only token)
+                noMatchCount++;
+                return indoToken;
+            });
+
+            console.log(`[INDODAX] Enrichment complete: CEX=${matchCexCount}, DATAJSON=${matchDbCount}, No Match=${noMatchCount} / ${indodaxTokens.length} total`);
+
+            // MODIFIED: Return ALL tokens (including those without SC)
+            // Tokens without SC will be included as "CEX-only" (tradeable on INDODAX but not on DEXes)
+            // Phase 2 filter will handle allowing INDODAX tokens without SC
+            return enriched;
+
+        } catch (error) {
+            console.error('[INDODAX] enrichIndodaxFromOtherCEX failed:', error);
+
+            // Fallback ke database lokal on error
+            console.warn('[INDODAX] Falling back to TOKEN database enrichment...');
+            return await enrichIndodaxFromTokenDatabase(chainKey, indodaxTokens);
+        }
+    }
+
+    /**
+     * FALLBACK: Enrich Indodax tokens dari TOKEN database (old logic)
+     * Digunakan jika snapshot CEX lain tidak tersedia
+     */
     async function enrichIndodaxFromTokenDatabase(chainKey, indodaxTokens) {
         try {
             // Get TOKEN database key
@@ -717,7 +908,9 @@
                 return indodaxTokens;
             }
 
-            // console.log(`[INDODAX] Found ${tokenDatabase.length} tokens in ${tokenDbKey}`);
+            // console.log(`[INDODAX] Found ${tokenDatabase.length} tokens in ${tokenDbKey}`)
+
+            ;
 
             // Create lookup map by nama koin (case-insensitive)
             const tokenLookup = new Map();
@@ -815,13 +1008,48 @@
                             existingLookup.set(key, token);
                         });
 
-                        // Convert format dari services/cex.js ke format snapshot with enrichment
-                        coins = walletData
-                            .filter(item => {
-                                // Filter by chain using existing matchesCex logic
-                                return matchesCex(chainKey, item.chain);
-                            })
-                            .map(item => {
+                        // STEP 1: Separate matched vs rejected by chain synonym
+                        const chainMatched = [];
+                        const chainRejected = [];
+                        walletData.forEach(item => {
+                            if (matchesCex(chainKey, item.chain)) {
+                                chainMatched.push(item);
+                            } else {
+                                chainRejected.push(item);
+                            }
+                        });
+
+                        // STEP 2: DATAJSON recovery for rejected tokens
+                        // If a rejected token's symbol exists in DATAJSON for this chain,
+                        // it means the token IS on this chain — CEX just uses a different network name
+                        let recovered = [];
+                        if (chainRejected.length > 0) {
+                            try {
+                                const tokenDbMap = await loadChainTokenDatabase(chainKey);
+                                if (tokenDbMap.size > 0) {
+                                    chainRejected.forEach(item => {
+                                        const symbol = String(item.tokenName || '').toUpperCase();
+                                        if (tokenDbMap.has(symbol)) {
+                                            const dbEntry = tokenDbMap.get(symbol);
+                                            recovered.push({
+                                                ...item,
+                                                contractAddress: dbEntry.sc,
+                                                _recoveredFromDb: true
+                                            });
+                                        }
+                                    });
+                                    if (recovered.length > 0) {
+                                        console.log(`[${cexUpper}] ✅ DATAJSON recovery: ${recovered.length} tokens recovered from ${chainRejected.length} rejected`);
+                                    }
+                                }
+                            } catch (dbErr) {
+                                console.warn(`[${cexUpper}] DATAJSON recovery failed:`, dbErr.message);
+                            }
+                        }
+
+                        // STEP 3: Combine matched + recovered, then map to snapshot format
+                        const allValid = [...chainMatched, ...recovered];
+                        coins = allValid.map(item => {
                                 const symbol = String(item.tokenName || '').toUpperCase();
                                 const lookupKey = `${cexUpper}_${symbol}`;
                                 const existing = existingLookup.get(lookupKey);
@@ -829,7 +1057,7 @@
                                 // Extract contract address from CEX response
                                 let contractAddress = '';
                                 if (item.contractAddress) {
-                                    // Direct field (from services/cex.js normalized response)
+                                    // Direct field (from services/cex.js normalized response or DATAJSON recovery)
                                     contractAddress = String(item.contractAddress).trim();
                                 } else if (existing?.sc_in) {
                                     // Fallback to existing data
@@ -839,16 +1067,16 @@
                                 return {
                                     cex: cexUpper,
                                     symbol_in: symbol,
-                                    tokenName: item.tokenName || symbol, // ✅ Preserve tokenName for enrichment
+                                    tokenName: item.tokenName || symbol,
                                     token_name: existing?.token_name || item.tokenName || '',
-                                    sc_in: contractAddress, // Use contract address from CEX API
-                                    contractAddress: contractAddress, // ✅ Preserve contractAddress field for enrichment
-                                    needsEnrichment: item.needsEnrichment || false, // ✅ Preserve needsEnrichment flag from services/cex.js
-                                    tradeable: item.trading !== undefined ? !!item.trading : true, // Use trading status dari CEX API, fallback true jika tidak ada
+                                    sc_in: contractAddress,
+                                    contractAddress: contractAddress,
+                                    needsEnrichment: item.needsEnrichment || false,
+                                    tradeable: item.trading !== undefined ? !!item.trading : true,
                                     decimals: existing?.des_in || existing?.decimals || '',
                                     des_in: existing?.des_in || existing?.decimals || '',
                                     deposit: item.depositEnable ? '1' : '0',
-                                    // Perubahan: Kosongkan symbol_out dan sc_out saat mengambil data dari CEX
+                                    // Kosongkan symbol_out dan sc_out saat mengambil data dari CEX
                                     symbol_out: '',
                                     sc_out: '',
                                     des_out: 0,
@@ -1358,6 +1586,9 @@
         const chainConfig = CONFIG_CHAINS[chainKey];
         if (!chainConfig) return;
 
+        // Reset DATAJSON cache for fresh session
+        _chainTokenDbCache = new Map();
+
         // Get chain display name
         const chainDisplay = chainKey === 'multichain' ? 'MULTICHAIN' :
             (chainConfig.Nama_Chain || chainKey).toUpperCase();
@@ -1502,9 +1733,9 @@
                     );
                 }
 
-                // Special handling untuk INDODAX: lookup TOKEN database
+                // Special handling untuk INDODAX: cross-CEX enrichment
                 if (isIndodax && cexTokens.length > 0) {
-                    cexTokens = await enrichIndodaxFromTokenDatabase(chainKey, cexTokens);
+                    cexTokens = await enrichIndodaxFromOtherCEX(cexTokens, chainKey);
                 }
 
                 allTokens = allTokens.concat(cexTokens);
@@ -1748,7 +1979,13 @@
                         const hasValidSC = sc && sc !== '0x' && sc.length > 6;
 
                         if (!hasValidSC) {
-                            // console.log(`⚠️ Skipping ${validated.symbol_in || 'UNKNOWN'} from ${validated.cex || 'UNKNOWN'}: No valid contract address`);
+                            // INDODAX tokens tanpa SC tetap dimasukkan (CEX-only trading)
+                            // Token ini bisa dilihat harga & listing-nya, tapi tidak bisa scan DEX
+                            if (String(validated.cex || '').toUpperCase() === 'INDODAX') {
+                                enrichedTokens.push(validated);
+                                return;
+                            }
+                            // CEX lain: skip seperti biasa
                             errorCount++;
                             batchErrorCount++;
                             batchErrorTokens.push(`${validated.symbol_in || '???'} (No SC)`);
@@ -2365,9 +2602,9 @@
                                     };
                                 });
 
-                            // Special handling untuk INDODAX: lookup TOKEN database
+                            // Special handling untuk INDODAX: cross-CEX enrichment
                             if (isIndodax && cexTokens.length > 0) {
-                                cexTokens = await enrichIndodaxFromTokenDatabase(chainKey, cexTokens);
+                                cexTokens = await enrichIndodaxFromOtherCEX(cexTokens, chainKey);
                             }
 
                             allTokens = allTokens.concat(cexTokens);

@@ -519,7 +519,7 @@ function renderCEXAPIKeyInputs() {
         return;
     }
 
-    const requiresPassphrase = ['KUCOIN', 'BITGET'];
+    const requiresPassphrase = ['KUCOIN', 'BITGET', 'OKX'];
 
     const hexToRgba = (hex, alpha = 0.08) => {
         hex = hex.replace('#', '');
@@ -565,7 +565,12 @@ function renderCEXAPIKeyInputs() {
  */
 function loadCEXApiKeys() {
     try {
-        const cexKeys = getFromLocalStorage('CEX_API_KEYS', {});
+        const raw = getFromLocalStorage('CEX_API_KEYS', null);
+        let cexKeys = raw;
+        if (typeof raw === 'string' && typeof appDecrypt === 'function') {
+            cexKeys = appDecrypt(raw) || {};
+        }
+        if (!cexKeys || typeof cexKeys !== 'object') cexKeys = {};
         const loadedCount = Object.keys(cexKeys).length;
 
         if (loadedCount > 0) {

@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
         NAME: "APP PRIVATE",
-        VERSION: "2026.02.10",
+        VERSION: "2026.02.12",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
@@ -160,6 +160,19 @@ const CONFIG_CEX = {
             urlTpl: ({ symbol }) => `https://api.huobi.pro/market/depth?symbol=${String(symbol || '').toLowerCase()}usdt&type=step0&depth=5`,
             parser: 'htx'  // HTX response format: { tick: { asks: [[p,q], ...], bids: [[p,q], ...] } }
         }
+    },
+    OKX: {
+        WARNA: "#000000",
+        LINKS: {
+            tradeToken: ({ token }) => `https://www.okx.com/trade-spot/${String(token || '').toLowerCase()}-usdt`,
+            tradePair: ({ pair }) => `https://www.okx.com/trade-spot/${String(pair || '').toLowerCase()}-usdt`,
+            withdraw: ({ token }) => `https://www.okx.com/balance/withdrawal/${String(token || '').toLowerCase()}`,
+            deposit: ({ token }) => `https://www.okx.com/balance/recharge/${String(token || '').toLowerCase()}`
+        },
+        ORDERBOOK: {
+            urlTpl: ({ symbol }) => `https://www.okx.com/api/v5/market/books?instId=${String(symbol || '').toUpperCase()}-USDT&sz=5`,
+            parser: 'okx'
+        }
     }
 };
 
@@ -213,6 +226,7 @@ const CONFIG_CHAINS = {
             BYBIT: { address: '0xf89d7b9c864f589bbf53a82105107622b35eaa40', chainCEX: 'BSC' },
             // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'BSC' },
             HTX: { address: '0xafdfd157d9361e621e476036FEE62f688450692B', address2: '0xdd3CB5c974601BC3974d908Ea4A86020f9999E0c', chainCEX: 'BSC' },
+            OKX: { address: '', chainCEX: 'BNB Chain' },
         },
         PAIRDEXS: {
             "BNB": { symbolPair: "BNB", scAddressPair: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", desPair: "18" },
@@ -248,6 +262,7 @@ const CONFIG_CHAINS = {
             INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6', address2: '0x91Dca37856240E5e1906222ec79278b16420Dc92', chainCEX: 'POLYGON' },
             // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'MATIC' },
             HTX: { address: '0x9a7ffd7f6c42ab805e0edf16c25101964c6326b6', chainCEX: 'MATIC' },
+            OKX: { address: '', chainCEX: 'Polygon' },
         },
         PAIRDEXS: {
             "USDT": { symbolPair: 'USDT', scAddressPair: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', desPair: '6' },
@@ -275,6 +290,7 @@ const CONFIG_CHAINS = {
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Arbitrum One' },
             // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'ARBITRUM' },
             HTX: { address: '0x82D015d74670d8645b56c3f453398a3E799Ee582', chainCEX: 'ARBITRUM' },
+            OKX: { address: '', chainCEX: 'Arbitrum One' },
         },
         PAIRDEXS: {
             "ETH": { symbolPair: 'ETH', scAddressPair: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', desPair: '18' },
@@ -302,6 +318,7 @@ const CONFIG_CHAINS = {
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', address2: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Ethereum' },
             // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'erc20' },
             HTX: { address: '0xa03400E098F4421b34a3a44A1B4e571419517687', chainCEX: 'ETH' },
+            OKX: { address: '0x91D40E4818F4D4C57b4578d9ECa6AFc92aC8DEbE', chainCEX: 'Ethereum' },
         },
         PAIRDEXS: {
             "ETH": { symbolPair: 'ETH', scAddressPair: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', desPair: '18' },
@@ -331,6 +348,7 @@ const CONFIG_CHAINS = {
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', address2: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Base Mainnet' },
             //  LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'BASE' },
             HTX: { address: '0x7A8bA143F8866242782E5b3A5Ad1410Bb6722206', chainCEX: 'BASE' },
+            OKX: { address: '', chainCEX: 'Base' },
         },
         PAIRDEXS: {
             "ETH": { symbolPair: 'ETH', scAddressPair: '0x4200000000000000000000000000000000000006', desPair: '18' },
@@ -388,7 +406,8 @@ const CONFIG_UI = {
         { key: 'BITGET', label: 'Bitget', short: 'BITG', badgeClass: 'bg-bitget' },
         { key: 'KUCOIN', label: 'KuCoin', short: 'KUCN', badgeClass: 'bg-kucoin' },
         { key: 'INDODAX', label: 'INDODAX', short: 'INDX', badgeClass: 'bg-indodax' },
-        { key: 'HTX', label: 'HTX', short: 'HTX', badgeClass: 'bg-htx' }
+        { key: 'HTX', label: 'HTX', short: 'HTX', badgeClass: 'bg-htx' },
+        { key: 'OKX', label: 'OKX', short: 'OKX', badgeClass: 'bg-okx' }
         //  { key: 'LBANK', label: 'LBank', short: 'LBNK', badgeClass: 'bg-lbank' }
     ],
     DEXES: [
@@ -1046,16 +1065,25 @@ try {
 
 // Centralized chain synonyms mapping used to normalize CEX network labels
 const CHAIN_SYNONYMS = {
-    ethereum: ['ETH', 'ERC20', 'ETHEREUM', 'USDTERC20', 'ETH-ERC20'],
-    bsc: ['BSC', 'BEP20', 'BINANCE SMART CHAIN', 'BNB SMART CHAIN', 'BEP-20', 'BSCMAINNET'],
-    polygon: ['POLYGON', 'MATIC', 'POLYGON POS', 'POLYGON (MATIC)', 'POL', 'POLYGONPOS'],
-    arbitrum: ['ARBITRUM', 'ARB', 'ARBITRUM ONE', 'ARBEVM', 'ARBITRUMONE', 'ARB-ETH', 'ARBMAINNET'],
-    base: ['BASE', 'BASE MAINNET', 'BASEEVM', 'BASEMAINNET'],
-    solana: ['SOL', 'SOLANA', 'SPL', 'SOLANA MAINNET', 'SOLMAINNET'],
-    optimism: ['OPTIMISM', 'OP', 'OPTIMISM MAINNET', 'OPMAINNET'],
-    avalanche: ['AVAX', 'AVAXC', 'AVALANCHE', 'AVAX-C', 'C-CHAIN', 'AVAX C-CHAIN'],
-    tron: ['TRX', 'TRC20', 'TRON', 'USDTTRC20', 'TRX-TRC20'],
-    fantom: ['FTM', 'FANTOM', 'FANTOM OPERA'],
+    ethereum: ['ETH', 'ERC20', 'ETHEREUM', 'USDTERC20', 'ETH-ERC20',
+               'ERC-20', 'ETH MAINNET', 'ETHMAINNET', 'ETHEREUM MAINNET', 'Ethereum'],
+    bsc: ['BSC', 'BEP20', 'BINANCE SMART CHAIN', 'BNB SMART CHAIN', 'BEP-20', 'BSCMAINNET',
+          'BNB', 'BSCBEP20', 'BNB CHAIN', 'BNBCHAIN'],
+    polygon: ['POLYGON', 'MATIC', 'POLYGON POS', 'POLYGON \\(MATIC\\)', 'POL', 'POLYGONPOS',
+              'POLYGON_POS', 'POLYGONEVM', 'Polygon PoS'],
+    arbitrum: ['ARBITRUM', 'ARB', 'ARBITRUM ONE', 'ARBEVM', 'ARBITRUMONE', 'ARB-ETH', 'ARBMAINNET',
+               'ARBONE', 'ARBITRUMEVM', 'ARBI'],
+    base: ['BASE', 'BASE MAINNET', 'BASEEVM', 'BASEMAINNET',
+           'BASE CHAIN', 'BASECHAIN'],
+    solana: ['SOL', 'SOLANA', 'SPL', 'SOLANA MAINNET', 'SOLMAINNET',
+             'SOLANA CHAIN', 'SOLCHAIN'],
+    optimism: ['OPTIMISM', 'OP', 'OPTIMISM MAINNET', 'OPMAINNET',
+               'OP MAINNET', 'OPEVM'],
+    avalanche: ['AVAX', 'AVAXC', 'AVALANCHE', 'AVAX-C', 'C-CHAIN', 'AVAX C-CHAIN',
+                'AVAXCCHAIN', 'AVALANCHE C-CHAIN'],
+    tron: ['TRX', 'TRC20', 'TRON', 'USDTTRC20', 'TRX-TRC20',
+           'TRC-20', 'TRON MAINNET'],
+    fantom: ['FTM', 'FANTOM', 'FANTOM OPERA', 'FANTOMEVM'],
     heco: ['HECO', 'HT', 'HUOBI ECO CHAIN', 'HECOMAINNET']
 };
 

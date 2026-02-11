@@ -112,6 +112,15 @@
                             return processOrderBook(data?.tick || {}, 4);
                         } catch (_) { return { priceBuy: [], priceSell: [] }; }
                     }
+                    else if (tok === 'okx') parserFn = (data) => {
+                        // OKX: { code: "0", data: [{ asks: [[p,sz,_,_],...], bids: [[p,sz,_,_],...] }] }
+                        try {
+                            const book = (data?.data || [])[0] || {};
+                            const asks = (book.asks || []).map(([p, v]) => [p, v]);
+                            const bids = (book.bids || []).map(([p, v]) => [p, v]);
+                            return processOrderBook({ asks, bids }, 4);
+                        } catch (_) { return { priceBuy: [], priceSell: [] }; }
+                    }
                 }
                 if (parserFn) {
                     merged[e.name] = { url: ob.urlTpl, processData: parserFn };
@@ -147,6 +156,15 @@
                 // HTX response: { status: "ok", tick: { asks: [[p,q],...], bids: [[p,q],...] } }
                 try {
                     return processOrderBook(data?.tick || {}, 4);
+                } catch (_) { return { priceBuy: [], priceSell: [] }; }
+            }
+            else if (tok === 'okx') parserFn = (data) => {
+                // OKX: { code: "0", data: [{ asks: [[p,sz,_,_],...], bids: [[p,sz,_,_],...] }] }
+                try {
+                    const book = (data?.data || [])[0] || {};
+                    const asks = (book.asks || []).map(([p, v]) => [p, v]);
+                    const bids = (book.bids || []).map(([p, v]) => [p, v]);
+                    return processOrderBook({ asks, bids }, 4);
                 } catch (_) { return { priceBuy: [], priceSell: [] }; }
             }
             if (parserFn) exchangeConfig[up] = { url: ob.urlTpl, processData: parserFn };
@@ -194,6 +212,15 @@
                             // HTX response: { status: "ok", tick: { asks: [[p,q],...], bids: [[p,q],...] } }
                             try {
                                 return processOrderBook(data?.tick || {}, 4);
+                            } catch (_) { return { priceBuy: [], priceSell: [] }; }
+                        }
+                        else if (tok === 'okx') parserFn = (data) => {
+                            // OKX: { code: "0", data: [{ asks: [[p,sz,_,_],...], bids: [[p,sz,_,_],...] }] }
+                            try {
+                                const book = (data?.data || [])[0] || {};
+                                const asks = (book.asks || []).map(([p, v]) => [p, v]);
+                                const bids = (book.bids || []).map(([p, v]) => [p, v]);
+                                return processOrderBook({ asks, bids }, 4);
                             } catch (_) { return { priceBuy: [], priceSell: [] }; }
                         };
                         if (parserFn) {
@@ -434,7 +461,16 @@
                 const url = `https://indodax.com/api/summaries`;
                 const response = await $.ajax({ url });
                 const list = response?.tickers || {};
-                const arr = Object.keys(list).map(k => ({ cex, tokenName: k.toUpperCase().replace('IDR', ''), chain: 'INDODAX', feeWDs: 0, depositEnable: true, withdrawEnable: true, trading: true }));
+                // Fix: Remove both underscore and IDR suffix (e.g., "islm_idr" -> "ISLM")
+                const arr = Object.keys(list).map(k => ({
+                    cex,
+                    tokenName: k.toUpperCase().replace('_IDR', ''),
+                    chain: 'INDODAX',
+                    feeWDs: 0,
+                    depositEnable: true,
+                    withdrawEnable: true,
+                    trading: true
+                }));
                 return arr;
             }
 
@@ -549,6 +585,61 @@
                     });
                 });
                 return arr;
+            }
+
+            case 'OKX': {
+                if (!hasKeys) throw new Error(`${cex} API Key/Secret not configured in CONFIG_CEX.`);
+                if (!Passphrase) throw new Error(`${cex} Passphrase not configured. Please configure in Settings.`);
+
+                const okxTimestamp = new Date().toISOString();
+                const okxPath = '/api/v5/asset/currencies';
+                const okxSign = calculateSignature("OKX", ApiSecret, okxTimestamp + "GET" + okxPath);
+
+                const okxUrl = `${CONFIG_PROXY.PREFIX}https://www.okx.com/api/v5/asset/currencies`;
+                const okxHeaders = {
+                    'OK-ACCESS-KEY': ApiKey,
+                    'OK-ACCESS-SIGN': okxSign,
+                    'OK-ACCESS-TIMESTAMP': okxTimestamp,
+                    'OK-ACCESS-PASSPHRASE': Passphrase
+                };
+
+                const okxRes = await $.ajax({ url: okxUrl, method: 'GET', headers: okxHeaders });
+
+                if (okxRes?.code !== '0' || !okxRes?.data) {
+                    throw new Error(`OKX API error: ${okxRes?.msg || 'Unknown error'}`);
+                }
+
+                const okxData = okxRes.data || [];
+                const okxArr = [];
+
+                okxData.forEach(item => {
+                    const coin = item?.ccy || '';
+                    // Parse chain from item.chain: format "USDT-Arbitrum One" → "Arbitrum One"
+                    const chainRaw = String(item?.chain || '');
+                    const dashIdx = chainRaw.indexOf('-');
+                    const chainName = dashIdx >= 0 ? chainRaw.substring(dashIdx + 1) : chainRaw;
+
+                    const fee = parseFloat(item?.minFee || item?.fee || 0);
+                    const canDep = (item?.canDep === true) || (String(item?.canDep).toLowerCase() === 'true');
+                    const canWd = (item?.canWd === true) || (String(item?.canWd).toLowerCase() === 'true');
+                    const contractAddr = item?.ctAddr || '';
+
+                    if (!coin || !chainName) return;
+
+                    okxArr.push({
+                        cex: 'OKX',
+                        tokenName: String(coin).toUpperCase(),
+                        chain: String(chainName),
+                        feeWDs: isFinite(fee) ? fee : 0,
+                        depositEnable: canDep,
+                        withdrawEnable: canWd,
+                        contractAddress: contractAddr,
+                        trading: true
+                    });
+                });
+
+                console.log(`[OKX] ✅ Fetched ${okxArr.length} coins from /api/v5/asset/currencies endpoint`);
+                return okxArr;
             }
 
             case 'LBANK': {
@@ -1339,6 +1430,24 @@
                                 if (price > 0) {
                                     priceMap[base] = price;
                                 }
+                            }
+                        });
+                        return priceMap;
+                    };
+                    break;
+
+                case 'OKX':
+                    // OKX API V5 - Get all spot tickers
+                    url = 'https://www.okx.com/api/v5/market/tickers?instType=SPOT';
+                    parseResponse = (data) => {
+                        const tickers = data?.data || [];
+                        const priceMap = {};
+                        tickers.forEach(ticker => {
+                            const instId = String(ticker.instId || '').toUpperCase();
+                            if (instId.endsWith('-USDT')) {
+                                const base = instId.replace('-USDT', '');
+                                const price = parseFloat(ticker.last || 0);
+                                if (price > 0) priceMap[base] = price;
                             }
                         });
                         return priceMap;

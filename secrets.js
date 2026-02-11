@@ -4,6 +4,32 @@
 // - Telegram bot credentials
 
 // =============================
+// Encryption Utilities (AES auto-key)
+// =============================
+const _ENC_SALT = 'xK9#mP2$vL7@nQ4';
+function _getEncKey() {
+    const appName = (typeof CONFIG_APP !== 'undefined' && CONFIG_APP?.APP?.NAME) || 'APP_DEV';
+    return appName + _ENC_SALT;
+}
+function appEncrypt(data) {
+    try {
+        const json = typeof data === 'string' ? data : JSON.stringify(data);
+        return CryptoJS.AES.encrypt(json, _getEncKey()).toString();
+    } catch (_) { return null; }
+}
+function appDecrypt(cipherText) {
+    try {
+        const bytes = CryptoJS.AES.decrypt(cipherText, _getEncKey());
+        const text = bytes.toString(CryptoJS.enc.Utf8);
+        if (!text) return null;
+        try { return JSON.parse(text); } catch (_) { return text; }
+    } catch (_) { return null; }
+}
+// Expose globally
+window.appEncrypt = appEncrypt;
+window.appDecrypt = appDecrypt;
+
+// =============================
 // CEX API Key Management (IndexedDB)
 // =============================
 // Hardcoded API keys removed for security
@@ -18,7 +44,17 @@
 function getCEXCredentials(cexName) {
     try {
         if (typeof getFromLocalStorage === 'function') {
-            const cexKeys = getFromLocalStorage('CEX_API_KEYS', {});
+            const raw = getFromLocalStorage('CEX_API_KEYS', null);
+            if (!raw) {
+                try { if (window.SCAN_LOG_ENABLED) console.warn(`[CEX] No API keys found for ${cexName}! Please configure in Settings.`); } catch (_) { }
+                return null;
+            }
+            // Try decrypt if it's an encrypted string
+            let cexKeys = raw;
+            if (typeof raw === 'string') {
+                cexKeys = appDecrypt(raw);
+                if (!cexKeys) return null;
+            }
             if (cexKeys && cexKeys[cexName]) {
                 try { if (window.SCAN_LOG_ENABLED) console.log(`[CEX] Using API key from IndexedDB for ${cexName}`); } catch (_) { }
                 return cexKeys[cexName];
@@ -45,11 +81,16 @@ function migrateCEXKeysToIndexedDB() {
         }
 
         if (typeof getFromLocalStorage === 'function') {
-            const existingKeys = getFromLocalStorage('CEX_API_KEYS', {});
-            if (existingKeys && Object.keys(existingKeys).length > 0) {
-                try { if (window.SCAN_LOG_ENABLED) console.log('[CEX Migration] IndexedDB already has keys, skipping migration'); } catch (_) { }
-                localStorage.setItem('CEX_KEYS_MIGRATED', 'true');
-                return;
+            const rawExisting = getFromLocalStorage('CEX_API_KEYS', null);
+            // Check if data exists (could be encrypted string or plain object)
+            if (rawExisting) {
+                let existingKeys = rawExisting;
+                if (typeof rawExisting === 'string') existingKeys = appDecrypt(rawExisting);
+                if (existingKeys && typeof existingKeys === 'object' && Object.keys(existingKeys).length > 0) {
+                    try { if (window.SCAN_LOG_ENABLED) console.log('[CEX Migration] IndexedDB already has keys, skipping migration'); } catch (_) { }
+                    localStorage.setItem('CEX_KEYS_MIGRATED', 'true');
+                    return;
+                }
             }
         }
 
@@ -68,7 +109,7 @@ function migrateCEXKeysToIndexedDB() {
                     ApiKey: apiKey,
                     ApiSecret: secretKey
                 };
-                if (passphrase && (cex === 'KUCOIN' || cex === 'BITGET')) {
+                if (passphrase && (cex === 'KUCOIN' || cex === 'BITGET' || cex === 'OKX')) {
                     migratedKeys[cex].Passphrase = passphrase;
                 }
                 migratedCount++;
@@ -76,7 +117,8 @@ function migrateCEXKeysToIndexedDB() {
         });
 
         if (migratedCount > 0 && typeof saveToLocalStorage === 'function') {
-            saveToLocalStorage('CEX_API_KEYS', migratedKeys);
+            const encrypted = appEncrypt(migratedKeys);
+            saveToLocalStorage('CEX_API_KEYS', encrypted || migratedKeys);
             localStorage.setItem('CEX_KEYS_MIGRATED', 'true');
             try { if (window.SCAN_LOG_ENABLED) console.log(`[CEX Migration] Migrated ${migratedCount} CEX API key(s) to IndexedDB:`, Object.keys(migratedKeys)); } catch (_) { }
         } else {
@@ -104,11 +146,17 @@ const CEX_SECRETS = {
     // Keys will be loaded from IndexedDB at runtime via getCEXCredentials()
 };
 
-// Telegram bot credentials (moved from config.js)
-const CONFIG_TELEGRAM = {
-    BOT_TOKEN: "7853809693:AAHl8e_hjRyLgbKQw3zoUSR_aqCbGDg6nHo",
-    CHAT_ID: "-1002079288809"
-};
+// Telegram bot credentials (encrypted)
+const _TELE_ENC = 'U2FsdGVkX18rQFT89YjP3rj9HEjai+ugy8h1JypLGVRGKwdyeqhWZXoiPAIKnUsZIifRT7COq9foPBN6/MGiew3NvlN+a+k8SOvGOBZ2iNl00ttsswWslgWa7jpUzJDiBVxcd021KBTfBEPy7LWOvw==';
+const CONFIG_TELEGRAM = (function() {
+    try {
+        if (typeof CryptoJS !== 'undefined') {
+            const dec = appDecrypt(_TELE_ENC);
+            if (dec && dec.BOT_TOKEN) return dec;
+        }
+    } catch(_) {}
+    return { BOT_TOKEN: '', CHAT_ID: '' };
+})();
 
 // Ensure globals are available for code paths that expect window.*
 try {

@@ -164,7 +164,7 @@
                     ApiSecret: secretKey
                 };
 
-                if (cex === 'KUCOIN' || cex === 'BITGET') {
+                if (cex === 'KUCOIN' || cex === 'BITGET' || cex === 'OKX') {
                     if (passphrase) {
                         cexKeys[cex].Passphrase = passphrase;
                         cexSavedCount++;
@@ -197,7 +197,8 @@
 
         // ✅ Save CEX API keys to IndexedDB (separate from SETTING_SCANNER)
         if (Object.keys(cexKeys).length > 0) {
-            saveToLocalStorage('CEX_API_KEYS', cexKeys);
+            const encryptedKeys = (typeof appEncrypt === 'function') ? appEncrypt(cexKeys) : cexKeys;
+            saveToLocalStorage('CEX_API_KEYS', encryptedKeys || cexKeys);
             localStorage.setItem('CEX_KEYS_MIGRATED', 'true');
             console.log(`[SETTINGS] Saved ${cexSavedCount} CEX API key(s) to IndexedDB`);
 

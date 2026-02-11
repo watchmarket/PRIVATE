@@ -293,6 +293,16 @@
     window.exportIDB = async function () {
         try {
             const items = await idbGetAll();
+            // Also capture native localStorage items (portfolio wallet data, etc.)
+            const lsItems = [];
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('MULTI_') || k === 'WALLET_UPDATE_REPORT' || k === 'CEX_KEYS_MIGRATED')) {
+                        lsItems.push({ key: k, val: localStorage.getItem(k) });
+                    }
+                }
+            } catch (_) { }
             return {
                 schema: 'kv-v1',
                 db: DB_NAME,
@@ -300,7 +310,8 @@
                 prefix: (window.storagePrefix || ''),
                 exportedAt: new Date().toISOString(),
                 count: items.length,
-                items
+                items,
+                localStorageItems: lsItems.length > 0 ? lsItems : undefined
             };
         } catch (e) { return { schema: 'kv-v1', error: String(e) }; }
     };
@@ -312,13 +323,24 @@
         for (const it of payload.items) {
             try {
                 if (!it || !it.key) { fail++; continue; }
-                // Optional: honor prefix if provided; else write as-is
                 const key = String(it.key);
                 const res = await idbSet(key, it.val);
                 if (res) { cache[key] = it.val; ok++; } else { fail++; }
             } catch (_) { fail++; }
         }
-        return { ok, fail };
+        // Restore native localStorage items (portfolio wallet data, etc.)
+        let lsOk = 0;
+        if (Array.isArray(payload.localStorageItems)) {
+            for (const it of payload.localStorageItems) {
+                try {
+                    if (it && it.key) {
+                        localStorage.setItem(it.key, it.val);
+                        lsOk++;
+                    }
+                } catch (_) { }
+            }
+        }
+        return { ok, fail, lsRestored: lsOk };
     };
 
     window.downloadJSON = function (filename, obj) {

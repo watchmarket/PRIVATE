@@ -9,7 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.0/dist/ethers.umd.min.js"></script>
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
-    <link rel="icon" href="assets/icons/favicon.png" type="image/x-icon">
+    <link rel="icon" href="assets/icons/asset.png" type="image/x-icon">
     <!-- Removed Bootstrap CSS and Bootstrap Icons; use UIkit icons instead -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
@@ -913,6 +913,11 @@
         color: #008cd6 !important;
         font-weight: bold;
     }
+
+    .text-cex-okx {
+        color: #000000 !important;
+        font-weight: bold;
+    }
 </style>
 
 <body>
@@ -1030,6 +1035,10 @@
                                 <tr data-cex="HTX">
                                     <td class="uk-text-left cex-label text-cex-htx">HTX</td>
                                     <td id="HTXSaldo" class="uk-text-right">xxx {USDT}</td>
+                                </tr>
+                                <tr data-cex="OKX">
+                                    <td class="uk-text-left cex-label text-cex-okx">OKX</td>
+                                    <td id="OKXSaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                             </tbody>
                             <tbody id="output_cex"></tbody>
@@ -2454,6 +2463,9 @@
                             case 'HTX':
                                 await cekAssetHtx(); // Tunggu hingga selesai
                                 break;
+                            case 'OKX':
+                                await cekAssetOkx(); // Tunggu hingga selesai
+                                break;
                             default:
                                 break;
                         }
@@ -2514,7 +2526,7 @@
 
                 // ✅ FIX: Loop semua CEX yang mungkin ada (tidak pakai checkbox lagi)
                 // Karena sistem baru menggunakan IndexedDB, tidak ada checkbox CEX
-                const allCEX = ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX'];
+                const allCEX = ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
 
                 allCEX.forEach(cex => {
                     const saldoKey = `MULTI_${cex}Saldo`;
@@ -2769,7 +2781,7 @@
                 console.log('[DEBUG] ========== UPDATE TABLE ROWS CEX ==========');
 
                 // ✅ FIX: Loop semua CEX yang mungkin ada (tidak pakai checkbox lagi)
-                const allCEX = ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX'];
+                const allCEX = ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
 
                 allCEX.forEach(cex => {
                     const saldoKey = `MULTI_${cex}Saldo`;
@@ -3231,6 +3243,70 @@
                     } catch { }
                     setOut(`<span class="uk-text-danger">ERROR</span><br/><small>${escapeHtml(error.message || String(error))}</small>`);
                     if (typeof toast !== 'undefined' && toast.error) toast.error("Error Pengecekan HTX: " + (error.message || error));
+                    console.error(error);
+                }
+            }
+
+            async function cekAssetOkx() {
+                const container = document.querySelector("#OKXSaldo");
+                const setOut = (html) => { if (container) container.innerHTML = html; };
+
+                // Auto-load API keys from IndexedDB
+                const credentials = getCEXCredentials('OKX');
+                if (!credentials || !credentials.ApiKey || !credentials.ApiSecret || !credentials.Passphrase) {
+                    console.log('[OKX] ⚠️ No API credentials configured');
+                    setOut('<span class="uk-text-danger">NO API KEY</span>');
+                    return;
+                }
+                const apiKey = credentials.ApiKey;
+                const apiSecret = credentials.ApiSecret;
+                const passphrase = credentials.Passphrase;
+
+                try {
+                    setOut("Loading...");
+
+                    const timestamp = new Date().toISOString();
+                    const method = 'GET';
+                    const requestPath = '/api/v5/account/balance';
+
+                    // OKX signature: Base64(HMAC-SHA256(timestamp + method + requestPath + body, secret))
+                    const preSign = timestamp + method + requestPath;
+                    const sign = CryptoJS.HmacSHA256(preSign, apiSecret).toString(CryptoJS.enc.Base64);
+
+                    const proxyUrl = CONFIG_PROXY.PREFIX;
+                    const url = `${proxyUrl}https://www.okx.com${requestPath}`;
+
+                    const headers = {
+                        'OK-ACCESS-KEY': apiKey,
+                        'OK-ACCESS-SIGN': sign,
+                        'OK-ACCESS-TIMESTAMP': timestamp,
+                        'OK-ACCESS-PASSPHRASE': passphrase
+                    };
+
+                    const resp = await fetch(url, { method: 'GET', headers });
+                    const data = await resp.json();
+
+                    if (data?.code !== '0' || !data?.data) {
+                        throw new Error(data?.msg || 'Failed to get OKX balance');
+                    }
+
+                    // OKX balance response: data[0].details = array of {ccy, availBal, frozenBal, ...}
+                    const balanceDetails = (data.data[0]?.details || []);
+                    const assets = balanceDetails.map(item => ({
+                        symbol: String(item.ccy || '').toUpperCase(),
+                        amount: parseFloat(item.cashBal || item.availBal || 0) + parseFloat(item.frozenBal || 0)
+                    }));
+
+                    await renderExchangeAssets("OKX", assets);
+                    console.log("Cek Asset OKX:", assets);
+
+                } catch (error) {
+                    try {
+                        localStorage.setItem('MULTI_OKXSaldo', "0");
+                        localStorage.removeItem('MULTI_OKX_DETAIL');
+                    } catch { }
+                    setOut(`<span class="uk-text-danger">ERROR</span><br/><small>${escapeHtml(error.message || String(error))}</small>`);
+                    if (typeof toast !== 'undefined' && toast.error) toast.error("Error Pengecekan OKX: " + (error.message || error));
                     console.error(error);
                 }
             }
@@ -3840,7 +3916,7 @@
                 }
 
                 // Memuat saldo excanger dari localStorage dan menampilkannya di tabel
-                const exchanges = ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'MEXC', 'INDODAX'];
+                const exchanges = ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'MEXC', 'INDODAX', 'HTX', 'OKX'];
                 let totalSaldo = 0;
 
                 exchanges.forEach(exchange => {

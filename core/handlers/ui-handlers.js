@@ -188,9 +188,11 @@
             const filename = `${MAIN_APP_NAME_SAFE}_BACKUP_${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
             const ok = window.downloadJSON ? window.downloadJSON(filename, payload) : false;
             if (ok) {
-                if (typeof toast !== 'undefined' && toast.success) toast.success(`Backup berhasil. ${payload.count||payload.items.length} item disalin.`);
+                const lsCount = (payload.localStorageItems && payload.localStorageItems.length) || 0;
+                const lsMsg = lsCount > 0 ? ` + ${lsCount} wallet/portfolio` : '';
+                if (typeof toast !== 'undefined' && toast.success) toast.success(`Backup berhasil. ${payload.count||payload.items.length} item${lsMsg} disalin.`);
                 try { setLastAction('BACKUP DATABASE'); } catch(_) {}
-                try { $('#backupSummary').text(`Backup: ${payload.items.length} item pada ${new Date().toLocaleString('id-ID',{hour12:false})}`); } catch(_) {}
+                try { $('#backupSummary').text(`Backup: ${payload.items.length} item${lsMsg} pada ${new Date().toLocaleString('id-ID',{hour12:false})}`); } catch(_) {}
             } else {
                 if (typeof toast !== 'undefined' && toast.error) toast.error('Gagal mengunduh file backup.');
             }
@@ -235,8 +237,9 @@
                 } catch(_) {}
                 const res = await (window.restoreIDB ? window.restoreIDB(json) : Promise.resolve({ ok:0, fail:0 }));
                 try { setLastAction('RESTORE DATABASE'); } catch(_) {}
-                const msg = `Restore selesai. OK: ${res.ok}, Fail: ${res.fail}`;
-                try { $('#backupSummary').text(`Restore OK: ${res.ok}, Fail: ${res.fail}`); } catch(_) {}
+                const lsInfo = res.lsRestored ? `, Wallet/Portfolio: ${res.lsRestored}` : '';
+                const msg = `Restore selesai. OK: ${res.ok}, Fail: ${res.fail}${lsInfo}`;
+                try { $('#backupSummary').text(`Restore OK: ${res.ok}, Fail: ${res.fail}${lsInfo}`); } catch(_) {}
                 // Tampilkan notifikasi sukses dan reload halaman agar data hasil restore terpakai penuh
                 try {
                     if (typeof UIkit !== 'undefined' && UIkit.notification) {
