@@ -13,7 +13,7 @@
     <!-- Removed Bootstrap CSS and Bootstrap Icons; use UIkit icons instead -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <script src="../js/notify-shim.js"></script>
+    <script src="js/notify-shim.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
         integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -1444,18 +1444,35 @@
             // ========================================
             async function displayCEXKeysFromIndexedDB() {
                 try {
-                    // Wait for IndexedDB to be ready
+                    // Wait for BOTH IndexedDB shim AND storage.js cache to be ready
                     if (typeof window.__IDB_LOCALSTORAGE_READY__ !== 'undefined') {
                         await window.__IDB_LOCALSTORAGE_READY__;
+                    }
+                    if (typeof window.whenStorageReady !== 'undefined') {
+                        await window.whenStorageReady;
                     }
 
                     console.log('========================================');
                     console.log('📦 CEX API KEYS FROM INDEXEDDB (Modal)');
                     console.log('========================================');
 
-                    const cexKeys = getFromLocalStorage('CEX_API_KEYS', {});
+                    let cexKeys = getFromLocalStorage('CEX_API_KEYS', {});
 
-                    if (!cexKeys || Object.keys(cexKeys).length === 0) {
+                    // Decrypt if data is encrypted string
+                    if (typeof cexKeys === 'string' && cexKeys.length > 0) {
+                        console.log(`[CEX DEBUG] Data is encrypted string (${cexKeys.length} chars), decrypting...`);
+                        const decrypted = (typeof appDecrypt === 'function') ? appDecrypt(cexKeys) : null;
+                        if (decrypted && typeof decrypted === 'object') {
+                            cexKeys = decrypted;
+                            console.log('[CEX DEBUG] Decryption successful');
+                        } else {
+                            console.warn('[CEX DEBUG] Decryption failed! appDecrypt returned:', decrypted);
+                            console.log('========================================');
+                            return;
+                        }
+                    }
+
+                    if (!cexKeys || typeof cexKeys !== 'object' || Object.keys(cexKeys).length === 0) {
                         console.log('⚠️ No CEX API keys found in IndexedDB');
                         console.log('💡 Configure CEX API keys in main app Settings');
                         console.log('========================================');
@@ -1507,6 +1524,68 @@
             // ========================================
             // END DEBUG LOGGING
             // ========================================
+
+            // ========================================
+            // CEX CREDENTIALS CACHE (portofolio-specific)
+            // ========================================
+            // Override getCEXCredentials to use a local decrypted cache.
+            // This avoids repeated decrypt calls and timing issues with storage.js cache.
+            let _portfolioCEXKeysCache = null;
+
+            async function warmCEXCredentials() {
+                try {
+                    // Wait for both storage systems
+                    if (window.__IDB_LOCALSTORAGE_READY__) await window.__IDB_LOCALSTORAGE_READY__;
+                    if (window.whenStorageReady) await window.whenStorageReady;
+
+                    const raw = (typeof getFromLocalStorage === 'function')
+                        ? getFromLocalStorage('CEX_API_KEYS', null)
+                        : null;
+
+                    if (!raw) {
+                        console.warn('[CEX Cache] No CEX_API_KEYS found in storage');
+                        _portfolioCEXKeysCache = {};
+                        return;
+                    }
+
+                    if (typeof raw === 'string') {
+                        // Encrypted string — decrypt
+                        const decrypted = (typeof appDecrypt === 'function') ? appDecrypt(raw) : null;
+                        if (decrypted && typeof decrypted === 'object') {
+                            _portfolioCEXKeysCache = decrypted;
+                            console.log('[CEX Cache] ✅ Decrypted CEX keys:', Object.keys(decrypted));
+                        } else {
+                            console.error('[CEX Cache] ❌ Decryption failed');
+                            _portfolioCEXKeysCache = {};
+                        }
+                    } else if (typeof raw === 'object') {
+                        // Already an object (unencrypted)
+                        _portfolioCEXKeysCache = raw;
+                        console.log('[CEX Cache] ✅ Loaded CEX keys (plain):', Object.keys(raw));
+                    } else {
+                        _portfolioCEXKeysCache = {};
+                    }
+                } catch (error) {
+                    console.error('[CEX Cache] Error warming cache:', error);
+                    _portfolioCEXKeysCache = {};
+                }
+            }
+
+            // Override global getCEXCredentials to use local cache
+            window.getCEXCredentials = function (cexName) {
+                if (!_portfolioCEXKeysCache) {
+                    console.warn(`[CEX] Cache not ready when requesting ${cexName}`);
+                    return null;
+                }
+                if (_portfolioCEXKeysCache[cexName]) {
+                    return _portfolioCEXKeysCache[cexName];
+                }
+                return null;
+            };
+
+            // Warm the cache immediately
+            await warmCEXCredentials();
+
             // Ensure IndexedDB-backed localStorage is initialized
             if (window.__IDB_LOCALSTORAGE_READY__) {
                 try { await window.__IDB_LOCALSTORAGE_READY__; } catch (e) { }
@@ -1592,13 +1671,14 @@
             }
 
             function isCexTableReady() {
-                // Ensure no placeholder values remain on visible rows and total is computed
-                const hasPlaceholders = $("#assetTableCexs tbody.cex-static tr:visible td[id$='Saldo']")
+                // Ensure no loading placeholders remain on visible rows and total is computed
+                // Note: ??? means CEX check failed (= done), only xxx means still loading
+                const stillLoading = $("#assetTableCexs tbody.cex-static tr:visible td[id$='Saldo']")
                     .toArray()
-                    .some(td => /xxx|\?\?\?/.test($(td).text()));
+                    .some(td => /^xxx$/i.test($(td).text().trim()));
                 const totalText = $('#TotalSaldoCEX').text().trim();
                 const totalReady = totalText !== '...' && totalText.length > 0;
-                return !hasPlaceholders && totalReady;
+                return !stillLoading && totalReady;
             }
 
             function isWalletTableReady(expectedResults) {
@@ -1741,17 +1821,26 @@
             // Token lain akan di-skip dan tidak ditampilkan
             const ALLOWED_TOKENS = new Set([
                 // Stablecoins
-                'USDT', 'USDC', 'BUSD', 'TUSD', 'USDP', 'FDUSD', 'DAI',
+                'USDT', 'USDC', 'BUSD', 'TUSD', 'USDP', 'FDUSD', 'DAI', 'USDD', 'PYUSD', 'EURC',
                 // Major tokens
                 'BTC', 'ETH', 'BNB', 'WBTC', 'WETH',
-                // Gas tokens untuk setiap chain
-                'POL', 'MATIC', // Polygon
-                'SOL',          // Solana
-                'AVAX',         // Avalanche
-                'ARB',          // Arbitrum
-                'OP',           // Optimism
+                // Top 50 tokens
+                'XRP', 'ADA', 'DOGE', 'SOL', 'DOT', 'SHIB', 'AVAX', 'LINK', 'TRX', 'UNI',
+                'ATOM', 'LTC', 'ETC', 'XLM', 'NEAR', 'FIL', 'APT', 'ALGO', 'VET', 'ICP',
+                'AAVE', 'GRT', 'FTM', 'SAND', 'MANA', 'AXS', 'THETA', 'EGLD', 'HBAR', 'XTZ',
+                'EOS', 'FLOW', 'CHZ', 'CAKE', 'ZIL', 'ENJ', 'BAT', 'CRV', 'LDO', 'COMP',
+                'SNX', 'MKR', 'SUSHI', '1INCH', 'YFI', 'DYDX', 'GMX', 'INJ', 'SUI', 'SEI',
+                'ARB', 'OP', 'WLD', 'PEPE', 'FLOKI', 'BONK', 'WIF', 'JUP', 'TIA', 'STX',
+                'RENDER', 'FET', 'RNDR', 'TAO', 'JASMY', 'IMX', 'PENDLE', 'RUNE', 'ORDI',
+                'TON', 'NOT', 'DOGS', 'KAS', 'TWT', 'GALA', 'ROSE', 'CELO', 'ONE', 'ZRX',
+                // Gas tokens
+                'POL', 'MATIC',  // Polygon
+                'CRO',           // Cronos
+                'FTM',           // Fantom
+                'KLAY',          // Klaytn
+                'MOVR', 'GLMR', // Moonbeam/Moonriver
                 // Fiat currency
-                'IDR'           // Indonesian Rupiah (for Indodax)
+                'IDR'            // Indonesian Rupiah (for Indodax)
             ]);
 
             // Changed to 1.0 to show only assets with value above $1
@@ -1807,25 +1896,75 @@
                 if (priceTickerCache.tickers.size && (Date.now() - priceTickerCache.lastFetch) < 60000) {
                     return priceTickerCache.tickers;
                 }
+
+                const map = new Map();
+
+                // Source 1: Binance ticker prices (primary)
                 try {
                     const response = await fetch("https://data-api.binance.vision/api/v3/ticker/price");
-                    if (!response.ok) throw new Error(`Ticker request failed: ${response.status}`);
+                    if (!response.ok) throw new Error(`Binance ticker failed: ${response.status}`);
                     const data = await response.json();
-                    const map = new Map();
                     data.forEach(item => {
                         if (item?.symbol && item?.price) {
                             map.set(item.symbol.toUpperCase(), parseFloat(item.price));
                         }
                     });
+                    console.log(`[TICKER] Binance loaded: ${map.size} pairs`);
+                } catch (error) {
+                    console.warn("[TICKER] Binance fetch failed:", error);
+                }
+
+                // Source 2: MEXC ticker prices (fallback for tokens not on Binance)
+                try {
+                    const response = await fetch("https://api.mexc.com/api/v3/ticker/price");
+                    if (response.ok) {
+                        const data = await response.json();
+                        let added = 0;
+                        data.forEach(item => {
+                            if (item?.symbol && item?.price) {
+                                const sym = item.symbol.toUpperCase();
+                                if (!map.has(sym)) {
+                                    map.set(sym, parseFloat(item.price));
+                                    added++;
+                                }
+                            }
+                        });
+                        console.log(`[TICKER] MEXC loaded: ${added} extra pairs`);
+                    }
+                } catch (error) {
+                    console.warn("[TICKER] MEXC fallback failed (non-critical):", error);
+                }
+
+                // Source 3: Gate.io ticker prices (another fallback)
+                try {
+                    const response = await fetch("https://api.gateio.ws/api/v4/spot/tickers");
+                    if (response.ok) {
+                        const data = await response.json();
+                        let added = 0;
+                        data.forEach(item => {
+                            if (item?.currency_pair && item?.last) {
+                                const sym = item.currency_pair.replace('_', '').toUpperCase();
+                                if (!map.has(sym)) {
+                                    map.set(sym, parseFloat(item.last));
+                                    added++;
+                                }
+                            }
+                        });
+                        console.log(`[TICKER] Gate.io loaded: ${added} extra pairs`);
+                    }
+                } catch (error) {
+                    console.warn("[TICKER] Gate.io fallback failed (non-critical):", error);
+                }
+
+                if (map.size > 0) {
                     priceTickerCache.tickers = map;
                     priceTickerCache.lastFetch = Date.now();
                     priceTickerCache.assetRates.clear();
-                } catch (error) {
-                    console.warn("âŒ Failed to refresh Binance ticker cache", error);
-                    if (!priceTickerCache.tickers.size) {
-                        throw error;
-                    }
+                    console.log(`[TICKER] Total cache: ${map.size} pairs from multiple sources`);
+                } else if (!priceTickerCache.tickers.size) {
+                    throw new Error("Failed to fetch ticker data from all sources");
                 }
+
                 return priceTickerCache.tickers;
             }
 
@@ -2373,32 +2512,14 @@
                 console.log('[DEBUG] ========== CEX CHECK STARTED ==========');
                 console.log('[DEBUG] SaveConfigCEXS button clicked');
 
-                // ✅ Wait for IndexedDB to be ready
-                if (typeof window.__IDB_LOCALSTORAGE_READY__ !== 'undefined') {
-                    try {
-                        await window.__IDB_LOCALSTORAGE_READY__;
-                        console.log('[CEX Check] ✅ IndexedDB is ready');
-                    } catch (error) {
-                        console.error('[CEX Check] ❌ IndexedDB failed to initialize:', error);
-                        if (typeof toast !== 'undefined' && toast.error) {
-                            toast.error('IndexedDB belum siap! Coba refresh halaman.');
-                        }
-                        return;
-                    }
-                } else {
-                    console.warn('[CEX Check] ⚠️ __IDB_LOCALSTORAGE_READY__ not found, proceeding anyway');
-                }
+                // ✅ Re-warm CEX credentials cache (in case settings changed)
+                await warmCEXCredentials();
 
-                // ✅ Get configured CEX from IndexedDB
-                console.log('[DEBUG] Checking getFromLocalStorage availability:', typeof getFromLocalStorage === 'function');
-                const cexKeys = (typeof getFromLocalStorage === 'function')
-                    ? getFromLocalStorage('CEX_API_KEYS', {})
-                    : {};
+                // Use the cached decrypted keys
+                const cexKeys = _portfolioCEXKeysCache || {};
+                console.log('[CEX Check] CEX keys available:', Object.keys(cexKeys));
 
-                console.log('[DEBUG] CEX_API_KEYS from IndexedDB:', cexKeys);
-                console.log('[DEBUG] CEX_API_KEYS keys:', Object.keys(cexKeys));
-
-                // Get all CEX that have valid credentials in IndexedDB
+                // Get all CEX that have valid credentials
                 const checkedExchanges = Object.keys(cexKeys).filter(cex => {
                     const credentials = cexKeys[cex];
                     const isValid = credentials && credentials.ApiKey && credentials.ApiSecret;
@@ -2407,10 +2528,12 @@
                 });
 
                 if (checkedExchanges.length === 0) {
-                    console.error('[CEX Check] ❌ No CEX configured!');
+                    //  console.error('[CEX Check] ❌ No CEX configured!');
                     if (typeof toast !== 'undefined' && toast.warning) {
                         toast.warning('Tidak ada CEX yang dikonfigurasi! Silakan konfigurasi API keys di Settings aplikasi utama.');
                     }
+                    // Emit completion so combined flow (Promise.all) doesn't hang forever
+                    $(document).trigger('CEXCheckCompleted');
                     return;
                 }
 
@@ -2808,21 +2931,24 @@
                 console.log('[DEBUG] ========== UPDATE TABLE ROWS DONE ==========');
             }
 
-            async function cekAssetBinance() {
-                console.log('[DEBUG] === BINANCE CHECK START ===');
+            async function cekAssetBitget() {
+                console.log('[DEBUG] === BITGET CHECK START ===');
                 // ✅ Auto-load API keys from IndexedDB
-                const credentials = getCEXCredentials('BINANCE');
-                console.log('[DEBUG] BINANCE credentials:', credentials ? '✅ Found' : '❌ Not found');
+                const credentials = getCEXCredentials('BITGET');
+                console.log('[DEBUG] BITGET credentials:', credentials ? '✅ Found' : '❌ Not found');
 
                 if (!credentials || !credentials.ApiKey || !credentials.ApiSecret) {
-                    console.log('[BINANCE] ⚠️ No API credentials configured');
-                    $("#BINANCESaldo").html('<span class="uk-text-danger">NO API KEY</span>');
+                    console.log('[BITGET] ⚠️ No API credentials configured');
+                    $("#BITGETSaldo").html('<span class="uk-text-danger">NO API KEY</span>');
                     return;
                 }
                 const apiKey = credentials.ApiKey;
                 const apiSecret = credentials.ApiSecret;
+                const passphrase = credentials.Passphrase || '';
 
-                const apiUrl = "https://cors-anywhere.com/https://api.bitget.com/api/v2/spot/account/assets";
+                const proxyUrl = CONFIG_PROXY.PREFIX;
+                const targetUrl = "https://api.bitget.com/api/v2/spot/account/assets";
+                const proxiedUrl = `${targetUrl}`;
                 const timestamp = Date.now().toString();
                 const preSignature = timestamp + "GET" + "/api/v2/spot/account/assets";
                 const signature = CryptoJS.HmacSHA256(preSignature, apiSecret).toString(CryptoJS.enc.Base64);
@@ -2836,9 +2962,11 @@
 
                 try {
                     $("#BITGETSaldo").text("Loading...");
-                    const response = await fetch(apiUrl, { method: "GET", headers });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const data = await response.json();
+                    const resp = await fetch(proxiedUrl, { method: "GET", headers });
+                    const rawText = await resp.text();
+                    let data;
+                    try { data = JSON.parse(rawText); } catch { throw new Error(`Invalid JSON response: ${rawText.substring(0, 100)}`); }
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${data?.msg || resp.statusText}`);
 
                     const assets = Array.isArray(data?.data)
                         ? data.data.map(item => ({
@@ -2872,7 +3000,9 @@
                 const apiSecret = credentials.ApiSecret;
                 const passphrase = credentials.Passphrase;
 
-                const apiUrl = "https://api.kucoin.com/api/v1/accounts";
+                const PROXY_BASE = "https://cors-proxy-rosy.vercel.app/api/proxy";
+                const targetUrl = "https://api.kucoin.com/api/v1/accounts";
+                const proxiedUrl = `${PROXY_BASE}?url=${encodeURIComponent(targetUrl)}`;
                 const timestamp = Date.now().toString();
                 const preSignature = timestamp + "GET" + "/api/v1/accounts";
                 const signature = CryptoJS.HmacSHA256(preSignature, apiSecret).toString(CryptoJS.enc.Base64);
@@ -2889,9 +3019,11 @@
 
                 try {
                     $("#KUCOINSaldo").text("Loading...");
-                    const response = await fetch(apiUrl, { method: "GET", headers });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const data = await response.json();
+                    const resp = await fetch(proxiedUrl, { method: "GET", headers });
+                    const rawText = await resp.text();
+                    let data;
+                    try { data = JSON.parse(rawText); } catch { throw new Error(`Invalid JSON response: ${rawText.substring(0, 100)}`); }
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${data?.msg || resp.statusText}`);
 
                     const assets = Array.isArray(data?.data)
                         ? data.data.map(item => ({
@@ -2922,11 +3054,10 @@
                 const apiKey = credentials.ApiKey;
                 const apiSecret = credentials.ApiSecret;
 
+                const PROXY_BASE = "https://cors-proxy-rosy.vercel.app/api/proxy";
                 const recvWindow = 5000;
                 const timestamp = Date.now().toString();
-                const host = "https://api.bybit.com";
                 const method = "GET";
-                const url = "/v5/account/wallet-balance";
                 const queryString = "accountType=UNIFIED";
 
                 function calculateSignature(secret, timestamp, recvWindow, queryString) {
@@ -2935,11 +3066,12 @@
                 }
 
                 const sign = calculateSignature(apiSecret, timestamp, recvWindow, queryString);
-                const fullUrl = `${host}${url}?${queryString}`;
+                const targetUrl = `https://api.bybit.com/v5/account/wallet-balance?${queryString}`;
+                const proxiedUrl = `${PROXY_BASE}?url=${encodeURIComponent(targetUrl)}`;
 
                 try {
                     $("#BYBITSaldo").text("Loading...");
-                    const response = await fetch(fullUrl, {
+                    const response = await fetch(targetUrl, {
                         method,
                         headers: {
                             Accept: "application/json",
@@ -3322,20 +3454,23 @@
                 const apiKey = credentials.ApiKey;
                 const apiSecret = credentials.ApiSecret;
 
-                const apiUrl = "https://api-gcp.binance.com/api/v3/account";
+                const PROXY_BASE = "https://cors-proxy-rosy.vercel.app/api/proxy";
                 const timestamp = Date.now();
                 const queryString = `timestamp=${timestamp}`;
                 const signature = CryptoJS.HmacSHA256(queryString, apiSecret).toString(CryptoJS.enc.Hex);
-                const fullUrl = `${apiUrl}?${queryString}&signature=${signature}`;
+                const targetUrl = `https://api.binance.com/api/v3/account?${queryString}&signature=${signature}`;
+                const proxiedUrl = `${PROXY_BASE}?url=${encodeURIComponent(targetUrl)}`;
 
                 const headers = { "X-MBX-APIKEY": apiKey };
 
                 try {
                     $("#BINANCESaldo").text("Loading...");
 
-                    const response = await fetch(fullUrl, { method: "GET", headers });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const data = await response.json();
+                    const resp = await fetch(targetUrl, { method: "GET", headers });
+                    const rawText = await resp.text();
+                    let data;
+                    try { data = JSON.parse(rawText); } catch { throw new Error(`Invalid JSON response: ${rawText.substring(0, 100)}`); }
+                    if (!resp.ok || (data?.code && data?.msg)) throw new Error(`Binance error: ${data?.msg || resp.statusText} (${data?.code || resp.status})`);
 
                     if (!data || !Array.isArray(data.balances)) throw new Error("Tidak ada data balance");
 
@@ -3790,8 +3925,9 @@
                     ShowLabelModal("check");
 
                     // Pastikan kedua tabel sudah siap sebelum menutup overlay
-                    await waitFor(() => isCexTableReady(), 15000, 100);
-                    await waitFor(() => isWalletTableReady(), 15000, 100);
+                    // Timeout pendek (3s) karena sub-handler sudah waitFor sendiri
+                    await waitFor(() => isCexTableReady(), 3000, 100);
+                    await waitFor(() => isWalletTableReady(), 3000, 100);
 
                     window.BalanceCheckOverlay.updateProgress(100, 'Memeriksa Ulang Data...');
 

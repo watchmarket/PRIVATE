@@ -1,6 +1,6 @@
 const CONFIG_APP = {
     APP: {
-        NAME: "APP PRIVATE",
+        NAME: "APP_DEV",
         VERSION: "2026.02.12",
         SCAN_LIMIT: false,
         AUTORUN: true,
@@ -226,7 +226,7 @@ const CONFIG_CHAINS = {
             BYBIT: { address: '0xf89d7b9c864f589bbf53a82105107622b35eaa40', chainCEX: 'BSC' },
             // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'BSC' },
             HTX: { address: '0xafdfd157d9361e621e476036FEE62f688450692B', address2: '0xdd3CB5c974601BC3974d908Ea4A86020f9999E0c', chainCEX: 'BSC' },
-            OKX: { address: '', chainCEX: 'BNB Chain' },
+            OKX: { address: '0xA0420C29B214d09b9ec751aa1f592c7b1fa77dA3', chainCEX: 'BNB Chain' },
         },
         PAIRDEXS: {
             "BNB": { symbolPair: "BNB", scAddressPair: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", desPair: "18" },
@@ -262,7 +262,7 @@ const CONFIG_CHAINS = {
             INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6', address2: '0x91Dca37856240E5e1906222ec79278b16420Dc92', chainCEX: 'POLYGON' },
             // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'MATIC' },
             HTX: { address: '0x9a7ffd7f6c42ab805e0edf16c25101964c6326b6', chainCEX: 'MATIC' },
-            OKX: { address: '', chainCEX: 'Polygon' },
+            OKX: { address: '0x343d752bB710c5575E417edB3F9FA06241A4749A', chainCEX: 'Polygon' },
         },
         PAIRDEXS: {
             "USDT": { symbolPair: 'USDT', scAddressPair: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', desPair: '6' },
@@ -290,7 +290,7 @@ const CONFIG_CHAINS = {
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Arbitrum One' },
             // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'ARBITRUM' },
             HTX: { address: '0x82D015d74670d8645b56c3f453398a3E799Ee582', chainCEX: 'ARBITRUM' },
-            OKX: { address: '', chainCEX: 'Arbitrum One' },
+            OKX: { address: '0xAfEE421482FAEa92292ED3ffE29371742542AD72', chainCEX: 'Arbitrum One' },
         },
         PAIRDEXS: {
             "ETH": { symbolPair: 'ETH', scAddressPair: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', desPair: '18' },
@@ -386,8 +386,7 @@ const CONFIG_CHAINS = {
             BYBIT: { address: 'AC5RDfQFmDS1deWZos921JfqscXdByf8BKHs5ACWjtW2', address2: '42brAgAVNzMBP7aaktPvAmBSPEkehnFQejiZc53EpJFd', chainCEX: 'SOL' },
             OKX: { address: 'AC5RDfQFmDS1deWZos921JfqscXdByf8BKHs5ACWjtW2', address2: '42brAgAVNzMBP7aaktPvAmBSPEkehnFQejiZc53EpJFd', chainCEX: 'Solana' },
             INDODAX: { address: 'AC5RDfQFmDS1deWZos921JfqscXdByf8BKHs5ACWjtW2', chainCEX: 'SOL' },
-            // LBANK: { address: '', chainCEX: 'SOL' },
-            HTX: { address: '', chainCEX: 'SOL' },
+            HTX: { address: '9un5wqE3q4oCjyrDkwsdD48KteCJitQX5978Vh7KKxHo', chainCEX: 'SOL' },
         },
         PAIRDEXS: {
             "SOL": { symbolPair: 'SOL', scAddressPair: 'So11111111111111111111111111111111111111112', desPair: '9' },
@@ -1073,7 +1072,7 @@ const CHAIN_SYNONYMS = {
               'POLYGON_POS', 'POLYGONEVM', 'Polygon PoS'],
     arbitrum: ['ARBITRUM', 'ARB', 'ARBITRUM ONE', 'ARBEVM', 'ARBITRUMONE', 'ARB-ETH', 'ARBMAINNET',
                'ARBONE', 'ARBITRUMEVM', 'ARBI'],
-    base: ['BASE', 'BASE MAINNET', 'BASEEVM', 'BASEMAINNET',
+    base: ['BASE','Base', 'BASE MAINNET', 'BASEEVM', 'BASEMAINNET',
            'BASE CHAIN', 'BASECHAIN'],
     solana: ['SOL', 'SOLANA', 'SPL', 'SOLANA MAINNET', 'SOLMAINNET',
              'SOLANA CHAIN', 'SOLCHAIN'],
