@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
-        NAME: "APP_DEV",
-        VERSION: "2026.02.12",
+        NAME: "APP PRIVATE",
+        VERSION: "2026.02.13",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
