@@ -62,13 +62,17 @@ try { if (typeof window !== 'undefined') { window.renderMonitoringHeader = rende
 function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
   // header helpers moved to top-level: computeActiveDexList(), renderMonitoringHeader()
   // refactor: pecah rendering row menjadi helper kecil agar lebih mudah dibaca/dirawat.
-  function buildOrderbookCell(side, data, idPrefix, warnaCex) {
-    const arrow = side === 'LEFT' ? `${(data.symbol_in || '').toUpperCase()} → ${(data.symbol_out || '').toUpperCase()}`
-      : `${(data.symbol_out || '').toUpperCase()} → ${(data.symbol_in || '').toUpperCase()}`;
+  function buildOrderbookCell(side, data, idPrefix, warnaCex, warnaChain) {
+    const symIn = (data.symbol_in || '').toUpperCase();
+    const symOut = (data.symbol_out || '').toUpperCase();
+    const cc = warnaChain || warnaCex;
+    const arrow = side === 'LEFT'
+      ? `<span style="color:${cc}">${symIn} → ${symOut}</span>`
+      : `<span style="color:${cc}">${symOut} → ${symIn}</span>`;
     const rawId = `${side}_` +
       `${String(data.cex).toUpperCase()}_` +
-      `${String(data.symbol_in || '').toUpperCase()}_` +
-      `${String(data.symbol_out || '').toUpperCase()}_` +
+      `${String(symIn)}_` +
+      `${String(symOut)}_` +
       `${String(data.chain).toUpperCase()}`;
     const id = idPrefix + rawId.replace(/[^A-Z0-9_]/g, '');
     return `
@@ -227,7 +231,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const idPrefix = tableBodyId + '_';
 
       // refactor: gunakan helper kecil untuk orderbook kiri
-      rowHtml += buildOrderbookCell('LEFT', data, idPrefix, warnaCex);
+      rowHtml += buildOrderbookCell('LEFT', data, idPrefix, warnaCex, warnaChain);
 
       // refactor: render slot DEX kiri via helper (pass row index for unique IDs)
       rowHtml += buildDexSlots('LEFT', data, dexList, idPrefix, index);
@@ -308,7 +312,8 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const linkRBX = createHoverLink(`https://app.rubic.exchange/?fromChain=${rubicChain}&toChain=${rubicChain}&from=${data.sc_in}&to=${data.sc_out}`, '#RBX', 'uk-text-secondary');
 
       const rowId = `DETAIL_${String(data.cex).toUpperCase()}_${String(data.symbol_in).toUpperCase()}_${String(data.symbol_out).toUpperCase()}_${String(data.chain).toUpperCase()}`.replace(/[^A-Z0-9_]/g, '');
-      const chainShort = (data.chain || '').substring(0, 3).toUpperCase();
+      const chainRaw = (data.chain || '').toUpperCase();
+      const chainShort = chainRaw === 'BASE' ? 'BASE' : chainRaw.substring(0, 3);
 
       rowHtml += `
             <td id="${idPrefix}${rowId}" class="uk-text-center uk-background td-detail" style="text-align: center; border:1px solid black; padding:10px; ${detailBgStyle}">
@@ -337,8 +342,8 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                 </span>
                               
                 <span class="detail-line uk-text-bolder">${WD_TOKEN}~ ${DP_TOKEN} | ${WD_PAIR}~ ${DP_PAIR}</span>
-                <span class="detail-line"><span class="uk-text-primary uk-text-bolder">${(data.symbol_in || '').toUpperCase()}</span> ${linkSCtoken} : ${linkStokToken}</span>
-                <span class="detail-line"><span class="uk-text-primary uk-text-bolder">${(data.symbol_out || '').toUpperCase()}</span> ${linkSCpair} : ${linkStokPair}</span>
+                <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_in || '').toUpperCase()}</span> ${linkSCtoken} : ${linkStokToken}</span>
+                <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_out || '').toUpperCase()}</span> ${linkSCpair} : ${linkStokPair}</span>
                 <span class="detail-line"> ${linkDLX} ${linkDEFIL} ${linkOKDEX}  ${linkDZAP}</span>
                 <span class="detail-line"> ${linkRango} ${linkJumper} ${linkRBX}</span>
             </td>`;
@@ -347,7 +352,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       rowHtml += buildDexSlots('RIGHT', data, dexList, idPrefix, index);
 
       // refactor: gunakan helper kecil untuk orderbook kanan
-      rowHtml += buildOrderbookCell('RIGHT', data, idPrefix, warnaCex);
+      rowHtml += buildOrderbookCell('RIGHT', data, idPrefix, warnaCex, warnaChain);
 
       // End row
       rowHtml += '</tr>';
