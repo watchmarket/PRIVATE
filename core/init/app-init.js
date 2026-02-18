@@ -50,15 +50,40 @@ $(document).ready(function () {
             try { if (typeof window.updateRunningChainsBanner === 'function') window.updateRunningChainsBanner(); } catch (_) { }
             $('#stopSCAN').show().prop('disabled', false);
             $('#reload').prop('disabled', false);
-            //$('#infoAPP').html('⚠️ Proses sebelumnya tidak selesai. Tekan tombol <b>RESET PROSES</b> untuk memulai ulang.').show();
 
             try { if (typeof setScanUIGating === 'function') setScanUIGating(true); } catch (_) { }
         } else {
-            $('#startSCAN').prop('disabled', false).removeAttr('aria-busy').text('Start').removeClass('uk-button-disabled');
-            $('#stopSCAN').hide();
-            // Clear banner when not running
-            try { $('#infoAPP').text('').hide(); } catch (_) { }
-            try { if (typeof setScanUIGating === 'function') setScanUIGating(false); } catch (_) { }
+            // When SCAN_LIMIT is true, check if another mode is running globally
+            let lockedByOther = false;
+            let lockMode = '';
+            try {
+                const scanLimitEnabled = window.CONFIG_APP && window.CONFIG_APP.APP && window.CONFIG_APP.APP.SCAN_LIMIT === true;
+                if (scanLimitEnabled && typeof getGlobalScanLock === 'function') {
+                    const lock = getGlobalScanLock();
+                    if (lock) {
+                        // Check if lock is from a DIFFERENT mode than current
+                        const activeKey = (typeof getActiveFilterKey === 'function') ? getActiveFilterKey() : '';
+                        if (lock.key !== activeKey) {
+                            lockedByOther = true;
+                            lockMode = lock.mode || 'UNKNOWN';
+                        }
+                    }
+                }
+            } catch (_) { }
+
+            if (lockedByOther) {
+                // Another mode is scanning - disable Start but don't show Stop
+                $('#startSCAN').prop('disabled', true).removeAttr('aria-busy').text(`Locked (${lockMode})`).addClass('uk-button-disabled');
+                $('#stopSCAN').hide();
+                try { $('#infoAPP').text(`⚠️ Scan sedang berjalan di mode ${lockMode}`).show(); } catch (_) { }
+                try { if (typeof setScanUIGating === 'function') setScanUIGating(true); } catch (_) { }
+            } else {
+                $('#startSCAN').prop('disabled', false).removeAttr('aria-busy').text('Start').removeClass('uk-button-disabled');
+                $('#stopSCAN').hide();
+                // Clear banner when not running
+                try { $('#infoAPP').text('').hide(); } catch (_) { }
+                try { if (typeof setScanUIGating === 'function') setScanUIGating(false); } catch (_) { }
+            }
         }
     }
 
@@ -163,6 +188,15 @@ $(document).ready(function () {
                     // Refresh toolbar indicators and running banner for ANY filter change
                     try { if (typeof window.updateRunningChainsBanner === 'function') window.updateRunningChainsBanner(); } catch (_) { }
                     try { if (typeof window.updateToolbarRunIndicators === 'function') window.updateToolbarRunIndicators(); } catch (_) { }
+
+                    // When SCAN_LIMIT is enabled, re-evaluate Start button on ANY filter run change
+                    try {
+                        const scanLimitOn = window.CONFIG_APP && window.CONFIG_APP.APP && window.CONFIG_APP.APP.SCAN_LIMIT === true;
+                        if (scanLimitOn && msg.val && Object.prototype.hasOwnProperty.call(msg.val, 'run')) {
+                            const currentSt = getAppState();
+                            applyRunUI(currentSt && currentSt.run === 'YES');
+                        }
+                    } catch (_) { }
 
                     // If this update is for the ACTIVE filter key, also apply run/theme locally
                     const activeKey = (typeof getActiveFilterKey === 'function') ? getActiveFilterKey() : 'FILTER_MULTICHAIN';
@@ -428,6 +462,7 @@ $(document).ready(function () {
 
     /**
      * Build chain icon links based on CONFIG_CHAINS
+     * ✅ NOW FILTERS BY ENABLED CHAINS (from chain-toggle-helpers.js)
      * @param {string} activeKey - The active chain key ('all' for multichain)
      */
     function renderChainLinks(activeKey = 'all') {
@@ -435,28 +470,51 @@ $(document).ready(function () {
         if ($wrap.length === 0) return;
         $wrap.empty();
 
+        // Robot icon: only active when multichain mode (chain=all) and no CEX mode
+        const isCEXActive = window.CEXModeManager && window.CEXModeManager.isCEXMode();
+        const isMultichain = (!activeKey || activeKey === 'all');
+        if (isMultichain && !isCEXActive) {
+            $('#multichain_scanner').addClass('active-mode');
+        } else {
+            $('#multichain_scanner').removeClass('active-mode');
+        }
+
+        // ✅ Get enabled chains (only show icons for active chains)
+        const enabledChains = (typeof getEnabledChains === 'function')
+            ? getEnabledChains()
+            : Object.keys(CONFIG_CHAINS || {}); // Fallback: show all if function not available
+
         const currentPage = (window.location.pathname.split('/').pop() || 'index.html');
         Object.keys(CONFIG_CHAINS || {}).forEach(chainKey => {
+            // ✅ FILTER: Only render enabled chains
+            if (!enabledChains.includes(chainKey)) {
+                console.log(`[TOOLBAR] Chain ${chainKey} disabled, skipping icon render`);
+                return; // Skip this chain
+            }
+
             const chain = CONFIG_CHAINS[chainKey] || {};
             const isActive = String(activeKey).toLowerCase() === String(chainKey).toLowerCase();
-            const style = isActive ? 'width:30px' : '';
-            const width = isActive ? 30 : 24;
+
             const icon = chain.ICON || '';
             const name = chain.Nama_Chain || chainKey.toUpperCase();
+            const chainColor = chain.WARNA || '#2563eb';
+            const activeClass = isActive ? 'active' : '';
+            const activeStyle = isActive
+                ? `--icon-color: ${chainColor}; --icon-shadow: ${chainColor}40;`
+                : '';
+
             // Determine running state for this chain
             let running = false;
             try {
                 const f = getFromLocalStorage(`FILTER_${String(chainKey).toUpperCase()}`, {}) || {};
                 running = String(f.run || 'NO').toUpperCase() === 'YES';
             } catch (_) { }
-            // Do not apply ring or enlargement; small dot indicator handled elsewhere
-            const ring = '';
+
             const linkHTML = `
-                <span class="chain-link icon" data-chain="${chainKey}" style="display:inline-block; ${style} margin-right:4px;">
-                    <a href="${currentPage}?chain=${encodeURIComponent(chainKey)}" title="SCANNER ${name.toUpperCase()}">
-                        <img src="${icon}" alt="${name} icon" width="${width}" style="${ring}">
-                    </a>
-                </span>`;
+                <a href="${currentPage}?chain=${encodeURIComponent(chainKey)}" class="chain-link ${activeClass}" data-chain="${chainKey}"
+                   style="${activeStyle}" title="SCANNER ${name.toUpperCase()}">
+                    <img class="icon" src="${icon}" alt="${name} icon" width="24" />
+                </a>`;
             $wrap.append(linkHTML);
         });
         try { updateToolbarRunIndicators(); } catch (_) { }

@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
         NAME: "APP PRIVATE",
-        VERSION: "2026.02.13",
+        VERSION: "2026.02.19",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
@@ -36,6 +36,7 @@ try { if (typeof window !== 'undefined') { window.CONFIG_DB = window.CONFIG_DB |
 
 const CONFIG_CEX = {
     GATE: {
+        ICON: "assets/icons/cex/gate.png",
         WARNA: "#D5006D",  // Pink tua
         LINKS: {
             tradeToken: ({ token }) => `https://www.gate.com/trade/${String(token || '').toUpperCase()}_USDT`,
@@ -49,6 +50,7 @@ const CONFIG_CEX = {
         }
     },
     BINANCE: {
+        ICON: "assets/icons/cex/binance.png",
         WARNA: "#e0a50c",  // Orange tua
         LINKS: {
             tradeToken: ({ token }) => `https://www.binance.com/en/trade/${String(token || '').toUpperCase()}_USDT`,
@@ -62,6 +64,7 @@ const CONFIG_CEX = {
         }
     },
     MEXC: {
+        ICON: "assets/icons/cex/mexc.png",
         WARNA: "#1448ce",  // Biru muda
         LINKS: {
             tradeToken: ({ token }) => `https://www.mexc.com/exchange/${String(token || '').toUpperCase()}_USDT?_from=search`,
@@ -75,6 +78,7 @@ const CONFIG_CEX = {
         }
     },
     KUCOIN: {
+        ICON: "assets/icons/cex/kucoin.png",
         WARNA: "#29b3af",
         LINKS: {
             tradeToken: ({ token }) => `https://www.kucoin.com/trade/${String(token || '').toUpperCase()}-USDT`,
@@ -89,6 +93,7 @@ const CONFIG_CEX = {
         }
     },
     BITGET: {
+        ICON: "assets/icons/cex/bitget.png",
         WARNA: "#1aaaba",
         LINKS: {
             tradeToken: ({ token }) => `https://www.bitget.com/spot/${String(token || '').toUpperCase()}USDT`,
@@ -103,6 +108,7 @@ const CONFIG_CEX = {
         }
     },
     BYBIT: {
+        ICON: "assets/icons/cex/bybit.png",
         WARNA: "#f29900",
         LINKS: {
             tradeToken: ({ token }) => `https://www.bybit.com/trade/spot/${String(token || '').toUpperCase()}/USDT`,
@@ -117,6 +123,7 @@ const CONFIG_CEX = {
         }
     },
     INDODAX: {
+        ICON: "assets/icons/cex/indodax.png",
         WARNA: "#1285b5",
         LINKS: {
             tradeToken: ({ token }) => `https://indodax.com/trade/${String(token || '').toUpperCase()}IDR`,
@@ -147,6 +154,7 @@ const CONFIG_CEX = {
     //     }
     // },
     HTX: {
+        ICON: "assets/icons/cex/htx.png",
         WARNA: "#008cd6",  // HTX Blue color
         LINKS: {
             tradeToken: ({ token }) => `https://www.htx.com/trade/${String(token || '').toLowerCase()}_usdt`,
@@ -162,6 +170,7 @@ const CONFIG_CEX = {
         }
     },
     OKX: {
+        ICON: "assets/icons/cex/okx.png",
         WARNA: "#000000",
         LINKS: {
             tradeToken: ({ token }) => `https://www.okx.com/trade-spot/${String(token || '').toLowerCase()}-usdt`,
@@ -207,7 +216,7 @@ const DEFAULT_RPC_SUGGESTIONS = {};
 
 const CONFIG_CHAINS = {
     bsc: {
-        Kode_Chain: 56, Nama_Chain: "bsc", Nama_Pendek: "bsc", URL_Chain: "https://bscscan.com", WARNA: "#f0af18", ICON: "assets/icons/chains/bsc.png", DATAJSON: 'https://monitoring-koin.vercel.app/JSON_KOIN/BSC.json', BaseFEEDEX: "BNBUSDT", GASLIMIT: 80000,
+        Kode_Chain: 56, Nama_Chain: "bsc", Nama_Pendek: "bsc", URL_Chain: "https://bscscan.com", WARNA: "#f0af18", ICON: "assets/icons/chains/bsc.png", DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_BSC.json', BaseFEEDEX: "BNBUSDT", GASLIMIT: 80000,
         LINKS: {
             explorer: {
                 token: (address) => `https://bscscan.com/token/${address}`,
@@ -241,7 +250,7 @@ const CONFIG_CHAINS = {
         URL_Chain: "https://polygonscan.com",
         ICON: "assets/icons/chains/polygon.png",
         WARNA: "#cd72f4ff",
-        DATAJSON: 'https://monitoring-koin.vercel.app/JSON_KOIN/POLYGON.json',
+        DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_POLYGON.json',
         BaseFEEDEX: "MATICUSDT", // Corrected from POLUSDT
         GASLIMIT: 80000,
         DEXS: ["kyber", "sushi", "okx", "relay", "flytrade", "odos", "velora", "matcha"],   // ✅ Removed Meta-DEX: lifi, rubic, rango
@@ -260,7 +269,6 @@ const CONFIG_CHAINS = {
             BITGET: { address: '0x0639556F03714A74a5fEEaF5736a4A64fF70D206', address2: '0x51971c86b04516062c1e708CDC048CB04fbe959f', address3: '0xBDf5bAfEE1291EEc45Ae3aadAc89BE8152D4E673', chainCEX: 'Polygon' },
             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Polygon PoS' },
             INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6', address2: '0x91Dca37856240E5e1906222ec79278b16420Dc92', chainCEX: 'POLYGON' },
-            // LBANK: { address: '0x120051a72966950B8ce12eB5496B5D1eEEC1541B', chainCEX: 'MATIC' },
             HTX: { address: '0x9a7ffd7f6c42ab805e0edf16c25101964c6326b6', chainCEX: 'MATIC' },
             OKX: { address: '0x343d752bB710c5575E417edB3F9FA06241A4749A', chainCEX: 'Polygon' },
         },
@@ -272,7 +280,7 @@ const CONFIG_CHAINS = {
         }
     },
     arbitrum: {
-        Kode_Chain: 42161, Nama_Chain: "arbitrum", Nama_Pendek: "arb", URL_Chain: "https://arbiscan.io", WARNA: "#a6b0c3", ICON: "assets/icons/chains/arbitrum.png", DATAJSON: 'https://monitoring-koin.vercel.app/JSON_KOIN/ARBITRUM.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 100000,
+        Kode_Chain: 42161, Nama_Chain: "arbitrum", Nama_Pendek: "arb", URL_Chain: "https://arbiscan.io", WARNA: "#a6b0c3", ICON: "assets/icons/chains/arbitrum.png", DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_ARBITRUM.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 100000,
         LINKS: {
             explorer: {
                 token: (address) => `https://arbiscan.io/token/${address}`,
@@ -299,7 +307,7 @@ const CONFIG_CHAINS = {
         },
     },
     ethereum: {
-        Kode_Chain: 1, Nama_Chain: "ethereum", Nama_Pendek: "erc", URL_Chain: "https://etherscan.io", WARNA: "#8098ee", ICON: "assets/icons/chains/ethereum.png", DATAJSON: 'https://monitoring-koin.vercel.app/JSON_KOIN/ETHEREUM.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 250000,
+        Kode_Chain: 1, Nama_Chain: "ethereum", Nama_Pendek: "erc", URL_Chain: "https://etherscan.io", WARNA: "#8098ee", ICON: "assets/icons/chains/ethereum.png", DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_ETHEREUM.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 250000,
         LINKS: {
             explorer: {
                 token: (address) => `https://etherscan.io/token/${address}`,
@@ -329,7 +337,7 @@ const CONFIG_CHAINS = {
     },
 
     base: {
-        Kode_Chain: 8453, Nama_Chain: "base", Nama_Pendek: "base", URL_Chain: "https://basescan.org/", WARNA: "#1e46f9", ICON: "assets/icons/chains/base.png", DATAJSON: 'https://monitoring-koin.vercel.app/JSON_KOIN/BASE.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 100000,
+        Kode_Chain: 8453, Nama_Chain: "base", Nama_Pendek: "base", URL_Chain: "https://basescan.org/", WARNA: "#1e46f9", ICON: "assets/icons/chains/base.png", DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_BASE.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 100000,
         LINKS: {
             explorer: {
                 token: (address) => `https://basescan.org/token/${address}`,
@@ -366,7 +374,7 @@ const CONFIG_CHAINS = {
         URL_Chain: "https://solscan.io/",
         WARNA: "#7508a0ff",
         ICON: "assets/icons/chains/solana.png",
-        DATAJSON: 'https://monitoring-koin.vercel.app/JSON_KOIN/SOL.json',
+        DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_SOLANA.json',
         BaseFEEDEX: "SOLUSDT",
         GASLIMIT: 5000, // Solana uses compute units
         LINKS: {
@@ -1065,23 +1073,23 @@ try {
 // Centralized chain synonyms mapping used to normalize CEX network labels
 const CHAIN_SYNONYMS = {
     ethereum: ['ETH', 'ERC20', 'ETHEREUM', 'USDTERC20', 'ETH-ERC20',
-               'ERC-20', 'ETH MAINNET', 'ETHMAINNET', 'ETHEREUM MAINNET', 'Ethereum'],
+        'ERC-20', 'ETH MAINNET', 'ETHMAINNET', 'ETHEREUM MAINNET', 'Ethereum'],
     bsc: ['BSC', 'BEP20', 'BINANCE SMART CHAIN', 'BNB SMART CHAIN', 'BEP-20', 'BSCMAINNET',
-          'BNB', 'BSCBEP20', 'BNB CHAIN', 'BNBCHAIN'],
+        'BNB', 'BSCBEP20', 'BNB CHAIN', 'BNBCHAIN'],
     polygon: ['POLYGON', 'MATIC', 'POLYGON POS', 'POLYGON \\(MATIC\\)', 'POL', 'POLYGONPOS',
-              'POLYGON_POS', 'POLYGONEVM', 'Polygon PoS'],
+        'POLYGON_POS', 'POLYGONEVM', 'Polygon PoS'],
     arbitrum: ['ARBITRUM', 'ARB', 'ARBITRUM ONE', 'ARBEVM', 'ARBITRUMONE', 'ARB-ETH', 'ARBMAINNET',
-               'ARBONE', 'ARBITRUMEVM', 'ARBI'],
-    base: ['BASE','Base', 'BASE MAINNET', 'BASEEVM', 'BASEMAINNET',
-           'BASE CHAIN', 'BASECHAIN'],
+        'ARBONE', 'ARBITRUMEVM', 'ARBI'],
+    base: ['BASE', 'Base', 'BASE MAINNET', 'BASEEVM', 'BASEMAINNET',
+        'BASE CHAIN', 'BASECHAIN'],
     solana: ['SOL', 'SOLANA', 'SPL', 'SOLANA MAINNET', 'SOLMAINNET',
-             'SOLANA CHAIN', 'SOLCHAIN'],
+        'SOLANA CHAIN', 'SOLCHAIN', 'SOLANASOL'],
     optimism: ['OPTIMISM', 'OP', 'OPTIMISM MAINNET', 'OPMAINNET',
-               'OP MAINNET', 'OPEVM'],
+        'OP MAINNET', 'OPEVM'],
     avalanche: ['AVAX', 'AVAXC', 'AVALANCHE', 'AVAX-C', 'C-CHAIN', 'AVAX C-CHAIN',
-                'AVAXCCHAIN', 'AVALANCHE C-CHAIN'],
+        'AVAXCCHAIN', 'AVALANCHE C-CHAIN'],
     tron: ['TRX', 'TRC20', 'TRON', 'USDTTRC20', 'TRX-TRC20',
-           'TRC-20', 'TRON MAINNET'],
+        'TRC-20', 'TRON MAINNET'],
     fantom: ['FTM', 'FANTOM', 'FANTOM OPERA', 'FANTOMEVM'],
     heco: ['HECO', 'HT', 'HUOBI ECO CHAIN', 'HECOMAINNET']
 };

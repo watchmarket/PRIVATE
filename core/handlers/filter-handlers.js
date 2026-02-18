@@ -43,6 +43,13 @@
                 obj.sort = pref;
                 saveToLocalStorage(key, obj);
                 loadAndDisplaySingleChainTokens(); // will re-apply sorting and update window.singleChainTokensCurrent
+            } else if (window.CEXModeManager && window.CEXModeManager.isCEXMode()) {
+                // CEX mode: simpan sort ke per-CEX filter
+                const cex = window.CEXModeManager.getSelectedCEX();
+                if (typeof setFilterCEX === 'function') {
+                    setFilterCEX(cex, { sort: pref });
+                }
+                refreshTokensTable();
             } else {
                 const key = 'FILTER_MULTICHAIN';
                 const obj = getFromLocalStorage(key, {}) || {};

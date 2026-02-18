@@ -255,6 +255,105 @@
             }
         } catch (_) { }
 
+        // === CEX MODE HANDLING ===
+        // If in CEX mode, use specific CEX token fetching logic
+        if (window.CEXModeManager && window.CEXModeManager.isCEXMode()) {
+            const currentCEX = window.CEXModeManager.getSelectedCEX();
+            console.log('[SCANNER] Starting scan in CEX mode for:', currentCEX);
+
+            // Show loading state
+            if (typeof toast !== 'undefined' && toast.info) toast.info(`Memuat token untuk ${currentCEX}...`);
+
+            // Asynchronously fetch tokens and start scan
+            window.CEXModeManager.getEnabledTokensPerCEX(currentCEX).then(tokens => {
+                if (!tokens || tokens.length === 0) {
+                    if (typeof toast !== 'undefined' && toast.warning) toast.warning(`Tidak ada token ditemukan untuk ${currentCEX}.`);
+                    return;
+                }
+
+                // Apply chain/pair/dex filters from per-CEX filter (FILTER_CEX_<NAME>)
+                let scanTokens = tokens;
+                try {
+                    const fm = (typeof getFilterCEX === 'function') ? getFilterCEX(currentCEX) : ((typeof getFilterMulti === 'function') ? getFilterMulti() : {});
+                    const chainsSel = (fm.chains || []).map(c => String(c).toLowerCase());
+                    const pairSel = (fm.pair || []).map(p => String(p).toUpperCase());
+                    const dexSel = (fm.dex || []).map(d => String(d).toLowerCase());
+
+                    if (chainsSel.length > 0) {
+                        scanTokens = scanTokens.filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()));
+                    }
+                    if (pairSel.length > 0) {
+                        scanTokens = scanTokens.filter(t => {
+                            const chainCfg = (window.CONFIG_CHAINS || {})[(t.chain || '').toLowerCase()] || {};
+                            const pd = chainCfg.PAIRDEXS || {};
+                            const p = String(t.symbol_out || '').toUpperCase().trim();
+                            const mapped = pd[p] ? p : 'NON';
+                            return pairSel.includes(mapped);
+                        });
+                    }
+                    if (dexSel.length > 0) {
+                        scanTokens = scanTokens.filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())));
+                    }
+                } catch (_) { }
+
+                // Apply search filter if active
+                try {
+                    const q = ($('#searchInput').val() || '').trim().toUpperCase();
+                    if (q) {
+                        // Use pre-filtered scanCandidateTokens if available (set by search UI)
+                        if (Array.isArray(window.scanCandidateTokens) && window.scanCandidateTokens.length > 0) {
+                            scanTokens = window.scanCandidateTokens;
+                        } else {
+                            scanTokens = scanTokens.filter(t => {
+                                const sym = (t.symbol_in || t.symbol || t.Simbol || '').toUpperCase();
+                                const symOut = (t.symbol_out || '').toUpperCase();
+                                const name = (t.name || t.Nama || '').toUpperCase();
+                                return sym.includes(q) || symOut.includes(q) || name.includes(q);
+                            });
+                        }
+                    }
+                } catch (_) { }
+
+                if (scanTokens.length === 0) {
+                    if (typeof toast !== 'undefined' && toast.info) toast.info('Tidak ada token yang cocok dengan pencarian.');
+                    return;
+                }
+
+                // Apply sort preference dari per-CEX filter
+                try {
+                    const fm = (typeof getFilterCEX === 'function') ? getFilterCEX(currentCEX) : {};
+                    const sortPref = (fm.sort === 'A' || fm.sort === 'Z') ? fm.sort : 'A';
+                    if (typeof sortBySymbolIn === 'function') {
+                        scanTokens = sortBySymbolIn(scanTokens, sortPref);
+                    }
+                } catch (_) { }
+
+                // Set global arrays so sorting toggle works during scan
+                window.filteredTokens = [...scanTokens];
+                window.currentListOrderMulti = [...scanTokens];
+
+                // Initial render of table skeleton
+                try {
+                    loadKointoTable(scanTokens, 'dataTableBody');
+                } catch (e) {
+                    console.error('[SCANNER] Failed to render table:', e);
+                }
+
+                // Start scanner
+                setTimeout(() => {
+                    const settings = getFromLocalStorage('SETTING_SCANNER', {}) || {};
+                    if (window.App?.Scanner?.startScanner) {
+                        window.App.Scanner.startScanner(scanTokens, settings, 'dataTableBody');
+                    }
+                }, 250);
+            }).catch(err => {
+                console.error('[SCANNER] Error fetching CEX tokens:', err);
+                if (typeof toast !== 'undefined' && toast.error) toast.error('Gagal memuat token CEX.');
+            });
+
+            return; // Exit main handler, async process took over
+        }
+
         const settings = getFromLocalStorage('SETTING_SCANNER', {}) || {};
 
         const mode = getAppMode();

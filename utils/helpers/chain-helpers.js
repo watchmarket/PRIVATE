@@ -353,6 +353,14 @@ function getRPC(chainKey) {
                     const base = ((window.CONFIG_CHAINS || {})[chain] || {}).DEXS || [];
                     const list = (Array.isArray(saved.dex) && saved.dex.length) ? saved.dex : base;
                     return (list || []).map(x => String(x).toLowerCase());
+                } else if (window.CEXModeManager && window.CEXModeManager.isCEXMode()) {
+                    // CEX mode: pakai filter per-CEX
+                    const saved = (typeof getFilterCEX === 'function')
+                        ? getFilterCEX(window.CEXModeManager.getSelectedCEX())
+                        : { dex: [] };
+                    const base = Object.keys(window.CONFIG_DEXS || {});
+                    const list = (Array.isArray(saved.dex) && saved.dex.length) ? saved.dex : base;
+                    return (list || []).map(x => String(x).toLowerCase());
                 } else {
                     const saved = getFilterMulti() || { dex: [] };
                     const base = Object.keys(window.CONFIG_DEXS || {});

@@ -56,7 +56,7 @@
                 setTokensChain(mode.chain, list);
                 if (list.length < before) {
                     try { setLastAction('HAPUS KOIN'); } catch (_) { }
-                    if (typeof toast !== 'undefined' && toast.info) toast.info(`PROSES HAPUS KOIN ${symIn} VS ${symOut} BERHASIL`);
+                    if (typeof toast !== 'undefined' && toast.info) toast.info(`PROSES HAPUS KOIN ${symIn} VS ${symOut} [${chain || mode.chain || '-'}] BERHASIL`);
 
                     // FIX: Jika sedang scanning, HANYA update total koin tanpa refresh tabel
                     if (isScanning) {
@@ -73,6 +73,35 @@
                     }
                 }
                 try { $el.closest('tr').addClass('row-hidden'); } catch (_) { }
+            } else if (mode.type === 'cex') {
+                // CEX mode: find and delete from the correct per-chain database
+                let deleted = false;
+                const chains = Object.keys(window.CONFIG_CHAINS || {});
+                for (const ck of chains) {
+                    let ct = (typeof getTokensChain === 'function') ? getTokensChain(ck) : [];
+                    if (!Array.isArray(ct)) continue;
+                    const before = ct.length;
+                    ct = ct.filter(t => String(t.id) !== id);
+                    if (ct.length < before) {
+                        setTokensChain(ck, ct);
+                        deleted = true;
+                        break;
+                    }
+                }
+                if (deleted) {
+                    try { setLastAction('HAPUS KOIN'); } catch (_) { }
+                    if (typeof toast !== 'undefined' && toast.info) toast.info(`PROSES HAPUS KOIN ${symIn} VS ${symOut} [${chain || mode.chain || '-'}] BERHASIL`);
+
+                    if (isScanning) {
+                        try { if (typeof updateTokenStatsOnly === 'function') updateTokenStatsOnly(); } catch (_) { }
+                        try { if (typeof updateTotalKoinOnly === 'function') updateTotalKoinOnly(); } catch (_) { }
+                        try { if (typeof window.decrementScanTotalTokens === 'function') window.decrementScanTotalTokens(); } catch (_) { }
+                    } else {
+                        try { if (typeof renderTokenManagementList === 'function') renderTokenManagementList(); } catch (_) { }
+                        try { if (typeof refreshTokensTable === 'function') refreshTokensTable(); } catch (_) { }
+                    }
+                }
+                try { $el.closest('tr').addClass('row-hidden'); } catch (_) { }
             } else {
                 let list = getTokensMulti();
                 const before = list.length;
@@ -80,7 +109,7 @@
                 setTokensMulti(list);
                 if (list.length < before) {
                     try { setLastAction('HAPUS KOIN'); } catch (_) { }
-                    if (typeof toast !== 'undefined' && toast.info) toast.info(`PROSES HAPUS KOIN ${symIn} VS ${symOut} BERHASIL`);
+                    if (typeof toast !== 'undefined' && toast.info) toast.info(`PROSES HAPUS KOIN ${symIn} VS ${symOut} [${chain || mode.chain || '-'}] BERHASIL`);
 
                     // FIX: Jika sedang scanning, HANYA update total koin tanpa refresh tabel
                     if (isScanning) {
@@ -229,7 +258,36 @@
         }
 
         const m = getAppMode();
-        let tokens = (m.type === 'single') ? getTokensChain(m.chain) : getTokensMulti();
+        let tokens;
+        let cexSourceChain = null;
+        if (m.type === 'single') {
+            tokens = getTokensChain(m.chain);
+        } else if (m.type === 'cex') {
+            // CEX mode: find token in per-chain databases using the token's chain
+            const tokenChain = String(updatedToken.chain || '').toLowerCase();
+            if (tokenChain && typeof getTokensChain === 'function') {
+                const chainTokens = getTokensChain(tokenChain);
+                if (Array.isArray(chainTokens) && chainTokens.some(t => String(t.id) === String(id))) {
+                    tokens = chainTokens;
+                    cexSourceChain = tokenChain;
+                }
+            }
+            // Fallback: search all chains if not found by declared chain
+            if (!cexSourceChain) {
+                const chains = Object.keys(window.CONFIG_CHAINS || {});
+                for (const ck of chains) {
+                    const ct = (typeof getTokensChain === 'function') ? getTokensChain(ck) : [];
+                    if (Array.isArray(ct) && ct.some(t => String(t.id) === String(id))) {
+                        tokens = ct;
+                        cexSourceChain = ck;
+                        break;
+                    }
+                }
+            }
+            if (!tokens) tokens = getTokensMulti();
+        } else {
+            tokens = getTokensMulti();
+        }
         const idx = tokens.findIndex(t => String(t.id) === String(id));
 
         const buildDataCexs = (prev = {}) => {
@@ -248,7 +306,26 @@
             tokens.push(updatedToken);
         }
 
-        if (m.type === 'single') setTokensChain(m.chain, tokens); else setTokensMulti(tokens);
+        if (m.type === 'single') {
+            setTokensChain(m.chain, tokens);
+        } else if (m.type === 'cex') {
+            // Save to the source chain DB, or the chain selected in form for new tokens
+            const saveChain = cexSourceChain || String(updatedToken.chain || '').toLowerCase();
+            if (saveChain && typeof setTokensChain === 'function') {
+                // For new token (idx === -1), need to get the chain's existing tokens first
+                if (!cexSourceChain && idx === -1) {
+                    const existingChainTokens = (typeof getTokensChain === 'function') ? getTokensChain(saveChain) : [];
+                    existingChainTokens.push(updatedToken);
+                    setTokensChain(saveChain, existingChainTokens);
+                } else {
+                    setTokensChain(saveChain, tokens);
+                }
+            } else {
+                setTokensMulti(tokens);
+            }
+        } else {
+            setTokensMulti(tokens);
+        }
 
         // ========== TIDAK Auto-Refresh Setelah Simpan ==========
         setTimeout(() => {
@@ -477,11 +554,26 @@
         const id = String($(this).data('id'));
         const val = $(this).val() === 'true';
         const m = getAppMode();
-        let tokens = (m.type === 'single') ? getTokensChain(m.chain) : getTokensMulti();
+        let tokens;
+        let cexSrcChain = null;
+        if (m.type === 'single') {
+            tokens = getTokensChain(m.chain);
+        } else if (m.type === 'cex') {
+            const chains = Object.keys(window.CONFIG_CHAINS || {});
+            for (const ck of chains) {
+                const ct = (typeof getTokensChain === 'function') ? getTokensChain(ck) : [];
+                if (Array.isArray(ct) && ct.some(t => String(t.id) === id)) { tokens = ct; cexSrcChain = ck; break; }
+            }
+            if (!tokens) tokens = getTokensMulti();
+        } else {
+            tokens = getTokensMulti();
+        }
         const idx = tokens.findIndex(t => String(t.id) === id);
         if (idx !== -1) {
             tokens[idx].status = val;
-            if (m.type === 'single') setTokensChain(m.chain, tokens); else setTokensMulti(tokens);
+            if (m.type === 'single') setTokensChain(m.chain, tokens);
+            else if (m.type === 'cex' && cexSrcChain) setTokensChain(cexSrcChain, tokens);
+            else setTokensMulti(tokens);
             if (typeof toast !== 'undefined' && toast.success) toast.success(`Status diubah ke ${val ? 'ON' : 'OFF'}`);
             try {
                 const chainLbl = String(tokens[idx]?.chain || (m.type === 'single' ? m.chain : 'all')).toUpperCase();

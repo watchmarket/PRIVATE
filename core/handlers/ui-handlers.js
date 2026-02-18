@@ -222,7 +222,7 @@
                 const text = String(e.target.result||'').trim();
                 const json = JSON.parse(text);
                 // Validasi dasar payload backup
-                if (!json || typeof json !== 'object' || json.schema !== 'kv-v1' || !Array.isArray(json.items)) {
+                if (!json || typeof json !== 'object' || (json.schema !== 'kv-v1' && json.schema !== 'kv-v2') || !Array.isArray(json.items)) {
                     if (typeof toast !== 'undefined' && toast.error) toast.error('File backup tidak valid atau schema tidak dikenali.');
                     return;
                 }

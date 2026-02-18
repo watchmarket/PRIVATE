@@ -24,19 +24,24 @@
 
     /**
      * Resolves application mode from URL query.
-     * - multi: index.html?chain=all
-     * - single: index.html?chain=<chain>
+     * - multi:  index.html?chain=all   → { type: 'multi' }
+     * - single: index.html?chain=bsc   → { type: 'single', chain: 'bsc' }
+     * - cex:    index.html?cex=binance → { type: 'cex', cex: 'BINANCE' }
      */
     function getAppMode() {
         try {
             if (window.AppMode && window.AppMode._cached) return window.AppMode;
             const params = new URLSearchParams(window.location.search || '');
-            const raw = (params.get('chain') || '').toLowerCase();
+            const cexParam = (params.get('cex') || '').trim();
+            const chainParam = (params.get('chain') || '').toLowerCase();
             let mode;
-            if (!raw || raw === 'all') {
+            if (cexParam) {
+                // CEX mode: ?cex=binance
+                mode = { type: 'cex', cex: cexParam.toUpperCase() };
+            } else if (!chainParam || chainParam === 'all') {
                 mode = { type: 'multi' };
-            } else if (window.CONFIG_CHAINS && window.CONFIG_CHAINS[raw]) {
-                mode = { type: 'single', chain: raw };
+            } else if (window.CONFIG_CHAINS && window.CONFIG_CHAINS[chainParam]) {
+                mode = { type: 'single', chain: chainParam };
             } else {
                 mode = { type: 'multi' };
             }
@@ -51,13 +56,20 @@
     function getActiveTokenKey() {
         const m = getAppMode();
         if (m.type === 'single') return `TOKEN_${String(m.chain).toUpperCase()}`;
+        // CEX mode dan multi-chain sama-sama pakai TOKEN_MULTICHAIN
         return 'TOKEN_MULTICHAIN';
     }
 
-    /** Returns the active filter storage key based on mode. */
+    /**
+     * Returns the active filter storage key based on mode.
+     * - single: FILTER_BSC, FILTER_ETHEREUM, etc.
+     * - multi:  FILTER_MULTICHAIN
+     * - cex:    FILTER_CEX_BINANCE, FILTER_CEX_GATE, etc.
+     */
     function getActiveFilterKey() {
         const m = getAppMode();
         if (m.type === 'single') return `FILTER_${String(m.chain).toUpperCase()}`;
+        if (m.type === 'cex') return `FILTER_CEX_${String(m.cex).toUpperCase()}`;
         return 'FILTER_MULTICHAIN';
     }
 
@@ -81,11 +93,17 @@
         return saveToLocalStorage(getActiveFilterKey(), obj || {});
     }
 
+    /** Invalidate cached AppMode (panggil saat URL berubah via pushState). */
+    function invalidateAppModeCache() {
+        window.AppMode = null;
+    }
+
     // =================================================================================
     // EXPOSE TO GLOBAL SCOPE (window)
     // =================================================================================
     if (typeof window !== 'undefined') {
         window.getAppMode = getAppMode;
+        window.invalidateAppModeCache = invalidateAppModeCache;
         window.getActiveTokenKey = getActiveTokenKey;
         window.getActiveFilterKey = getActiveFilterKey;
         window.getActiveTokens = getActiveTokens;

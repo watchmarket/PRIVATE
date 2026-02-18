@@ -396,11 +396,11 @@
             reportData.type = 'error';
         }
 
-        // ✅ FIX: Simpan report ke localStorage agar tetap tampil setelah reload
+        // Simpan report ke IndexedDB agar tetap tampil setelah reload
         try {
-            localStorage.setItem('WALLET_UPDATE_REPORT', JSON.stringify(reportData));
-        } catch(e) {
-            console.warn('[Wallet Exchanger] Failed to save report to localStorage:', e);
+            saveToLocalStorage('WALLET_UPDATE_REPORT', reportData);
+        } catch (e) {
+            console.warn('[Wallet Exchanger] Failed to save report:', e);
         }
 
         $result.fadeIn(300);
@@ -417,10 +417,8 @@
      */
     function restoreSavedReport() {
         try {
-            const savedReport = localStorage.getItem('WALLET_UPDATE_REPORT');
-            if (!savedReport) return;
-
-            const reportData = JSON.parse(savedReport);
+            const reportData = getFromLocalStorage('WALLET_UPDATE_REPORT', null);
+            if (!reportData) return;
             const $result = $('#wallet-update-result');
             const $resultText = $result.find('p');
 
@@ -428,8 +426,8 @@
             const reportAge = Date.now() - new Date(reportData.timestamp).getTime();
             const oneHour = 60 * 60 * 1000;
             if (reportAge > oneHour) {
-                // Report expired, hapus dari localStorage
-                localStorage.removeItem('WALLET_UPDATE_REPORT');
+                // Report expired, hapus
+                removeFromLocalStorage('WALLET_UPDATE_REPORT');
                 return;
             }
 
@@ -447,7 +445,7 @@
             }
 
             $result.show();
-        } catch(e) {
+        } catch (e) {
             console.warn('[Wallet Exchanger] Failed to restore report:', e);
         }
     }
@@ -467,12 +465,22 @@
         const CONFIG_CEX = root.CONFIG_CEX || {};
         const CONFIG_CHAINS = root.CONFIG_CHAINS || {};
 
+        // ✅ CEX MODE: Check if Per-CEX mode is active
+        const isCEXMode = root.CEXModeManager && root.CEXModeManager.isCEXMode();
+        const selectedCEX = isCEXMode ? root.CEXModeManager.getSelectedCEX() : null;
+
         // ✅ BARU: Ambil SEMUA CEX dari CONFIG_CEX (sumber yang sama dengan filter)
-        // Tidak lagi tergantung pada filter aktif
-        let availableCexes = Object.keys(CONFIG_CEX)
+        // Get enabled CEXs only
+        let availableCexes = getEnabledCEXs()
             .map(x => String(x).toUpperCase())
             .filter(cx => !!CONFIG_CEX[cx])
             .sort(); // Sort alphabetically untuk konsistensi
+
+        // ✅ CEX MODE: Filter to show only selected CEX
+        if (isCEXMode && selectedCEX) {
+            availableCexes = availableCexes.filter(cx => cx === selectedCEX);
+            console.log(`[Update Wallet] CEX Mode active - showing only ${selectedCEX}`);
+        }
 
         // Determine active chain
         if (mode.type === 'single') {
@@ -1015,20 +1023,53 @@
 
         // Proses dan tampilkan hasil
         try {
-            // Load existing coins dari storage
-            const existingCoins = loadCoinsFromStorage({ applyFilter: false, mode });
-            // console.log('[Wallet Exchanger] Existing coins in storage:', existingCoins.length);
+            const isCEXMode = window.CEXModeManager && window.CEXModeManager.isCEXMode();
 
-            const mergedCoins = mergeWalletData(existingCoins, cexWalletData, mode);
-            // console.log('[Wallet Exchanger] Merged coins:', mergedCoins.length);
+            let mergedCoins;
 
-            // Debug: tampilkan sample data
-            if (mergedCoins.length > 0) {
-                // console.log('[Wallet Exchanger] Sample merged coin:', mergedCoins[0]);
+            if (isCEXMode) {
+                // ══════════════════════════════════════════════════════
+                // CEX MODE: Update SEMUA per-chain databases
+                // Data CEX diambil dari gabungan per-chain DB, jadi harus
+                // update kembali ke masing-masing per-chain DB.
+                // ══════════════════════════════════════════════════════
+                const chains = Object.keys(window.CONFIG_CHAINS || {});
+                let allMerged = [];
+
+                chains.forEach(chainKey => {
+                    if (typeof getTokensChain !== 'function') return;
+                    const chainTokens = getTokensChain(chainKey);
+                    if (!Array.isArray(chainTokens) || chainTokens.length === 0) return;
+
+                    // Merge wallet data untuk chain ini
+                    const chainMerged = mergeWalletData(chainTokens, cexWalletData, { type: 'single', chain: chainKey });
+
+                    // Save kembali ke per-chain DB
+                    if (typeof setTokensChain === 'function') {
+                        setTokensChain(chainKey, chainMerged);
+                    }
+
+                    allMerged.push(...chainMerged);
+                    console.log(`[Wallet Exchanger] CEX Mode: Updated ${chainMerged.length} tokens for chain ${chainKey}`);
+                });
+
+                // Juga update TOKEN_MULTICHAIN agar konsisten
+                const multiTokens = (typeof getFromLocalStorage === 'function')
+                    ? getFromLocalStorage('TOKEN_MULTICHAIN', []) : [];
+                if (Array.isArray(multiTokens) && multiTokens.length > 0) {
+                    const multiMerged = mergeWalletData(multiTokens, cexWalletData, { type: 'multi' });
+                    saveToLocalStorage('TOKEN_MULTICHAIN', multiMerged);
+                }
+
+                mergedCoins = allMerged;
+            } else {
+                // ══════════════════════════════════════════════════════
+                // NORMAL MODE: Load + merge + save sesuai mode aktif
+                // ══════════════════════════════════════════════════════
+                const existingCoins = loadCoinsFromStorage({ applyFilter: false, mode });
+                mergedCoins = mergeWalletData(existingCoins, cexWalletData, mode);
+                saveCoinsToStorage(mergedCoins);
             }
-
-            // Save merged data ke storage
-            saveCoinsToStorage(mergedCoins);
 
             // Re-render cards dengan data terbaru
             renderCexCards();

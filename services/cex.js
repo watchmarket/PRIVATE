@@ -831,7 +831,7 @@
 
         const updatedTokens = tokens.map(token => {
             const updatedDataCexs = { ...(token.dataCexs || {}) };
-            (token.selectedCexs || Object.keys(CONFIG_CEX)).forEach(cexKey => {
+            (token.selectedCexs || getEnabledCEXs()).forEach(cexKey => {
                 const walletForCex = allWalletStatus[cexKey.toUpperCase()];
                 if (!walletForCex) return;
 

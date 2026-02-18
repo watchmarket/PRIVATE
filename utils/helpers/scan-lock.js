@@ -72,6 +72,27 @@
                 }
             }
 
+            // Check all FILTER_CEX_<NAME> keys
+            const cexes = Object.keys(window.CONFIG_CEX || {});
+            for (const cex of cexes) {
+                const key = `FILTER_CEX_${cex.toUpperCase()}`;
+                const filter = getFromLocalStorage(key, {});
+                if (filter.run === 'YES' && filter.runMeta) {
+                    const age = now - (filter.runMeta.timestamp || 0);
+                    if (age < LOCK_TIMEOUT) {
+                        return {
+                            mode: `CEX_${cex.toUpperCase()}`,
+                            key,
+                            ...filter.runMeta,
+                            age
+                        };
+                    } else {
+                        // Stale lock - auto cleanup
+                        clearGlobalScanLock(key);
+                    }
+                }
+            }
+
             return null;
         } catch (e) {
             // console.error('[SCAN LOCK] Error getting global lock:', e);

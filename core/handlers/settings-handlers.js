@@ -112,6 +112,32 @@
 
         console.log('[Settings Save] Valid JedaDexs to save:', Object.keys(JedaDexs));
 
+        // ✅ COLLECT ENABLED CHAINS
+        let enabledChains = [];
+        $('.rpc-enable-toggle:checked').each(function () {
+            const chain = $(this).data('chain');
+            if (chain) {
+                enabledChains.push(String(chain).toLowerCase());
+            }
+        });
+
+        // ✅ VALIDATION: Minimal 1 chain harus aktif
+        if (enabledChains.length === 0) {
+            return UIkit.notification({
+                message: '⚠️ Minimal 1 chain harus aktif! Aktifkan minimal 1 chain untuk menggunakan aplikasi.',
+                status: 'danger',
+                timeout: 5000
+            });
+        }
+
+        console.log('[Settings Save] Enabled chains:', enabledChains);
+
+        // ✅ Save enabled chains to storage IMMEDIATELY
+        if (typeof saveEnabledChains === 'function') {
+            saveEnabledChains(enabledChains);
+            console.log('[Settings Save] Saved enabled chains to storage');
+        }
+
         // Collect user RPC settings (NEW: simplified structure using database)
         let userRPCs = {};
         // Get initial values from database migrator (not hardcoded anymore)
@@ -126,37 +152,123 @@
             const chain = $(this).data('chain');
             const rpc = $(this).val().trim();
 
-            // Simpan RPC yang diinput user, atau gunakan initial value dari migrator jika kosong
-            if (rpc) {
-                userRPCs[chain] = rpc;
-            } else {
-                const initialRPC = getInitialRPC(chain);
-                if (initialRPC) {
-                    userRPCs[chain] = initialRPC;
+            // ✅ HANYA collect RPC untuk enabled chains
+            if (enabledChains.includes(chain)) {
+                // Simpan RPC yang diinput user, atau gunakan initial value dari migrator jika kosong
+                if (rpc) {
+                    userRPCs[chain] = rpc;
+                } else {
+                    const initialRPC = getInitialRPC(chain);
+                    if (initialRPC) {
+                        userRPCs[chain] = initialRPC;
+                    }
                 }
             }
         });
 
-        // Validasi: pastikan semua chain punya RPC
-        const missingRPCs = Object.keys(CONFIG_CHAINS).filter(chain => !userRPCs[chain]);
+        // ✅ VALIDATION: pastikan semua ENABLED chains punya RPC
+        const missingRPCs = enabledChains.filter(chain => !userRPCs[chain]);
         if (missingRPCs.length > 0) {
             UIkit.notification({
-                message: `RPC untuk chain berikut harus diisi: ${missingRPCs.join(', ')}`,
+                message: `⚠️ RPC untuk chain berikut harus diisi: ${missingRPCs.map(c => c.toUpperCase()).join(', ')}`,
                 status: 'danger',
                 timeout: 5000
             });
             return;
         }
 
-        // ✅ NEW: Collect CEX API Keys (dynamically from CONFIG_CEX)
-        const cexList = (typeof CONFIG_CEX !== 'undefined') ? Object.keys(CONFIG_CEX) : [];
+        // ✅ Collect wallet addresses for each chain with VALIDATION
+        let userWallets = {};
+        let walletValidationError = false;
+
+        $('.wallet-input').each(function () {
+            if (walletValidationError) return; // Skip if already found error
+
+            const chain = $(this).data('chain');
+            const wallet = $(this).val().trim();
+            const isChainEnabled = enabledChains.includes(chain);
+
+            // ✅ NEW RULE: Wallet is REQUIRED for enabled chains
+            if (isChainEnabled && !wallet) {
+                const chainName = (CONFIG_CHAINS[chain]?.Nama_Chain || chain).toUpperCase();
+                UIkit.notification({
+                    message: `⚠️ Wallet address untuk ${chainName} wajib diisi! Chain ini aktif, silakan isi wallet address.`,
+                    status: 'danger',
+                    timeout: 5000
+                });
+                $(this).focus();
+                walletValidationError = true;
+                return;
+            }
+
+            // Wallet format validation (if wallet is provided)
+            if (wallet) {
+                // Determine if chain is Solana or EVM
+                const isSolana = (chain === 'solana' || chain === 'sol');
+
+                if (isSolana) {
+                    // Solana validation: base58 encoding, typically 32-44 characters
+                    const solanaRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+                    if (!solanaRegex.test(wallet)) {
+                        UIkit.notification({
+                            message: `⚠️ Wallet address untuk SOLANA tidak valid! Harus format base58 (32-44 karakter)`,
+                            status: 'danger',
+                            timeout: 5000
+                        });
+                        $(this).focus();
+                        walletValidationError = true;
+                        return;
+                    }
+                } else {
+                    // EVM validation: starts with 0x, followed by 40 hex characters
+                    const evmRegex = /^0x[a-fA-F0-9]{40}$/;
+                    if (!evmRegex.test(wallet)) {
+                        const chainName = (CONFIG_CHAINS[chain]?.Nama_Chain || chain).toUpperCase();
+                        UIkit.notification({
+                            message: `⚠️ Wallet address untuk ${chainName} tidak valid! Harus format EVM (0x + 40 hex)`,
+                            status: 'danger',
+                            timeout: 5000
+                        });
+                        $(this).focus();
+                        walletValidationError = true;
+                        return;
+                    }
+                }
+
+                // If valid, save it
+                userWallets[chain] = wallet;
+            }
+        });
+
+        // Stop if wallet validation failed
+        if (walletValidationError) return;
+
+        console.log('[Settings Save] User wallets:', userWallets);
+
+        // ✅ NEW: Collect CEX API Keys ONLY if checkbox is enabled
+        const cexList = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs() : [];
         const cexKeys = {};
         let cexSavedCount = 0;
+        let validationError = false;
 
         cexList.forEach(cex => {
+            if (validationError) return;
+
             const apiKey = $(`#cex_apikey_${cex}`).val()?.trim();
             const secretKey = $(`#cex_secret_${cex}`).val()?.trim();
             const passphrase = $(`#cex_passphrase_${cex}`).val()?.trim();
+
+            // ✅ VALIDATION: If CEX is enabled (in cexList), API Key & Secret are MANDATORY
+            if (!apiKey || !secretKey) {
+                UIkit.notification({
+                    message: `⚠️ API Key & Secret untuk ${cex} tidak boleh kosong!`,
+                    status: 'danger',
+                    timeout: 4000
+                });
+                $(`#cex_apikey_${cex}`).focus();
+                validationError = true;
+                return;
+            }
 
             if (apiKey && secretKey) {
                 cexKeys[cex] = {
@@ -167,27 +279,30 @@
                 if (cex === 'KUCOIN' || cex === 'BITGET' || cex === 'OKX') {
                     if (passphrase) {
                         cexKeys[cex].Passphrase = passphrase;
-                        cexSavedCount++;
                     } else {
                         UIkit.notification({
                             message: `⚠️ ${cex} memerlukan Passphrase!`,
-                            status: 'warning',
-                            timeout: 3000
+                            status: 'danger',
+                            timeout: 4000
                         });
+                        $(`#cex_passphrase_${cex}`).focus();
+                        validationError = true;
                         return;
                     }
-                } else {
-                    cexSavedCount++;
                 }
+                cexSavedCount++;
             }
         });
+
+        if (validationError) return; // Stop saving if validation fails
 
         const settingData = {
             nickname, jedaTimeGroup, jedaKoin, walletMeta,
             matchaApiKeys,
             scanPerKoin: parseInt(scanPerKoin, 10),
             JedaDexs,
-            userRPCs
+            userRPCs,
+            userWallets  // ✅ Add wallet addresses
         };
 
         console.log('[SETTINGS] Data to save:', settingData);
@@ -199,18 +314,20 @@
         if (Object.keys(cexKeys).length > 0) {
             const encryptedKeys = (typeof appEncrypt === 'function') ? appEncrypt(cexKeys) : cexKeys;
             saveToLocalStorage('CEX_API_KEYS', encryptedKeys || cexKeys);
-            localStorage.setItem('CEX_KEYS_MIGRATED', 'true');
+            saveToLocalStorage('CEX_KEYS_MIGRATED', true);
             console.log(`[SETTINGS] Saved ${cexSavedCount} CEX API key(s) to IndexedDB`);
 
-            // Cleanup legacy localStorage MULTI_* keys
-            // ✅ Get CEX list dynamically from CONFIG_CEX (no hardcode!)
-            const allCexList = (typeof CONFIG_CEX !== 'undefined') ? Object.keys(CONFIG_CEX) : [];
-            allCexList.forEach(cex => {
-                localStorage.removeItem(`MULTI_apikey${cex}`);
-                localStorage.removeItem(`MULTI_secretkey${cex}`);
-                localStorage.removeItem(`MULTI_passphrase${cex}`);
-            });
-            console.log('[SETTINGS] Cleaned up legacy localStorage MULTI_* keys');
+            // Cleanup legacy localStorage MULTI_* keys (jika masih ada)
+            try {
+                const allCexList = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs() : [];
+                allCexList.forEach(cex => {
+                    localStorage.removeItem(`MULTI_apikey${cex}`);
+                    localStorage.removeItem(`MULTI_secretkey${cex}`);
+                    localStorage.removeItem(`MULTI_passphrase${cex}`);
+                });
+                localStorage.removeItem('CEX_KEYS_MIGRATED'); // hapus flag lama
+            } catch (_) { }
+            console.log('[SETTINGS] Cleaned up legacy localStorage keys');
         }
 
         try { setLastAction("SIMPAN SETTING"); } catch (_) { }
@@ -224,6 +341,19 @@
         } else if (typeof toast !== 'undefined' && toast.success) {
             toast.success(successMsg);
         }
+
+        // ✅ Refresh toolbar chain icons to reflect enabled chains BEFORE reload
+        try {
+            if (typeof renderChainLinks === 'function') {
+                const params = new URLSearchParams(window.location.search);
+                const activeChain = (params.get('chain') || 'all').toLowerCase();
+                renderChainLinks(activeChain);
+                console.log('[SETTINGS] Toolbar chain icons refreshed with enabled chains');
+            }
+        } catch (e) {
+            console.warn('[SETTINGS] Failed to refresh toolbar:', e.message);
+        }
+
         setTimeout(() => location.reload(), 2000);
     });
 

@@ -10,7 +10,7 @@
  * - applyThemeForMode: Apply theme colors and styles based on mode
  */
 
-(function() {
+(function () {
     'use strict';
 
     // =================================================================================
@@ -58,6 +58,52 @@
             let label = '[ALL]';
             body.classList.remove('theme-single', 'theme-multi');
 
+            // CEX mode: skip theme application here, let CEXModeManager handle it
+            if (m.type === 'cex') {
+                // If CEXModeManager already applied theme, don't override with green
+                if (body.classList.contains('theme-cex')) return;
+                // Apply CEX theme immediately to prevent green flash
+                const cexCfg = (window.CONFIG_CEX || {})[m.cex] || {};
+                accent = cexCfg.WARNA || accent;
+                label = `[${m.cex}]`;
+                body.classList.add('theme-cex');
+                body.setAttribute('data-cex', m.cex);
+                root.style.setProperty('--cex-primary', accent);
+                root.style.setProperty('--theme-accent', accent);
+                const chainLabel = document.getElementById('current-chain-label');
+                if (chainLabel) {
+                    chainLabel.textContent = label;
+                    chainLabel.style.color = accent;
+                }
+                // Inject CEX mode background gradient early
+                let styleEl = document.getElementById('cex-mode-dynamic-style');
+                const css = `
+                    body.theme-cex { background: linear-gradient(180deg, ${accent} 0%, #ffffff 45%) !important; }
+                    body.theme-cex:not(.dark-mode) .uk-table:not(.wallet-cex-table) thead th { background: ${accent} !important; }
+                    body.theme-cex #progress-bar { background-color: ${accent} !important; }
+                    body.theme-cex #progress-container { border: 1px solid ${accent} !important; }
+                `;
+                if (!styleEl) {
+                    styleEl = document.createElement('style');
+                    styleEl.id = 'cex-mode-dynamic-style';
+                    styleEl.type = 'text/css';
+                    styleEl.appendChild(document.createTextNode(css));
+                    document.head.appendChild(styleEl);
+                } else {
+                    styleEl.textContent = css;
+                }
+                // Update favicon
+                try {
+                    const fav = document.querySelector('link#favicon');
+                    if (fav) {
+                        if (!window.DEFAULT_FAVICON_HREF) window.DEFAULT_FAVICON_HREF = fav.getAttribute('href');
+                        if (cexCfg.ICON) fav.setAttribute('href', cexCfg.ICON);
+                    }
+                    document.title = `${m.cex} SCANNER`;
+                } catch (_) { }
+                return;
+            }
+
             if (m.type === 'single') {
                 const cfg = (window.CONFIG_CHAINS || {})[m.chain] || {};
                 accent = cfg.WARNA || accent;
@@ -76,8 +122,8 @@
                 } else {
                     body.classList.remove('dark-mode', 'uk-dark');
                 }
-                try { if (typeof updateDarkIcon === 'function') updateDarkIcon(!!st.darkMode); } catch(_) {}
-            } catch(_) {}
+                try { if (typeof updateDarkIcon === 'function') updateDarkIcon(!!st.darkMode); } catch (_) { }
+            } catch (_) { }
 
             root.style.setProperty('--theme-accent', accent);
             const chainLabel = document.getElementById('current-chain-label');
@@ -99,10 +145,10 @@
                     document.title = `${nm} SCANNER`;
                     if (fav) fav.setAttribute('href', cfg.ICON || window.DEFAULT_FAVICON_HREF || fav.getAttribute('href'));
                 } else {
-                    document.title = 'ALL SCANNER';
+                    document.title = 'SCANNER MULTICHAIN';
                     if (fav && window.DEFAULT_FAVICON_HREF) fav.setAttribute('href', window.DEFAULT_FAVICON_HREF);
                 }
-            } catch(_) {}
+            } catch (_) { }
 
             // Inject or update a style tag for theme overrides
             let styleEl = document.getElementById('dynamic-theme-style');

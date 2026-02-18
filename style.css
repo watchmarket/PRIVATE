@@ -575,6 +575,7 @@ input[type="radio"],
 .toolbar-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    gap: 4px;
 }
 
 .toolbar-scroll .icon {
@@ -2713,4 +2714,199 @@ input[type="radio"] {
 #refresh-snapshot-btn:not(.processing) {
     opacity: 1;
     cursor: pointer;
+}
+
+/* ==========================================================================
+   CEX Settings - Toggle Switch
+   ========================================================================== */
+.cex-toggle-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+}
+
+.cex-toggle-wrapper input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.cex-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.cex-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.cex-toggle-slider {
+    background-color: #22c55e;
+}
+
+input:focus+.cex-toggle-slider {
+    box-shadow: 0 0 1px #22c55e;
+}
+
+input:checked+.cex-toggle-slider:before {
+    transform: translateX(14px);
+}
+
+/* ==========================================================================
+   RPC CARDS - CEX Style (matching API Key Exchanger design)
+   ========================================================================== */
+
+.rpc-card-cex-style {
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    border-left-width: 3px;
+    border-left-style: solid;
+    transition: all 0.2s ease;
+}
+
+.rpc-default-label {
+    font-size: 10px;
+    color: #64748b;
+    margin: 0 0 3px 0;
+}
+
+.rpc-default-label span {
+    color: #0052ff;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   CEX TOOLBAR ICONS - Icon-based (like chain icons)
+   ========================================================================== */
+
+/* CEX Mode Variables */
+:root {
+    --cex-primary: #1448ce;
+    /* Default: MEXC blue */
+    --cex-primary-rgb: 20, 72, 206;
+    /* RGB for alpha values */
+}
+
+/* CEX Mode Background */
+body.cex-mode {
+    /* More dominant color: primary to dark variant of primary */
+    background: linear-gradient(135deg, var(--cex-primary) 20%, #1a1a1a 100%) !important;
+    transition: background 0.6s ease;
+}
+
+body.cex-mode .uk-card-default,
+body.cex-mode .header-card,
+body.cex-mode #scanner-config {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Toolbar Visibility in CEX Mode */
+/* User requested multichain menu to remain visible */
+body.cex-mode .toolbar-left a,
+body.cex-mode .toolbar-right a {
+    display: inline-flex !important;
+    /* Force show all items */
+}
+
+/* Optional: Highlight active CEX mode in toolbar if needed */
+body.cex-mode .toolbar-container {
+    border-bottom: 2px solid var(--cex-primary, #ccc);
+}
+
+/* CEX icon links - identical styling to chain icons */
+.cex-link {
+    position: relative;
+}
+
+/* ==========================================================================
+   UNIFIED CEX MODE STYLES (Referenced by cex-mode-manager.js)
+   ========================================================================== */
+body.cex-mode-active {
+    background-color: var(--cex-bg, #f9fafb) !important;
+    background-image: none !important;
+    /* Override gradients */
+    transition: background-color 0.4s ease;
+}
+
+/* Header customization in CEX mode */
+body.cex-mode-active .header-card {
+    border-top: 3px solid var(--cex-primary, #2563eb) !important;
+    background: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   UNIFIED TOOLBAR ICON STYLING
+   Applied to: Chain icons, CEX icons, Multichain icon
+   ========================================================================== */
+
+/* Base styling for all toolbar icon containers */
+.chain-link,
+.cex-icon-btn,
+#multichain_scanner {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    border-radius: 50%;
+    padding: 2px;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    opacity: 1;
+}
+
+/* All toolbar icon images */
+.chain-link img,
+.cex-icon-btn img,
+#multichain_scanner img {
+    border-radius: 50%;
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+
+/* Hover effect — seragam untuk semua icon toolbar */
+.chain-link:hover,
+.cex-icon-btn:hover,
+#multichain_scanner:hover {
+    transform: scale(1.1);
+}
+
+/* Active state — unified for chain, CEX, multichain */
+.chain-link.active,
+.cex-icon-btn.active,
+#multichain_scanner.active-mode {
+    opacity: 1;
+    border: 2px solid var(--icon-color, #2563eb);
+    box-shadow: 0 0 0 2px var(--icon-shadow, rgba(37, 99, 235, 0.25));
+}
+
+/* CEX Mode Badge */
+.cex-mode-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+    background-color: var(--cex-primary);
+    margin-left: 8px;
 }

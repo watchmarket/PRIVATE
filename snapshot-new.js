@@ -729,9 +729,9 @@
                     sc_out: String(token.sc_out || '').trim(),
                     des_out: Number(token.des_out || 0),
                     token_name: token.token_name || token.name || token.symbol_in,
-                    deposit: token.deposit,
-                    withdraw: token.withdraw,
-                    feeWD: token.feeWD,
+                    deposit: (token.deposit !== undefined && token.deposit !== null) ? token.deposit : (token.depositEnable ? '1' : '0'),
+                    withdraw: (token.withdraw !== undefined && token.withdraw !== null) ? token.withdraw : (token.withdrawEnable ? '1' : '0'),
+                    feeWD: token.feeWD || token.feeWDs || 0,
                     tradeable: token.tradeable,
                     current_price: Number.isFinite(Number(token.current_price)) ? Number(token.current_price) : 0,
                     price_currency: token.price_currency || defaultCurrency,
@@ -776,6 +776,21 @@
                 tokenDbMap = await loadChainTokenDatabase(chainKey);
             } catch (_) { }
 
+            // ✅ NEW: Load Portfolio Tokens for enrichment
+            const portfolioMap = new Map();
+            try {
+                const portfolioChain = (typeof getTokensChain === 'function') ? getTokensChain(chainKey) : [];
+                const portfolioMulti = (typeof getTokensMulti === 'function') ? getTokensMulti() : [];
+                const allPortfolio = [...portfolioChain, ...portfolioMulti.filter(t => String(t.chain).toLowerCase() === String(chainKey).toLowerCase())];
+
+                allPortfolio.forEach(token => {
+                    const sym = String(token.symbol_in || token.symbol || '').toUpperCase();
+                    if (sym && !portfolioMap.has(sym)) {
+                        portfolioMap.set(sym, token);
+                    }
+                });
+            } catch (e) { }
+
             if ((!Array.isArray(chainSnapshot) || chainSnapshot.length === 0) && tokenDbMap.size === 0) {
                 console.warn(`[INDODAX] No snapshot data and no DATAJSON for chain ${chainKey}. Trying fallback to TOKEN database...`);
                 return await enrichIndodaxFromTokenDatabase(chainKey, indodaxTokens);
@@ -817,8 +832,8 @@
                                 des_out: match.des_out || 6,
                                 chain: chainKey,
                                 token_name: match.token_name || symbol,
-                                deposit: indoToken.deposit !== undefined ? indoToken.deposit : '1',
-                                withdraw: indoToken.withdraw !== undefined ? indoToken.withdraw : '1',
+                                deposit: indoToken.deposit || (indoToken.depositEnable ? '1' : '0'),
+                                withdraw: indoToken.withdraw || (indoToken.withdrawEnable ? '1' : '0'),
                                 feeWD: indoToken.feeWD || indoToken.feeWDs || 0,
                                 tradeable: indoToken.tradeable !== undefined ? indoToken.tradeable : true,
                                 decimals: match.des_in || match.decimals || 18,
@@ -828,7 +843,31 @@
                     }
                 }
 
-                // Step 2: NEW — Try DATAJSON database
+                // Step 1.5: NEW — Try Portfolio Tokens
+                if (portfolioMap.has(symbol)) {
+                    matchCexCount++; // Reuse counter or create new one
+                    const match = portfolioMap.get(symbol);
+                    return {
+                        ...indoToken,
+                        cex: 'INDODAX',
+                        symbol_in: symbol,
+                        sc_in: match.sc_in || match.sc,
+                        des_in: match.des_in || match.decimals || 18,
+                        decimals: match.des_in || match.decimals || 18,
+                        token_name: match.token_name || match.name || symbol,
+                        symbol_out: indoToken.symbol_out || 'USDT',
+                        sc_out: match.sc_out || '',
+                        des_out: match.des_out || 6,
+                        chain: chainKey,
+                        deposit: indoToken.deposit || (indoToken.depositEnable ? '1' : '0'),
+                        withdraw: indoToken.withdraw || (indoToken.withdrawEnable ? '1' : '0'),
+                        feeWD: indoToken.feeWD || indoToken.feeWDs || 0,
+                        tradeable: true,
+                        enrichedFrom: 'PORTFOLIO'
+                    };
+                }
+
+                // Step 2: Try DATAJSON database
                 if (tokenDbMap.has(symbol)) {
                     matchDbCount++;
                     const dbEntry = tokenDbMap.get(symbol);
@@ -844,8 +883,8 @@
                         sc_out: '',
                         des_out: 6,
                         chain: chainKey,
-                        deposit: indoToken.deposit !== undefined ? indoToken.deposit : '1',
-                        withdraw: indoToken.withdraw !== undefined ? indoToken.withdraw : '1',
+                        deposit: indoToken.deposit || (indoToken.depositEnable ? '1' : '0'),
+                        withdraw: indoToken.withdraw || (indoToken.withdrawEnable ? '1' : '0'),
                         feeWD: indoToken.feeWD || indoToken.feeWDs || 0,
                         tradeable: true,
                         enrichedFrom: 'DATAJSON'
@@ -890,12 +929,9 @@
             try {
                 // Try to get from localStorage/indexedDB
                 if (typeof window !== 'undefined') {
-                    // Try window.getFromLocalStorage first (if available)
+                    // Load dari IndexedDB (via getFromLocalStorage with cache)
                     if (typeof window.getFromLocalStorage === 'function') {
                         tokenDatabase = window.getFromLocalStorage(tokenDbKey, []);
-                    } else if (typeof localStorage !== 'undefined') {
-                        const raw = localStorage.getItem(tokenDbKey);
-                        tokenDatabase = raw ? JSON.parse(raw) : [];
                     }
                 }
             } catch (err) {
@@ -1050,40 +1086,40 @@
                         // STEP 3: Combine matched + recovered, then map to snapshot format
                         const allValid = [...chainMatched, ...recovered];
                         coins = allValid.map(item => {
-                                const symbol = String(item.tokenName || '').toUpperCase();
-                                const lookupKey = `${cexUpper}_${symbol}`;
-                                const existing = existingLookup.get(lookupKey);
+                            const symbol = String(item.tokenName || '').toUpperCase();
+                            const lookupKey = `${cexUpper}_${symbol}`;
+                            const existing = existingLookup.get(lookupKey);
 
-                                // Extract contract address from CEX response
-                                let contractAddress = '';
-                                if (item.contractAddress) {
-                                    // Direct field (from services/cex.js normalized response or DATAJSON recovery)
-                                    contractAddress = String(item.contractAddress).trim();
-                                } else if (existing?.sc_in) {
-                                    // Fallback to existing data
-                                    contractAddress = existing.sc_in;
-                                }
+                            // Extract contract address from CEX response
+                            let contractAddress = '';
+                            if (item.contractAddress) {
+                                // Direct field (from services/cex.js normalized response or DATAJSON recovery)
+                                contractAddress = String(item.contractAddress).trim();
+                            } else if (existing?.sc_in) {
+                                // Fallback to existing data
+                                contractAddress = existing.sc_in;
+                            }
 
-                                return {
-                                    cex: cexUpper,
-                                    symbol_in: symbol,
-                                    tokenName: item.tokenName || symbol,
-                                    token_name: existing?.token_name || item.tokenName || '',
-                                    sc_in: contractAddress,
-                                    contractAddress: contractAddress,
-                                    needsEnrichment: item.needsEnrichment || false,
-                                    tradeable: item.trading !== undefined ? !!item.trading : true,
-                                    decimals: existing?.des_in || existing?.decimals || '',
-                                    des_in: existing?.des_in || existing?.decimals || '',
-                                    deposit: item.depositEnable ? '1' : '0',
-                                    // Kosongkan symbol_out dan sc_out saat mengambil data dari CEX
-                                    symbol_out: '',
-                                    sc_out: '',
-                                    des_out: 0,
-                                    withdraw: item.withdrawEnable ? '1' : '0',
-                                    feeWD: parseFloat(item.feeWDs || 0)
-                                };
-                            });
+                            return {
+                                cex: cexUpper,
+                                symbol_in: symbol,
+                                tokenName: item.tokenName || symbol,
+                                token_name: existing?.token_name || item.tokenName || '',
+                                sc_in: contractAddress,
+                                contractAddress: contractAddress,
+                                needsEnrichment: item.needsEnrichment || false,
+                                tradeable: item.trading !== undefined ? !!item.trading : true,
+                                decimals: existing?.des_in || existing?.decimals || '',
+                                des_in: existing?.des_in || existing?.decimals || '',
+                                deposit: item.depositEnable ? '1' : '0',
+                                // Kosongkan symbol_out dan sc_out saat mengambil data dari CEX
+                                symbol_out: '',
+                                sc_out: '',
+                                des_out: 0,
+                                withdraw: item.withdrawEnable ? '1' : '0',
+                                feeWD: parseFloat(item.feeWDs || 0)
+                            };
+                        });
 
                         // console.log(`Converted ${coins.length} coins from ${cexUpper} wallet API data`);
                     } else {
@@ -1133,7 +1169,7 @@
     // ====================
 
     // Enhanced validate token data with database optimization + AUTO-SAVE per-koin
-    async function validateTokenData(token, snapshotMap, symbolLookupMap, chainKey, progressCallback, errorCount, web3Cache = null) {
+    async function validateTokenData(token, snapshotMap, symbolLookupMap, chainKey, progressCallback, errorCount, web3Cache = null, tokenDbMap = null) {
         let sc = String(token.sc_in || '').toLowerCase().trim();
         const symbol = String(token.symbol_in || '').toUpperCase();
         const cexUp = String(token.cex || token.exchange || '').toUpperCase();
@@ -1161,6 +1197,12 @@
                 }
             }
 
+            // ✅ NEW: Fallback ke master token database (DATAJSON) jika belum ketemu di snapshot
+            if (!matched && tokenDbMap instanceof Map && tokenDbMap.has(symbol)) {
+                matched = tokenDbMap.get(symbol);
+                // console.log(`✅ ${symbol}: SC resolved from master database (DATAJSON) lookup`);
+            }
+
             if (matched) {
                 const matchedSc = String(matched.sc_in || matched.sc || '').trim();
                 if (matchedSc && matchedSc !== '0x') {
@@ -1177,6 +1219,10 @@
 
                     if (!token.token_name && matched.token_name) {
                         token.token_name = matched.token_name;
+                    }
+
+                    if (!token.token_name && matched.name) {
+                        token.token_name = matched.name;
                     }
 
                     // Perbarui cache untuk pencarian berikutnya
@@ -1535,7 +1581,7 @@
             );
 
             if (isNetworkError && typeof toast !== 'undefined' && toast.error) {
-                toast.error(`🌐 RPC Error (${chainKey}): ${error.message}`, {
+                toast.error(`🌐 RPC Error (${chainKey}): ${error.message}`, null, {
                     duration: 4000,
                     position: 'bottom-right'
                 });
@@ -1640,6 +1686,40 @@
                     snapshotSymbolMap.set(`NAME:${nameKey}`, token);
                 }
             });
+
+            // ✅ NEW: Include Portfolio Tokens (Tokens already in the app) in the lookup map
+            // This ensures if the user already has a token, we reuse its SC/decimals
+            try {
+                const portfolioChain = (typeof getTokensChain === 'function') ? getTokensChain(chainKey) : [];
+                const portfolioMulti = (typeof getTokensMulti === 'function') ? getTokensMulti() : [];
+
+                // Merge portfolio tokens (preferring current chain)
+                const allPortfolio = [...portfolioChain, ...portfolioMulti.filter(t => String(t.chain).toLowerCase() === keyLower)];
+
+                allPortfolio.forEach(token => {
+                    const sym = String(token.symbol_in || token.symbol || '').toUpperCase();
+                    if (sym) {
+                        const symKey = `SYM:${sym}`;
+                        // Portfolio tokens have HIGHER priority than snapshot (possibly more recent)
+                        snapshotSymbolMap.set(symKey, {
+                            ...token,
+                            sc_in: token.sc_in || token.sc,
+                            des_in: token.des_in || token.decimals
+                        });
+                    }
+                });
+                // console.log(`[Snapshot] Loaded ${allPortfolio.length} portfolio tokens into lookup map`);
+            } catch (e) {
+                console.warn('[Snapshot] Failed to load portfolio tokens for enrichment:', e.message);
+            }
+
+            // ✅ NEW: Load master token database (DATAJSON) for ticker-based enrichment
+            let tokenDbMap = new Map();
+            try {
+                tokenDbMap = await loadChainTokenDatabase(chainKey);
+            } catch (e) {
+                console.warn(`[Snapshot] Failed to load master token database for ${chainKey}:`, e.message);
+            }
 
             // ========== PHASE 1: FETCH CEX DATA (WALLET STATUS) ==========
             // Process each CEX - INDODAX terakhir untuk lookup TOKEN database
@@ -1810,7 +1890,7 @@
 
                 // Show warning toast dengan detail
                 if (typeof toast !== 'undefined' && toast.warning) {
-                    toast.warning(warningMsg, {
+                    toast.warning(warningMsg, null, {
                         duration: 10000,
                         position: 'top-center'
                     });
@@ -1951,8 +2031,8 @@
                         const hadDecimals = token.des_in && token.des_in > 0;
                         const hadCachedData = snapshotMap[String(token.sc_in || '').toLowerCase()];
 
-                        // Validate token (pass errorTracking for toast throttling + web3Cache)
-                        const validated = await validateTokenData(token, snapshotMap, snapshotSymbolMap, chainKey, progressCallback, errorTracking, web3Cache);
+                        // Validate token (pass errorTracking for toast throttling + web3Cache + tokenDbMap)
+                        const validated = await validateTokenData(token, snapshotMap, snapshotSymbolMap, chainKey, progressCallback, errorTracking, web3Cache, tokenDbMap);
 
                         return {
                             validated,
@@ -2027,7 +2107,7 @@
                         ? `⚠️ Batch ${batchNumber}: 1 token gagal validasi (${batchErrorTokens[0]})`
                         : `⚠️ Batch ${batchNumber}: ${batchErrorCount} token gagal validasi (${batchErrorTokens.slice(0, 3).join(', ')}${batchErrorCount > 3 ? '...' : ''})`;
 
-                    toast.warning(errorMsg, {
+                    toast.warning(errorMsg, null, {
                         duration: 4000,
                         position: 'bottom-right'
                     });
@@ -2152,7 +2232,7 @@
                 const warningMsg = `⚠️ ${failedPriceFetchList.length} CEX gagal fetch harga\n\nGagal: ${failedPriceFetchList.join(', ')}\nBerhasil: ${activeCexList.length - failedPriceFetchList.length} CEX\n\nHarga untuk CEX yang gagal akan diset ke 0.`;
 
                 if (typeof toast !== 'undefined' && toast.warning) {
-                    toast.warning(warningMsg, {
+                    toast.warning(warningMsg, null, {
                         duration: 6000,
                         position: 'top-center'
                     });
@@ -2338,6 +2418,35 @@
 
                 // Convert map back to array
                 mergedTokens = Array.from(tokenMap.values());
+
+                // ========== ENRICHMENT: CEX LISTINGS (CROSS-CEX) ==========
+                // Group tokens by unique identifier (Symbol + SC) to find all CEX listings
+                const tokenGroups = new Map();
+                mergedTokens.forEach(token => {
+                    // Use Symbol + SC as unique ID for the token asset
+                    const uniqueId = `${String(token.symbol_in).toUpperCase()}_${String(token.sc_in || '').toLowerCase()}`;
+                    if (!tokenGroups.has(uniqueId)) {
+                        tokenGroups.set(uniqueId, []);
+                    }
+                    tokenGroups.get(uniqueId).push(token);
+                });
+
+                // Calculate and apply cexListings for each group
+                tokenGroups.forEach(groupTokens => {
+                    // 1. Collect all CEXs where this token is listed
+                    const listings = {};
+                    groupTokens.forEach(t => {
+                        if (t.cex) listings[String(t.cex).toUpperCase()] = true;
+                        // Merge existing listings if any
+                        if (t.cexListings) Object.assign(listings, t.cexListings);
+                    });
+
+                    // 2. Apply combined listings to ALL tokens in the group
+                    groupTokens.forEach(t => {
+                        t.cexListings = { ...listings };
+                    });
+                });
+                // ==========================================================
 
                 if (window.SnapshotOverlay) {
                     window.SnapshotOverlay.updateProgress(

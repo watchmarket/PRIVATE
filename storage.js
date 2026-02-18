@@ -293,53 +293,98 @@
     window.exportIDB = async function () {
         try {
             const items = await idbGetAll();
-            // Also capture native localStorage items (portfolio wallet data, etc.)
-            const lsItems = [];
-            try {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const k = localStorage.key(i);
-                    if (k && (k.startsWith('MULTI_') || k === 'WALLET_UPDATE_REPORT' || k === 'CEX_KEYS_MIGRATED')) {
-                        lsItems.push({ key: k, val: localStorage.getItem(k) });
-                    }
-                }
-            } catch (_) { }
+            // Semua data sudah di IndexedDB — tidak perlu export raw localStorage lagi
             return {
-                schema: 'kv-v1',
+                schema: 'kv-v2',
                 db: DB_NAME,
                 store: STORE_KV,
                 prefix: (window.storagePrefix || ''),
                 exportedAt: new Date().toISOString(),
                 count: items.length,
-                items,
-                localStorageItems: lsItems.length > 0 ? lsItems : undefined
+                items
             };
-        } catch (e) { return { schema: 'kv-v1', error: String(e) }; }
+        } catch (e) { return { schema: 'kv-v2', error: String(e) }; }
     };
 
     window.restoreIDB = async function (payload, opts) {
         const options = Object.assign({ overwrite: true }, opts || {});
         let ok = 0, fail = 0;
         if (!payload || !Array.isArray(payload.items)) return { ok, fail, error: 'Invalid payload' };
+
+        // ✅ FIX: Handle storage prefix mismatch
+        // Backup may have been created with different prefix (or no prefix)
+        // Current app may use a different prefix
+        // We need to normalize keys to use current prefix
+        const currentPrefix = window.storagePrefix || '';
+        const backupPrefix = payload.prefix || '';
+
+        console.log('[Restore] Current prefix:', currentPrefix || '(none)');
+        console.log('[Restore] Backup prefix:', backupPrefix || '(none)');
+        console.log('[Restore] Items to restore:', payload.items.length);
+
         for (const it of payload.items) {
             try {
                 if (!it || !it.key) { fail++; continue; }
-                const key = String(it.key);
-                const res = await idbSet(key, it.val);
-                if (res) { cache[key] = it.val; ok++; } else { fail++; }
-            } catch (_) { fail++; }
+
+                let key = String(it.key);
+
+                // ✅ Strip backup prefix if it exists
+                if (backupPrefix && key.startsWith(backupPrefix)) {
+                    key = key.substring(backupPrefix.length);
+                    console.log('[Restore] Stripped backup prefix from key:', it.key, '→', key);
+                }
+
+                // ✅ Apply current prefix
+                const finalKey = currentPrefix + key;
+
+                // Log important keys for debugging
+                if (key === 'CEX_API_KEYS' || key === 'ENABLED_CEXS') {
+                    console.log(`[Restore] ✅ Restoring ${key} → ${finalKey}`);
+                }
+
+                const res = await idbSet(finalKey, it.val);
+                if (res) {
+                    cache[finalKey] = it.val;
+                    ok++;
+                } else {
+                    console.warn('[Restore] Failed to save:', finalKey);
+                    fail++;
+                }
+            } catch (e) {
+                console.error('[Restore] Error processing item:', it.key, e);
+                fail++;
+            }
         }
-        // Restore native localStorage items (portfolio wallet data, etc.)
+
+        // Backward compat: import old localStorageItems ke IndexedDB (bukan raw localStorage)
         let lsOk = 0;
         if (Array.isArray(payload.localStorageItems)) {
+            console.log('[Restore] Migrating legacy localStorage items to IndexedDB:', payload.localStorageItems.length);
             for (const it of payload.localStorageItems) {
                 try {
                     if (it && it.key) {
-                        localStorage.setItem(it.key, it.val);
-                        lsOk++;
+                        // Map legacy keys ke IndexedDB key
+                        let idbKey = it.key;
+                        let val = it.val;
+
+                        // Skip legacy MULTI_* keys (sudah di CEX_API_KEYS)
+                        if (idbKey.startsWith('MULTI_apikey') || idbKey.startsWith('MULTI_secretkey') || idbKey.startsWith('MULTI_passphrase')) continue;
+
+                        // Parse JSON string values
+                        try { val = JSON.parse(val); } catch (_) { }
+
+                        // Rename legacy keys
+                        if (idbKey === 'MULTI_USDTRate') idbKey = 'PRICE_RATE_USDT';
+
+                        const finalKey = currentPrefix + idbKey;
+                        const res = await idbSet(finalKey, val);
+                        if (res) { cache[finalKey] = val; lsOk++; }
                     }
                 } catch (_) { }
             }
         }
+
+        console.log('[Restore] Complete - OK:', ok, 'Fail:', fail, 'LegacyMigrated:', lsOk);
         return { ok, fail, lsRestored: lsOk };
     };
 
@@ -399,7 +444,7 @@ function downloadTokenScannerCSV() {
     })(appName);
 
     // Get all available CEX and DEX from config
-    const allCex = Object.keys(window.CONFIG_CEX || {}).map(c => c.toUpperCase());
+    const allCex = getEnabledCEXs();
     const allDex = Object.keys(window.CONFIG_DEXS || {}).map(d => d.toLowerCase());
 
     // Build dynamic headers with expanded CEX and DEX columns

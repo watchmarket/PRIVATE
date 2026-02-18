@@ -137,9 +137,16 @@
 
                 // Settings
                 const settings = getKv('SETTING_SCANNER') ?? (typeof window.getFromLocalStorage === 'function' ? window.getFromLocalStorage('SETTING_SCANNER', undefined) : undefined);
+                // ✅ Also load ENABLED_CEXS to include in settings display
+                const enabledCEXs = getKv('ENABLED_CEXS') ?? (typeof window.getFromLocalStorage === 'function' ? window.getFromLocalStorage('ENABLED_CEXS', undefined) : undefined);
                 if (settings) {
+                    // Inject ENABLED_CEXS into settings for display
+                    const settingsWithCEXs = { ...settings };
+                    if (enabledCEXs) {
+                        settingsWithCEXs.ENABLED_CEXS = enabledCEXs;
+                    }
                     tables['SETTING_SCANNER'] = {
-                        name: 'SETTING_SCANNER', displayName: 'Setting Scanner', type: 'settings', rawKey: (kvIndex.get('SETTING_SCANNER') || {}).rawKey || 'SETTING_SCANNER', data: settings, count: Object.keys(settings).length
+                        name: 'SETTING_SCANNER', displayName: 'Setting Scanner', type: 'settings', rawKey: (kvIndex.get('SETTING_SCANNER') || {}).rawKey || 'SETTING_SCANNER', data: settingsWithCEXs, count: Object.keys(settingsWithCEXs).length
                     };
                 }
 
@@ -954,6 +961,25 @@
                         ? '<span style="color:#28a745;font-size:16px" title="Enabled">✓ ON</span>'
                         : '<span style="color:#dc3545;font-size:16px" title="Disabled">✗ OFF</span>';
                     html += `<tr><td><strong>${key}</strong></td><td>${icon}</td></tr>`;
+                }
+                // ✅ NEW: Special rendering for ENABLED_CEXS array
+                else if (key === 'ENABLED_CEXS' && Array.isArray(value)) {
+                    let cexChipsHtml = '<div class="uk-margin-remove" style="display:flex;flex-wrap:wrap;gap:6px;">';
+                    if (value.length === 0) {
+                        cexChipsHtml += '<span class="uk-text-muted uk-text-small">No CEX enabled</span>';
+                    } else {
+                        value.forEach(cexKey => {
+                            const cexConfig = (typeof window !== 'undefined' && window.CONFIG_CEX) ? window.CONFIG_CEX[cexKey] : null;
+                            const cexColor = cexConfig?.WARNA || '#667eea';
+                            cexChipsHtml += `
+                                <span style="padding:4px 10px;border-radius:4px;border:2px solid ${cexColor};background:${cexColor}15;color:${cexColor};font-weight:600;font-size:11px;">
+                                    ${cexKey}
+                                </span>
+                            `;
+                        });
+                    }
+                    cexChipsHtml += '</div>';
+                    html += `<tr><td><strong>${key}</strong> <span class="uk-badge" style="background:#28a745">${value.length}</span></td><td>${cexChipsHtml}</td></tr>`;
                 }
                 else {
                     const valStr = (typeof value === 'object' && value !== null) ? JSON.stringify(value) : String(value);

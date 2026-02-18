@@ -24,6 +24,10 @@
     <script src="storage.js"></script>
     <script src="rpc-manager.js"></script>
     <script src="secrets.js"></script>
+    <!-- ✅ CEX Helper Functions for filtering enabled/disabled CEXs -->
+    <script src="utils/cex-helpers.js"></script>
+    <!-- ✅ Chain Toggle Helper Functions for filtering enabled/disabled chains -->
+    <script src="utils/chain-toggle-helpers.js"></script>
 </head>
 <style>
     body {
@@ -1005,39 +1009,64 @@
                             </thead>
                             <tbody class="cex-static">
                                 <tr data-cex="BINANCE">
-                                    <td class="uk-text-left cex-label text-cex-binance">BINANCE</td>
+                                    <td class="uk-text-left cex-label text-cex-binance"><img
+                                            src="assets/icons/cex/binance.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        BINANCE</td>
                                     <td id="BINANCESaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                                 <tr data-cex="GATE">
-                                    <td class="uk-text-left cex-label text-cex-gate">GATE</td>
+                                    <td class="uk-text-left cex-label text-cex-gate"><img
+                                            src="assets/icons/cex/gate.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        GATE</td>
                                     <td id="GATESaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                                 <tr data-cex="BITGET">
-                                    <td class="uk-text-left cex-label text-cex-bitget">BITGET</td>
+                                    <td class="uk-text-left cex-label text-cex-bitget"><img
+                                            src="assets/icons/cex/bitget.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        BITGET</td>
                                     <td id="BITGETSaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                                 <tr data-cex="KUCOIN">
-                                    <td class="uk-text-left cex-label text-cex-kucoin">KUCOIN</td>
+                                    <td class="uk-text-left cex-label text-cex-kucoin"><img
+                                            src="assets/icons/cex/kucoin.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        KUCOIN</td>
                                     <td id="KUCOINSaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                                 <tr data-cex="BYBIT">
-                                    <td class="uk-text-left cex-label text-cex-bybit">BYBIT</td>
+                                    <td class="uk-text-left cex-label text-cex-bybit"><img
+                                            src="assets/icons/cex/bybit.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        BYBIT</td>
                                     <td id="BYBITSaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                                 <tr data-cex="INDODAX">
-                                    <td class="uk-text-left cex-label text-cex-indodax">INDODAX</td>
+                                    <td class="uk-text-left cex-label text-cex-indodax"><img
+                                            src="assets/icons/cex/indodax.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        INDODAX</td>
                                     <td id="INDODAXSaldo" class="uk-text-right">xxx {INDODAX}</td>
                                 </tr>
                                 <tr data-cex="MEXC">
-                                    <td class="uk-text-left cex-label text-cex-mexc">MEXC</td>
+                                    <td class="uk-text-left cex-label text-cex-mexc"><img
+                                            src="assets/icons/cex/mexc.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        MEXC</td>
                                     <td id="MEXCSaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                                 <tr data-cex="HTX">
-                                    <td class="uk-text-left cex-label text-cex-htx">HTX</td>
+                                    <td class="uk-text-left cex-label text-cex-htx"><img src="assets/icons/cex/htx.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        HTX</td>
                                     <td id="HTXSaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                                 <tr data-cex="OKX">
-                                    <td class="uk-text-left cex-label text-cex-okx">OKX</td>
+                                    <td class="uk-text-left cex-label text-cex-okx"><img src="assets/icons/cex/okx.png"
+                                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
+                                        OKX</td>
                                     <td id="OKXSaldo" class="uk-text-right">xxx {USDT}</td>
                                 </tr>
                             </tbody>
@@ -1053,18 +1082,6 @@
                             <button class="uk-button uk-button-small uk-button-primary" id="SaveConfigCEXS"><span
                                     uk-icon="icon: check"></span> CHECK EXCHANGER</button>
                         </div>
-
-                        <!-- Alert: Redirect to Settings for CEX API Configuration -->
-                        <div class="uk-alert uk-alert-danger uk-margin-small" uk-alert>
-                            <p style="margin: 0; font-size: 0.95rem;">
-                                <span uk-icon="icon: lock"></span>
-                                <strong>Konfigurasi API Key CEX:</strong><br>
-                                API keys dikelola di <strong>Settings</strong> aplikasi utama.<br>
-                                📍 Buka <strong><a href="index.html" target="_blank">Settings → API KEY
-                                        EXCHANGER</a></strong>
-                            </p>
-                        </div>
-
 
                     </ul>
                 </div>
@@ -1198,83 +1215,7 @@
                         <button class="uk-button uk-button-small uk-button-primary" id="SaveWalletChains"><span
                                 uk-icon="icon: check"></span> CHECK WALLETS</button>
                     </div>
-                    <!-- Collapse: Setting Chains & Wallet -->
-                    <li class="uk-open">
-                        <h5 class="uk-heading-line uk-text-left uk-margin-remove"><span><span
-                                    uk-icon="icon: credit-card"></span> Setting Blockchain Wallets</span></h5>
 
-                        <p class="uk-text-small uk-text-muted uk-margin-small-bottom"><span uk-icon="icon: info"></span>
-                            Centang chain yang aktif dan masukkan wallet
-                            address</p>
-                        <div class="input-group uk-margin-small">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <input type="checkbox" id="ETHEREUM" />&nbsp;
-                                    <label class="form-check-label text-chain-ethereum" for="ethWallet">ETHEREUM</label>
-                                </div>
-                            </div>
-                            <input class="form-control uk-input uk-form-small" type="text" id="ethWallet"
-                                placeholder="Enter Ethereum Wallet Address">
-                        </div>
-
-                        <div class="input-group uk-margin-small">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <input type="checkbox" id="BSC" />&nbsp;
-                                    <label class="form-check-label text-chain-bsc" for="bscWallet">BSC</label>
-                                </div>
-                            </div>
-                            <input class="form-control uk-input uk-form-small" type="text" id="bscWallet"
-                                placeholder="Enter BSC Wallet Address">
-                        </div>
-
-                        <div class="input-group uk-margin-small">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <input type="checkbox" id="POLYGON" />&nbsp;
-                                    <label class="form-check-label text-chain-polygon"
-                                        for="polygonWallet">POLYGON</label>
-                                </div>
-                            </div>
-                            <input class="form-control uk-input uk-form-small" type="text" id="polygonWallet"
-                                placeholder="Enter Polygon Wallet Address">
-                        </div>
-
-                        <div class="input-group uk-margin-small">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <input type="checkbox" id="BASE" />&nbsp;
-                                    <label class="form-check-label text-chain-base" for="baseWallet">BASE</label>
-                                </div>
-                            </div>
-                            <input class="form-control uk-input uk-form-small" type="text" id="baseWallet"
-                                placeholder="Enter Base Wallet Address">
-                        </div>
-
-                        <div class="input-group uk-margin-small">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <input type="checkbox" id="ARBITRUM" />&nbsp;
-                                    <label class="form-check-label text-chain-arbitrum"
-                                        for="arbitrumWallet">ARBITRUM</label>
-                                </div>
-                            </div>
-                            <input class="form-control uk-input uk-form-small" type="text" id="arbitrumWallet"
-                                placeholder="Enter Arbitrum Wallet Address">
-                        </div>
-                        <div class="input-group uk-margin-small">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <input type="checkbox" id="SOLANA" />&nbsp;
-                                    <label class="form-check-label text-chain-solana" for="solanaWallet">SOLANA</label>
-                                </div>
-                            </div>
-                            <input class="form-control uk-input uk-form-small" type="text" id="solanaWallet"
-                                placeholder="Enter Solana Wallet Address">
-                        </div>
-
-
-                    </li>
 
                     <!-- Modal Kalkulator -->
                     <div id="calculator-modal" uk-modal>
@@ -1438,6 +1379,168 @@
 
     <script>
         $(document).ready(async function () {
+            // ✅ FILTER WALLET LIST BY ENABLED CHAINS
+            try {
+                // Wait a bit for chain-toggle-helpers.js to load
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const enabledChains = (typeof getEnabledChains === 'function')
+                    ? getEnabledChains()
+                    : null; // null = show all wallets (fallback)
+
+                console.log('[PORTFOLIO] getEnabledChains available:', typeof getEnabledChains === 'function');
+                console.log('[PORTFOLIO] Enabled chains:', enabledChains);
+
+                // ✅ If enabledChains is null or empty, SHOW ALL wallets (don't filter)
+                if (!enabledChains || enabledChains.length === 0) {
+                    console.warn('[PORTFOLIO] No enabled chains or function unavailable - showing ALL wallets');
+                    return; // Don't hide anything, show all wallet inputs
+                }
+
+                // Chain ID mapping (label text -> chain key in CONFIG_CHAINS)
+                // ✅ FIXED: Use lowercase chain keys to match CONFIG_CHAINS
+                const chainMapping = {
+                    'ETHEREUM': 'ethereum',
+                    'BSC': 'bsc',
+                    'POLYGON': 'polygon',
+                    'BASE': 'base',
+                    'ARBITRUM': 'arbitrum',
+                    'AVAX': 'avax',
+                    'SOLANA': 'solana'
+                };
+
+                // Hide wallet inputs for disabled chains ONLY
+                Object.keys(chainMapping).forEach(labelText => {
+                    const chainKey = chainMapping[labelText];
+                    const isEnabled = enabledChains.includes(chainKey);
+                    // Find input group by label text (no checkbox anymore)
+                    const $inputGroup = $(`.text-chain-${chainKey}`).closest('.input-group');
+
+                    if (!isEnabled && $inputGroup.length > 0) {
+                        $inputGroup.hide(); // Hide entire input group
+                        console.log(`[PORTFOLIO] Hiding wallet input for disabled chain: ${labelText}`);
+                    } else if ($inputGroup.length > 0) {
+                        $inputGroup.show(); // Ensure it's visible
+                        console.log(`[PORTFOLIO] Showing wallet input for enabled chain: ${labelText}`);
+                    }
+                });
+            } catch (e) {
+                console.warn('[PORTFOLIO] Failed to filter wallet list:', e.message);
+                // On error, show all wallets (don't hide anything)
+            }
+
+            // ✅ FILTER CEX API KEY INPUTS BY ENABLED CEXS
+            try {
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const enabledCEXs = (typeof getEnabledCEXs === 'function')
+                    ? getEnabledCEXs()
+                    : null; // null = show all CEXs (fallback)
+
+                console.log('[PORTFOLIO] getEnabledCEXs available:', typeof getEnabledCEXs === 'function');
+                console.log('[PORTFOLIO] Enabled CEXs:', enabledCEXs);
+
+                // ✅ If enabledCEXs is null or empty, SHOW ALL CEXs (don't filter)
+                if (!enabledCEXs || enabledCEXs.length === 0) {
+                    console.warn('[PORTFOLIO] No enabled CEXs or function unavailable - showing ALL CEXs');
+                } else {
+                    // Hide CEX table rows for disabled CEXs
+                    const allCEXs = ['GATE', 'BINANCE', 'MEXC', 'KUCOIN', 'BITGET', 'BYBIT', 'INDODAX', 'HTX', 'OKX'];
+
+                    allCEXs.forEach(cex => {
+                        const isEnabled = enabledCEXs.includes(cex);
+                        // Find the table row with this CEX label
+                        const $cexRow = $(`.cex-label:contains("${cex}")`).closest('tr');
+
+                        if (!isEnabled && $cexRow.length > 0) {
+                            $cexRow.hide(); // Hide entire row
+                            console.log(`[PORTFOLIO] Hiding CEX row for disabled: ${cex}`);
+                        } else if ($cexRow.length > 0) {
+                            $cexRow.show(); // Ensure it's visible
+                            console.log(`[PORTFOLIO] Showing CEX row for enabled: ${cex}`);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.warn('[PORTFOLIO] Failed to filter CEX list:', e.message);
+                // On error, show all CEXs (don't hide anything)
+            }
+
+            // ===============================================
+            // ✅ WALLET AUTO-LOAD FROM SETTINGS
+            // ===============================================
+            window.loadWalletsFromSettings = function () {
+                try {
+                    const settings = getFromLocalStorage('SETTING_SCANNER', {});
+                    const userWallets = settings.userWallets || {};
+                    const enabledChains = (typeof getEnabledChains === 'function') ? getEnabledChains() : [];
+
+                    console.log('[PORTFOLIO] Loading wallets from settings...');
+                    console.log('[PORTFOLIO] User wallets:', userWallets);
+                    console.log('[PORTFOLIO] Enabled chains:', enabledChains);
+
+                    const portfolioWallets = {};
+                    enabledChains.forEach(chain => {
+                        if (userWallets[chain]) {
+                            portfolioWallets[chain] = userWallets[chain];
+                        }
+                    });
+
+                    updateWalletStatusDisplay(portfolioWallets, enabledChains);
+                    return portfolioWallets;
+                } catch (error) {
+                    console.error('[PORTFOLIO] Error loading wallets:', error);
+                    return {};
+                }
+            };
+
+            window.refreshWalletsFromSettings = function () {
+                const wallets = loadWalletsFromSettings();
+                if (wallets && Object.keys(wallets).length > 0) {
+                    UIkit.notification({
+                        message: `✅ ${Object.keys(wallets).length} wallet(s) loaded`,
+                        status: 'success',
+                        timeout: 3000
+                    });
+                } else {
+                    UIkit.notification({
+                        message: '⚠️ No wallets in settings',
+                        status: 'warning',
+                        timeout: 3000
+                    });
+                }
+            };
+
+            function updateWalletStatusDisplay(wallets, enabledChains) {
+                const statusDiv = $('#wallet-status-display');
+                if (!statusDiv.length) return;
+
+                let html = '';
+
+                if (enabledChains.length === 0) {
+                    html = '<p class="uk-text-warning uk-text-small">⚠️ No active chains</p>';
+                } else {
+                    html += `<p class="uk-text-success uk-text-small uk-margin-remove"><strong>✅ ${enabledChains.length} Chain(s):</strong></p>`;
+                    html += '<ul class="uk-list uk-list-bullet uk-margin-small-top uk-text-small">';
+
+                    enabledChains.forEach(chain => {
+                        const wallet = wallets[chain];
+                        const chainName = chain.toUpperCase();
+                        if (wallet) {
+                            const shortWallet = `${wallet.substring(0, 6)}...${wallet.substring(wallet.length - 4)}`;
+                            html += `<li><strong>${chainName}</strong>: ${shortWallet}</li>`;
+                        } else {
+                            html += `<li class="uk-text-danger"><strong>${chainName}</strong>: ⚠️ Not set</li>`;
+                        }
+                    });
+
+                    html += '</ul>';
+                }
+
+                statusDiv.html(html);
+            }
+
+            setTimeout(() => loadWalletsFromSettings(), 200);
 
             // ========================================
             // ✅ DEBUG: Display CEX API Keys from IndexedDB
@@ -2519,12 +2622,17 @@
                 const cexKeys = _portfolioCEXKeysCache || {};
                 console.log('[CEX Check] CEX keys available:', Object.keys(cexKeys));
 
-                // Get all CEX that have valid credentials
+                // ✅ Get list of enabled CEXs from settings
+                const enabledCEXs = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs() : Object.keys(window.CONFIG_CEX || {});
+                console.log('[CEX Check] Enabled CEXs from settings:', enabledCEXs);
+
+                // Get all CEX that have valid credentials AND are enabled in settings
                 const checkedExchanges = Object.keys(cexKeys).filter(cex => {
                     const credentials = cexKeys[cex];
                     const isValid = credentials && credentials.ApiKey && credentials.ApiSecret;
-                    console.log(`[DEBUG] ${cex}: ${isValid ? 'Valid' : 'Invalid'} credentials`);
-                    return isValid;
+                    const isEnabled = enabledCEXs.includes(cex);
+                    console.log(`[DEBUG] ${cex}: Credentials=${isValid ? '✅' : '❌'}, Enabled=${isEnabled ? '✅' : '❌'}`);
+                    return isValid && isEnabled; // Must be both valid AND enabled
                 });
 
                 if (checkedExchanges.length === 0) {
@@ -2647,9 +2755,12 @@
                 console.log('[DEBUG] ========== CALCULATING TOTAL CEX ==========');
                 console.log('[DEBUG] getTotalSaldoCEXS called');
 
-                // ✅ FIX: Loop semua CEX yang mungkin ada (tidak pakai checkbox lagi)
-                // Karena sistem baru menggunakan IndexedDB, tidak ada checkbox CEX
-                const allCEX = ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
+                // ✅ Use enabled CEXs from settings instead of hardcoded list
+                const allCEX = (typeof getEnabledCEXs === 'function')
+                    ? getEnabledCEXs()
+                    : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
+
+                console.log('[DEBUG] Processing enabled CEXs:', allCEX);
 
                 allCEX.forEach(cex => {
                     const saldoKey = `MULTI_${cex}Saldo`;
@@ -2743,42 +2854,46 @@
                 $('#LTotalSaldoWallets').text('');
                 $('#TotalSaldoWallets').text('');
 
-                const selectedChains = {
-                    ethereum: $('#ETHEREUM').is(':checked') ? $('#ethWallet').val() : null,
-                    bsc: $('#BSC').is(':checked') ? $('#bscWallet').val() : null,
-                    polygon: $('#POLYGON').is(':checked') ? $('#polygonWallet').val() : null,
-                    base: $('#BASE').is(':checked') ? $('#baseWallet').val() : null,
-                    arbitrum: $('#ARBITRUM').is(':checked') ? $('#arbitrumWallet').val() : null,
-                    avax: $('#AVAX').is(':checked') ? $('#avaxWallet').val() : null,
-                    solana: $('#SOLANA').is(':checked') ? $('#solanaWallet').val() : null
-                };
+                // ✅ NEW: Auto-load wallets from settings
+                const portfolioWallets = loadWalletsFromSettings();
+                if (!portfolioWallets) {
+                    $('#output_chain').html(
+                        '<tr><td colspan="4" class="uk-text-danger">⚠️ Gagal memuat wallet dari settings!</td></tr>'
+                    );
+                    $('#assetTableWallet').show();
+                    $(this).prop('disabled', false);
+                    $(document).trigger('WalletCheckCompleted');
+                    if (isStandaloneCall) window.BalanceCheckOverlay.hide();
+                    return;
+                }
 
-                const invalidChains = Object.keys(selectedChains).filter(chain =>
-                    $(`#${chain.toUpperCase()}`).is(':checked') &&
-                    (selectedChains[chain] === null || selectedChains[chain].trim() === '')
+                const selectedChains = portfolioWallets;
+
+                // Validate: check if enabled chains have wallet addresses
+                const enabledChains = (typeof getEnabledChains === 'function') ? getEnabledChains() : [];
+                const invalidChains = enabledChains.filter(chain =>
+                    !selectedChains[chain] || selectedChains[chain].trim() === ''
                 );
 
                 if (invalidChains.length > 0) {
                     $('#output_chain').html(
-                        `<tr><td colspan="4" class="uk-text-danger">Wallet Chain ${invalidChains.join(', ')} harus diisi!</td></tr>`
+                        `<tr><td colspan="4" class="uk-text-danger">Wallet untuk chain ${invalidChains.map(c => c.toUpperCase()).join(', ')} belum diset di Settings!</td></tr>`
                     );
                     $('#assetTableWallet').show();
-                    $(this).prop('disabled', false);  // Mengaktifkan kembali tombol jika ada error
-                    // Emit completion on error/invalid so combined flow can continue
+                    $(this).prop('disabled', false);
                     $(document).trigger('WalletCheckCompleted');
-                    if (isStandaloneCall) window.BalanceCheckOverlay.hide(); // Hide overlay on error only if standalone
+                    if (isStandaloneCall) window.BalanceCheckOverlay.hide();
                     return;
                 }
 
                 const validChains = Object.keys(selectedChains).filter(chain => selectedChains[chain]);
 
                 if (validChains.length === 0) {
-                    $('#output_chain').html('<tr><td colspan="4">Pilih Min 1 Chain!!</td></tr>');
+                    $('#output_chain').html('<tr><td colspan="4">Pilih Min 1 Chain di Settings!!</td></tr>');
                     $('#assetTableWallet').show();
                     $(this).prop('disabled', false);
-                    // Emit completion on error/invalid so combined flow can continue
                     $(document).trigger('WalletCheckCompleted');
-                    if (isStandaloneCall) window.BalanceCheckOverlay.hide(); // Hide overlay on error only if standalone
+                    if (isStandaloneCall) window.BalanceCheckOverlay.hide();
                     return;
                 }
 
@@ -2813,10 +2928,17 @@
                         if (result.error) {
                             return `<tr><td colspan="4">ERROR : ${result.error}</td></tr>`;
                         } else {
+                            // Get chain icon from CONFIG_CHAINS
+                            const chainKey = result.chain.toLowerCase();
+                            const chainIcon = CONFIG_CHAINS[chainKey]?.ICON || '';
+
+                            console.log(`[CHAIN ICON] ${chainKey}:`, chainIcon);
+
                             return `
                             <tr data-chain="${result.chain.toUpperCase()}">
                                 <td class="chain-label">
                                     <a class="uk-link-muted text-chain-${result.chain.toLowerCase()}" href="${result.walletLink}" target="_blank">
+                                        ${chainIcon ? `<img src="${chainIcon}" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">` : ''}
                                         ${result.chain.toUpperCase()}
                                     </a>
                                 </td>
@@ -2903,8 +3025,12 @@
 
                 console.log('[DEBUG] ========== UPDATE TABLE ROWS CEX ==========');
 
-                // ✅ FIX: Loop semua CEX yang mungkin ada (tidak pakai checkbox lagi)
-                const allCEX = ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
+                // ✅ Use enabled CEXs from settings instead of hardcoded list
+                const allCEX = (typeof getEnabledCEXs === 'function')
+                    ? getEnabledCEXs()
+                    : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
+
+                console.log('[DEBUG] Processing enabled CEXs for table update:', allCEX);
 
                 allCEX.forEach(cex => {
                     const saldoKey = `MULTI_${cex}Saldo`;
@@ -4028,7 +4154,7 @@
 
                             return `
                             <tr>
-                                <td><a href="${row.walletLink}" target="_blank" class="text-chain-${row.chain.toLowerCase()}">${row.chain.toUpperCase()}</a></td>
+                                <td><img src="assets/icons/chains/${row.chain.toLowerCase()}.png" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"><a href="${row.walletLink}" target="_blank" class="text-chain-${row.chain.toLowerCase()}">${row.chain.toUpperCase()}</a></td>
                                 <td>${row.assetBalance} ${row.assetSymbol}</td>
                                 <td>${row.gasBalance} ${row.gasSymbol} [${row.usdtGas}]</td>
                                 <td>${row.total} USDT</td>

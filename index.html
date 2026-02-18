@@ -25,10 +25,6 @@
 </head>
 
 <body>
-  <!-- OLD OVERLAYS REMOVED - Now using AppOverlay from overlay-manager.js -->
-  <!-- #pageLoadingOverlay - REMOVED: Page load now handled by AppOverlay -->
-  <!-- #loadingOverlay - REMOVED: Wallet updates now use AppOverlay.show() -->
-  <!-- All overlays now use unified AppOverlay system for consistency -->
   <div class="uk-container uk-margin-small-top uk-background-a">
     <!-- Card Bagian Header -->
     <div class="uk-card uk-card-default uk-margin-small header-card" id="menu-app">
@@ -39,7 +35,7 @@
           <div class="uk-flex uk-flex-middle uk-flex-wrap" style="align-items: center;">
             <h3 id="judul" class="uk-margin-remove"
               style="font-size: 18px; line-height: 1.4; color: #000; font-weight: bold; display: inline-flex; align-items: center;">
-              <span id="app-title">WATCHMARKET</span>
+              <span id="app-title"></span>
               <span id="current-chain-label" style="margin-left:3px;">[ALL]</span>
             </h3>
             &nbsp;&nbsp;
@@ -51,21 +47,23 @@
 
         <!-- Kanan: Toolbar icon -->
         <div class="uk-width-auto@s uk-width-1-1">
-          <div class="uk-flex uk-flex-middle uk-flex-wrap uk-flex-right@s toolbar-scroll"
-            style="gap: 8px; padding:0px 5px;">
-            <a href="index.html?chain=all" id="multichain_scanner"><img class="icon" title="SCANNER MUTLTICHAIN"
-                width="24px" src="assets/icons/robot.png" /></a>
-            <span id="chain-links-container"></span>
+          <div class="uk-flex uk-flex-middle uk-flex-wrap uk-flex-right@s toolbar-scroll">
+            <a href="index.html?chain=all" id="multichain_scanner" style="--icon-color: #10b981; --icon-shadow: rgba(16,185,129,0.25);"><img class="icon" title="SCANNER MULTICHAIN"
+                width="24" src="assets/icons/robot.png" /></a>
 
+            <span id="chain-links-container"></span>
 
             <img class="icon" id="SettingConfig" data-feature="settings" title="CONFIG SCANNER" width="24px"
               src="assets/icons/database.png" />
+
+            <!-- CEX Icons Container - Populated by JS -->
+
+            <span id="cex-links-container"></span>
 
             <!-- Calculator Icon - Always accessible -->
             <img class="icon" id="openCalculatorModal" title="KALKULATOR CRYPTO (Ctrl+K)" width="24px"
               src="assets/icons/calculator.png" style="cursor: pointer;" />
 
-            <!-- <img class="icon" id="reload" data-feature="reload" title="RESET PROSES" width="24px" src="https://cdn-icons-png.flaticon.com/256/10264/10264169.png" /> -->
 
             <a href="portofolio.html" target="_blank" data-feature="assets"><img class="icon" title="PORTOFOLIO ASSET"
                 width="24px" src="assets/icons/asset.png" /></a>
@@ -74,9 +72,6 @@
             <a href="#" id="openHistoryModal" title="RIWAYAT AKSI"><img class="icon" width="24"
                 src="assets/icons/history.png" /></a>
 
-            <!-- <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" rel="noopener noreferrer" data-feature="proxy"><img class="icon" title="BUKA KUNCI / AKSES" width="24px"  src="https://cdn-icons-png.flaticon.com/512/890/890162.png" /></a> -->
-
-            <!-- Memory management removed (no localStorage) -->
             <img class="icon" id="darkModeToggle" title="Ganti Mode Gelap/Terang" width="24px"
               src="assets/icons/dark-mode.png" />
           </div>
@@ -275,24 +270,31 @@
       <!-- 3 Column Layout with Cards -->
       <form class="uk-form-stacked uk-margin-small">
 
-        <!-- GRID 3 Columns -->
+        <!-- GRID 3 Columns - Adjusted widths -->
         <div class="uk-grid-small" uk-grid>
-
-          <!-- COLUMN 1 - JEDA DEX -->
-          <div class="uk-width-1-5@m">
+          <!-- ========================================= -->
+          <!-- COLUMN 2 - RPC SETTINGS WITH TOGGLES (Narrower) -->
+          <!-- ========================================= -->
+          <div class="uk-width-1-4@m">
             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
               <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
-                <span uk-icon="clock"></span> JEDA DEX
+                <span uk-icon="cloud-download"></span> PENGATURAN RPC
               </h5>
-              <div id="dex-delay-group">
-                <!-- JS akan populate -->
+              <div id="rpc-settings-group">
+                <!-- JS will populate RPC toggles -->
+              </div>
+              <div class="uk-text-meta uk-text-small uk-text-danger uk-margin-small-top">
+                Ganti RPC jika Lambat. ambil di <a href="https://chainlist.org/" target="_blank">chainlist.org</a>
               </div>
             </div>
           </div>
 
-          <!-- COLUMN 2 - PENGATURAN SCANNER + RPC -->
-          <div class="uk-width-1-3@m">
-            <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
+          <!-- ========================================= -->
+          <!-- COLUMN 1 - GENERAL SETTINGS + JEDA DEX (Smaller) -->
+          <!-- ========================================= -->
+          <div class="uk-width-1-4@m">
+            <!-- CARD 1: General Scanner Settings -->
+            <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small uk-margin-small-bottom">
               <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
                 <span uk-icon="cog"></span> PENGATURAN SCANNER
               </h5>
@@ -318,30 +320,7 @@
                   aria-label="wallet address">
               </div>
 
-              <!-- Matcha (0x) API Keys Input -->
-              <div class="uk-margin-small">
-                <label class="uk-form-label uk-text-small uk-text-danger uk-text-bolder">
-                  MATCHA API KEYS (Required) ⚠️
-                </label>
-                <textarea class="uk-textarea uk-form-small" id="matchaApiKeys" name="matchaApiKeys" rows="8"
-                  placeholder="key1,key2,key3 atau pisahkan dengan enter&#10; daftar di: https://dashboard.0x.org"
-                  aria-label="Matcha API Keys">b52adb8e-aa3b-45ab-8341-dc27e006f945
-fb46960e-2bc2-4b64-a9a0-c02278a7ace6
-b51ebca4-6cb5-4eb3-8d8a-23052b770eca
-1acb6d53-00bc-496d-8d1e-31004b0cfdbb
-eb5c5b8b-0952-4012-add3-956702b5261e
-5c0037cf-d674-44d5-8890-2b049954b14f
-167fa150-9295-4f2b-a7f4-fc48d40a5ee3
-e112a25f-c671-47db-9ab2-630871bb4437
-429513b3-a305-4caf-a712-4b2d694176cc
-fbce1ee3-18f2-4550-8e28-28ad4cdfbee9
-a57447d9-46e4-452b-b593-5399179c43c0
-e15090b8-8438-42e5-ac3f-59b855cc2912</textarea>
-                <div class="uk-text-meta uk-text-small uk-text-warning">
-                  ⚠️ WAJIB diisi! Pisahkan dengan koma (,) atau Enter untuk multiple keys
-                </div>
-              </div>
-
+              <!-- JEDA TIME/GROUP -->
               <div class="uk-grid-small" uk-grid>
                 <div class="uk-width-1-2">
                   <label class="uk-form-label uk-text-small uk-text-bolder">JEDA / GRUP (ms)</label>
@@ -354,36 +333,57 @@ e15090b8-8438-42e5-ac3f-59b855cc2912</textarea>
                   <div class="uk-text-meta uk-text-small uk-text-muted">Waktu jeda antar koin di grup</div>
                 </div>
               </div>
+              <!-- Matcha (0x) API Keys Input -->
+              <div class="uk-margin-small">
+                <label class="uk-form-label uk-text-small uk-text-danger uk-text-bolder">
+                  MATCHA API KEYS (Required) ⚠️
+                </label>
+                <textarea class="uk-textarea uk-form-small" id="matchaApiKeys" name="matchaApiKeys" rows="6"
+                  placeholder="key1,key2,key3 atau pisahkan dengan enter&#10; daftar di: https://dashboard.0x.org"
+                  aria-label="Matcha API Keys"> </textarea>
+                <div class="uk-text-meta uk-text-small uk-text-warning">
+                  ⚠️ WAJIB diisi! Pisahkan dengan koma (,) atau Enter untuk multiple keys
+                </div>
+              </div>
 
+              <!-- Chain Toggle Section -->
+              <div class="uk-margin-small-top" id="chain-toggle-section">
+                <!-- Chain toggle UI will be populated by JavaScript -->
+              </div>
             </div>
 
-            <!-- PENGATURAN RPC (below PENGATURAN SCANNER) -->
-            <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small uk-margin-small-top">
-              <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
-                <span uk-icon="cloud-download"></span> PENGATURAN RPC
-              </h5>
-              <div id="rpc-settings-group">
-                <!-- JS append real list -->
-              </div>
-              <div class="uk-text-meta uk-text-small uk-text-danger uk-margin-small-top">
-                Ganti RPC jika Lambat. ambil di <a href="https://chainlist.org/" target="_blank">chainlist.org</a>
+            <!-- CARD 2: JEDA Settings -->
+            <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
+
+              <!-- JEDA DEX -->
+              <div class="uk-margin-small-top">
+                <h6 class="uk-h6 uk-text-primary uk-text-bolder uk-margin-small-bottom">
+                  <span uk-icon="clock"></span> SETTING JEDA DEX
+                </h6>
+                <div id="dex-delay-group">
+                  <!-- JS akan populate -->
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- COLUMN 3 - API KEY EXCHANGER -->
+
+
+          <!-- ========================================= -->
+          <!-- COLUMN 3 - CEX API KEYS (Wider) -->
+          <!-- ========================================= -->
           <div class="uk-width-expand@m">
             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
               <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
                 <span uk-icon="lock"></span> API KEY EXCHANGER
               </h5>
               <p class="uk-text-small uk-text-meta uk-text-bold uk-text-danger uk-margin-remove-bottom">
-                Masukan API KEY untuk Portofolio Asset & Update Wallet Exchange
+                ✅ Centang CEX yang ingin digunakan, lalu masukkan API KEY
               </p>
 
-              <!-- CEX API Keys - compact 2-column grid -->
+              <!-- CEX API Keys - compact 2-column grid with per-CEX checkboxes -->
               <div id="cex-api-keys-container" style="margin-top: 4px;">
-                <!-- CEX API key inputs will be dynamically generated from CONFIG_CEX via JavaScript -->
+                <!-- CEX API key inputs with checkboxes will be dynamically generated from CONFIG_CEX -->
               </div>
             </div>
           </div>
@@ -528,7 +528,6 @@ e15090b8-8438-42e5-ac3f-59b855cc2912</textarea>
     </section>
 
 
-    <!-- SINGLE CHAIN SCANNER SECTION REMOVED: merged into #tabel-monitoring -->
 
   </div>
   <!-- Modal UIKIT EDIT KOIN -->
@@ -889,8 +888,7 @@ e15090b8-8438-42e5-ac3f-59b855cc2912</textarea>
               <div class="uk-flex uk-flex-between uk-flex-middle" style="margin-bottom:6px;">
                 <h6 class="uk-margin-remove" style="font-size:11px;">Modal DEX (KIRI | KANAN)</h6>
                 <label style="font-size:10px;">
-                  <input type="checkbox" class="uk-checkbox" id="bulk-apply-all-dex" checked
-                    > Terapkan ke Semua DEX
+                  <input type="checkbox" class="uk-checkbox" id="bulk-apply-all-dex" checked> Terapkan ke Semua DEX
                 </label>
               </div>
 
@@ -1260,6 +1258,8 @@ e15090b8-8438-42e5-ac3f-59b855cc2912</textarea>
   <script src="utils/helpers/chain-helpers.js"></script>
   <script src="utils/helpers/theme.js"></script>
   <script src="utils/helpers/ui-utils.js"></script>
+  <script src="utils/cex-helpers.js"></script><!-- CEX Helpers - Must load before CEX Mode Manager -->
+  <script src="js/cex-mode-manager.js"></script><!-- CEX Mode Manager -->
 
   <!-- 5b. PERFORMANCE UTILITIES (NEW) -->
   <script src="utils/timer-manager.js"></script><!-- Central timer control -->
@@ -1301,7 +1301,13 @@ e15090b8-8438-42e5-ac3f-59b855cc2912</textarea>
 
   <!-- 11. LEGACY FILES (remaining code) -->
   <script src="scanner.js"></script><!-- Remaining scanner logic -->
-  <script src="main.js"></script><!-- Remaining main logic -->
+  <!-- CEX Selection Helpers -->
+  <!-- cex-helpers.js moved to load earlier (before cex-mode-manager.js) -->
+  <!-- Chain Toggle Helpers -->
+  <script src="utils/chain-toggle-helpers.js"></script>
+
+  <!-- ✅ MAIN App Logic -->
+  <script src="main.js"></script>
 
   <!-- 12. CALCULATOR CRYPTO -->
   <script src="calculator-crypto.js"></script><!-- Crypto calculator feature -->
