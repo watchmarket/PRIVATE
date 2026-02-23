@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEK SALDO ASSET</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.6.22/dist/css/uikit.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="icon" href="assets/icons/asset.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="js/notify-shim.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"
+        integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="config.js"></script>
+    <script src="idb-localstorage-shim.js"></script>
+    <script src="storage.js"></script>
+    <script src="secrets.js"></script>
+    <script src="utils/cex-helpers.js"></script>
+    <script src="utils/chain-toggle-helpers.js"></script>
+</head>
+<style>
+    body {
+        color: #1a2e1a;
+        background: #f0faf4;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        margin: 0; padding: 0;
+    }
+    .uk-container { max-width: 100%; padding: 10px; font-size: 13.5px; }
+    .main-header {
+        background: #fff; padding: 14px 16px; border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(22,163,74,.12); margin-bottom: 14px;
+        border: 1px solid #bbf7d0; text-align: center;
+    }
+    .main-header h3 { margin: 0 0 4px; font-weight: 700; color: #166534; font-size: 1.1rem; }
+    .main-header p { margin: 0; font-size: 0.8rem; color: #4ade80; }
+
+    /* Summary Cards */
+    .summary-cards {
+        display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-bottom: 14px;
+    }
+    .summary-card {
+        background: #fff; border: 1px solid #bbf7d0; border-radius: 8px;
+        padding: 12px; box-shadow: 0 2px 4px rgba(22,163,74,.08); text-align: center;
+    }
+    .summary-card .card-title {
+        font-size: 0.7rem; color: #16a34a; font-weight: 600;
+        text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px;
+    }
+    .summary-card .card-value { font-size: 1.3rem; font-weight: 700; color: #166534; margin: 0; }
+    .summary-card .card-value-idr { font-size: 0.75rem; font-weight: 600; }
+    .summary-card.positive .card-value { color: #28a745; }
+    .summary-card.negative .card-value { color: #dc3545; }
+    .summary-card .card-value-input-group { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .summary-card .card-value-input-group .uk-input {
+        flex: 1; min-width: 70px; text-align: right; font-size: 1.1rem;
+        font-weight: 700; height: 34px; padding: 4px 6px;
+    }
+    @media(max-width:1200px){ .summary-cards{ grid-template-columns: repeat(3,1fr); } }
+    @media(max-width:768px){ .summary-cards{ grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:480px){ .summary-cards{ grid-template-columns: 1fr; } }
+
+    /* Table */
+    .table-glass {
+        width: 100%; border-collapse: collapse; border-radius: 8px;
+        overflow: hidden; background: #fff; border: 1px solid #bbf7d0;
+    }
+    .table-glass thead th {
+        background: #15803d; color: #fff; font-weight: 600;
+        letter-spacing: .03em; padding: 9px 10px; text-align: center;
+        text-transform: uppercase; font-size: 0.78rem;
+    }
+    .table-glass tbody td {
+        padding: 7px 10px; color: #1a3a1a; border-bottom: 1px solid #d1fae5;
+        font-size: 0.83rem; vertical-align: middle;
+    }
+    .table-glass tbody td:first-child { white-space: nowrap; }
+    .table-glass tbody tr:hover { background: #f0fdf4; }
+    .table-glass .table-total-row th {
+        padding: 10px; text-align: center; font-size: 0.95rem;
+        font-weight: 700; color: #166534; background: #dcfce7;
+    }
+
+    /* CEX / Chain Colors */
+    .text-cex-binance  { color: #f0b90b !important; font-weight: 700; }
+    .text-cex-gate     { color: #e51b7b !important; font-weight: 700; }
+    .text-cex-bitget   { color: #00f0ff !important; font-weight: 700; }
+    .text-cex-kucoin   { color: #23af91 !important; font-weight: 700; }
+    .text-cex-bybit    { color: #f7a600 !important; font-weight: 700; }
+    .text-cex-indodax  { color: #3d5afe !important; font-weight: 700; }
+    .text-cex-mexc     { color: #00b897 !important; font-weight: 700; }
+    .text-cex-htx      { color: #008cd6 !important; font-weight: 700; }
+    .text-cex-okx      { color: #000    !important; font-weight: 700; }
+    .text-chain-ethereum{ color: #627eea !important; font-weight: 700; }
+    .text-chain-bsc    { color: #f0b90b !important; font-weight: 700; }
+    .text-chain-polygon{ color: #9c6bf0 !important; font-weight: 700; }
+    .text-chain-base   { color: #0052ff !important; font-weight: 700; }
+    .text-chain-arbitrum{ color: #28a0f0 !important; font-weight: 700; }
+    .text-chain-solana { color: #9945ff !important; font-weight: 700; }
+    .text-chain-avax   { color: #e84142 !important; font-weight: 700; }
+
+    .asset-line {
+        padding: 5px 0; border-bottom: 1px dashed rgba(31,122,77,.18); font-size: 12px;
+    }
+    .asset-line:last-of-type { border-bottom: none; }
+    .error { background: rgba(255,124,152,.22); border-radius: 4px; }
+    img:hover { transform: scale(1.06); transition: transform .2s ease; }
+
+    /* Info pills */
+    .info-pills-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+    .info-pill-card {
+        background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
+        padding: 10px; text-align: center; box-shadow: 0 2px 4px rgba(22,163,74,.08);
+    }
+    .info-pill-card .pill-label {
+        font-size: 0.68rem; color: #16a34a; font-weight: 600;
+        text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; display: block;
+    }
+    .info-pill-card .pill-value { font-size: 1rem; font-weight: 700; color: #166534; display: block; }
+    .info-pill-card.positive .pill-value { color: #16a34a; }
+    .info-pill-card.negative .pill-value { color: #dc3545; }
+
+    /* Buttons */
+    .uk-button {
+        letter-spacing: .02em; transition: all .2s ease;
+        border-radius: 6px; font-size: 0.78rem;
+    }
+    .uk-button:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(22,163,74,.25); }
+    .uk-button-primary { background: #16a34a; color: #fff; border: none; }
+    .uk-button-primary:hover { background: #15803d; }
+    .uk-button-secondary { background: #4b7a55; color: #fff; border: none; }
+    .uk-button-secondary:hover { background: #166534; }
+
+    /* icon-link */
+    .icon-link {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 34px; height: 34px; border-radius: 8px;
+        background: #f0fdf4; border: 1px solid #bbf7d0; transition: all .2s ease;
+        cursor: pointer;
+    }
+    .icon-link img { width: 17px; height: 17px; }
+    .icon-link:hover { background: #dcfce7; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(22,163,74,.18); }
+
+    /* Card */
+    .uk-card.uk-card-default {
+        padding: 14px; background: #fff;
+        border: 1px solid #bbf7d0; box-shadow: 0 2px 8px rgba(22,163,74,.08);
+    }
+    .uk-grid { margin: 0 !important; }
+    .uk-grid > * { padding-left: 8px !important; padding-right: 8px !important; }
+    .uk-margin-small-top { margin-top: 8px !important; }
+    .uk-margin-small-bottom { margin-bottom: 8px !important; }
+
+    /* Wallet token row */
+    .token-card {
+        background: #fff; border: 1px solid #bbf7d0; border-radius: 6px;
+        margin-bottom: 8px; overflow: hidden;
+    }
+    .token-card-header {
+        padding: 8px 10px; background: #f0fdf4;
+        display: flex; align-items: center; justify-content: space-between;
+        cursor: pointer; border-bottom: 1px solid #bbf7d0;
+    }
+    .token-card-header:hover { background: #dcfce7; }
+    .chain-badge {
+        display: inline-flex; align-items: center; gap: 3px;
+        padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700;
+    }
+    .val-usd { color: #28a745; font-weight: 600; }
+    .val-zero { color: #aaa; }
+
+    /* Loading Overlay */
+    .balance-check-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,.85); backdrop-filter: blur(10px);
+        z-index: 9999; justify-content: center; align-items: center; animation: fadeIn .3s ease;
+    }
+    .balance-check-overlay.active { display: flex; }
+    .overlay-content {
+        background: linear-gradient(145deg,#1a1a1a,#2d2d2d); padding: 36px 46px;
+        border-radius: 16px; text-align: center;
+        box-shadow: 0 25px 70px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.1);
+        max-width: 430px; animation: slideUp .4s ease; border: 1px solid rgba(255,255,255,.08);
+    }
+    .overlay-spinner {
+        width: 64px; height: 64px; margin: 0 auto 22px;
+        border: 5px solid rgba(255,255,255,.1); border-top-color: #fff;
+        border-right-color: rgba(255,255,255,.6);
+        border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    .overlay-title  { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .overlay-message{ font-size: 14px; color: rgba(255,255,255,.75); margin-bottom: 18px; line-height: 1.6; }
+    .overlay-progress{ background: rgba(255,255,255,.1); border-radius: 50px; height: 7px; overflow: hidden; margin-top: 16px; }
+    .overlay-progress-bar{
+        height: 100%; background: linear-gradient(90deg,#4ade80,#16a34a,#4ade80);
+        border-radius: 50px; transition: width .3s ease; box-shadow: 0 0 12px rgba(74,222,128,.5);
+    }
+    .overlay-details{ font-size: 12px; color: rgba(255,255,255,.55); margin-top: 12px; font-family: monospace; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes slideUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* Calculator Modal */
+    #calculator-modal .uk-modal-dialog { border-radius: 10px; }
+    #calculator-modal .uk-modal-body { padding: 22px; background: linear-gradient(160deg,#d7eed5); }
+    #calculator-modal .uk-form-label { font-weight:600; color:#495057; min-width:60px; display:inline-block; }
+    #calculator-modal .uk-input { border:1px solid #ced4da; border-radius:6px; transition:all .2s ease; font-size:.9rem; }
+    #calculator-modal .uk-input:focus { border-color:#80bdff; box-shadow:0 0 0 .2rem rgba(0,123,255,.25); outline:none; }
+
+    /* Status bar */
+    .status-bar {
+        padding: 6px 10px; border-radius: 5px; margin-bottom: 8px;
+        font-size: 11.5px; display: none;
+    }
+    .status-bar.show { display: block; }
+    .status-info    { background:rgba(66,153,225,.1);  border:1px solid rgba(66,153,225,.3);  color:#3182ce; }
+    .status-error   { background:rgba(252,129,129,.1); border:1px solid rgba(252,129,129,.3); color:#c53030; }
+    .status-success { background:rgba(72,187,120,.1);  border:1px solid rgba(72,187,120,.3);  color:#276749; }
+</style>
+
+<body>
+    <!-- Loading Overlay -->
+    <div id="balanceCheckOverlay" class="balance-check-overlay">
+        <div class="overlay-content">
+            <div class="overlay-spinner"></div>
+            <div class="overlay-title" id="overlayTitle">Memuat Saldo...</div>
+            <div class="overlay-message" id="overlayMessage">Mohon tunggu...</div>
+            <div class="overlay-progress">
+                <div class="overlay-progress-bar" id="overlayProgressBar" style="width:0%"></div>
+            </div>
+            <div class="overlay-details" id="overlayDetails"></div>
+        </div>
+    </div>
+
+    <div class="uk-container uk-margin-small-top">
+        <!-- Header -->
+        <div class="main-header">
+            <h3 id="saldoTitle">CEK SALDO ASSET</h3>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-title uk-text-primary"><span uk-icon="icon: database"></span> Total CEX</div>
+                <div class="card-value" id="summaryTotalCEX">$0.00</div>
+                <div class="card-value-idr uk-text-bold uk-text-success" id="summaryTotalCEX_IDR">Rp 0</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title uk-text-primary"><span uk-icon="icon: credit-card"></span> Total Wallet</div>
+                <div class="card-value" id="summaryTotalWallet">$0.00</div>
+                <div class="card-value-idr uk-text-bold uk-text-success" id="summaryTotalWallet_IDR">Rp 0</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title uk-text-primary"><span uk-icon="icon: star"></span> Total Asset</div>
+                <div class="card-value" id="summaryTotalAsset">$0.00</div>
+                <div class="card-value-idr uk-text-bold uk-text-success" id="summaryTotalAsset_IDR">Rp 0</div>
+            </div>
+            <div class="summary-card" id="summaryPNLCard">
+                <div class="card-title uk-text-primary"><span uk-icon="icon: arrow-up"></span> Profit &amp; Loss</div>
+                <div class="card-value" id="summaryPNL">$0.00</div>
+                <div class="card-value-idr uk-text-bold" id="summaryPNL_IDR">Rp 0</div>
+            </div>
+            <div class="summary-card">
+                <div class="card-title uk-text-primary"><span uk-icon="icon: pencil"></span> Modal Awal (USDT)</div>
+                <div class="card-value-input-group">
+                    <input type="number" class="uk-input" id="MODALAWAL" placeholder="Modal Awal" value="1.00" step="0.01" required />
+                    <button class="uk-button uk-button-small uk-button-primary" id="SaveModal" title="Simpan Modal">
+                        <span uk-icon="icon: check"></span>
+                    </button>
+                </div>
+                <div class="card-value-idr uk-text-bold uk-text-primary" id="RPMODAL">Rp 0</div>
+            </div>
+        </div>
+
+        <!-- 3-column grid -->
+        <div class="uk-grid uk-child-width-1-1@s uk-child-width-1-3@l uk-grid-small" uk-grid>
+
+            <!-- Col 1: CEX -->
+            <div>
+                <div class="uk-card uk-card-default uk-card-body">
+                    <table class="table-glass" id="assetTableCexs">
+                        <thead>
+                            <tr>
+                                <th>Exchanger</th>
+                                <th>Saldo &amp; Rate USDT ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="cex-static">
+                            <tr data-cex="BINANCE">
+                                <td class="uk-text-left text-cex-binance" style="white-space:nowrap;">
+                                    <img src="assets/icons/cex/binance.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> BINANCE
+                                </td>
+                                <td id="BINANCESaldo">—</td>
+                            </tr>
+                            <tr data-cex="GATE">
+                                <td class="uk-text-left text-cex-gate">
+                                    <img src="assets/icons/cex/gate.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> GATE
+                                </td>
+                                <td id="GATESaldo">—</td>
+                            </tr>
+                            <tr data-cex="BITGET">
+                                <td class="uk-text-left text-cex-bitget">
+                                    <img src="assets/icons/cex/bitget.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> BITGET
+                                </td>
+                                <td id="BITGETSaldo">—</td>
+                            </tr>
+                            <tr data-cex="KUCOIN">
+                                <td class="uk-text-left text-cex-kucoin">
+                                    <img src="assets/icons/cex/kucoin.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> KUCOIN
+                                </td>
+                                <td id="KUCOINSaldo">—</td>
+                            </tr>
+                            <tr data-cex="BYBIT">
+                                <td class="uk-text-left text-cex-bybit">
+                                    <img src="assets/icons/cex/bybit.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> BYBIT
+                                </td>
+                                <td id="BYBITSaldo">—</td>
+                            </tr>
+                            <tr data-cex="INDODAX">
+                                <td class="uk-text-left text-cex-indodax">
+                                    <img src="assets/icons/cex/indodax.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> INDODAX
+                                </td>
+                                <td id="INDODAXSaldo">—</td>
+                            </tr>
+                            <tr data-cex="MEXC">
+                                <td class="uk-text-left text-cex-mexc">
+                                    <img src="assets/icons/cex/mexc.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> MEXC
+                                </td>
+                                <td id="MEXCSaldo">—</td>
+                            </tr>
+                            <tr data-cex="HTX">
+                                <td class="uk-text-left text-cex-htx">
+                                    <img src="assets/icons/cex/htx.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> HTX
+                                </td>
+                                <td id="HTXSaldo">—</td>
+                            </tr>
+                            <tr data-cex="OKX">
+                                <td class="uk-text-left text-cex-okx">
+                                    <img src="assets/icons/cex/okx.png" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> OKX
+                                </td>
+                                <td id="OKXSaldo">—</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-total-row">
+                                <th id="LTotalSaldoCEX">TOTAL</th>
+                                <th id="TotalSaldoCEX">...</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div class="uk-flex uk-flex-right uk-margin-small-top">
+                        <button class="uk-button uk-button-small uk-button-primary" id="SaveConfigCEXS">
+                            <span uk-icon="icon: check"></span> CHECK EXCHANGER
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 2: PNL -->
+            <div>
+                <div class="uk-card uk-card-default uk-card-body">
+                    <div class="info-pills-cards">
+                        <div class="info-pill-card">
+                            <span class="pill-label uk-text-success">Modal Awal</span>
+                            <strong class="pill-value" id="m_awal">...</strong>
+                        </div>
+                        <div class="info-pill-card">
+                            <span class="pill-label uk-text-primary">Modal Akhir</span>
+                            <strong class="pill-value" id="m_akhir">...</strong>
+                        </div>
+                        <div class="info-pill-card" id="pnlCard">
+                            <span class="pill-label">PNL</span>
+                            <strong class="pill-value" id="m_pnl">...</strong>
+                        </div>
+                    </div>
+
+                    <div style="background:#e5e7e5;border:1px solid #bbf7d0;padding:9px 10px;border-radius:6px;margin:10px 0;font-size:0.83rem;">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:5px;color: red;">
+                            <span class="uk-text-bold">Last Check:</span>
+                            <strong id="lastUpdate">...</strong>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                            <span class="uk-text-bold">Modal Saat Ini:</span>
+                            <strong id="m_akhirs">...</strong>
+                        </div>
+                        <div id="pnl-container" style="display:flex;justify-content:space-between;">
+                            <span class="uk-text-bold">PNL Saat Ini:</span>
+                            <strong id="m_pnls">...</strong>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                        <a class="icon-link" href="index.html" target="_blank" title="Buka Aplikasi Utama">
+                            <img src="assets/icons/tab-new.png" alt="Main App">
+                        </a>
+                        <button class="icon-link" id="openModalKalkulator" title="Kalkulator Crypto" style="background:#bcbdbc;border-color:#bcbdbc;">
+                            <img src="assets/icons/calculator.png" alt="Kalkulator" style="width:17px;height:17px;">
+                        </button>
+                        <a class="icon-link" href="#" id="reload" title="Reload">
+                            <img src="assets/icons/reload.png" alt="Reload" style="width:23px;height:23px;">
+                        </a>
+                        <button class="icon-link" id="CheckModal" title="Cek Semua Saldo" style="background:#583df0;border-color:#583df0;">
+                            <span uk-icon="icon: play-circle; ratio: 1.1" style="color:white;"></span>
+                        </button>
+                        <button class="icon-link" id="UpdateHistoryPNL" title="Update History PNL" style="background:#28a745;border-color:#28a745;">
+                            <span uk-icon="icon: plus-circle; ratio: 1.1" style="color:white;"></span>
+                        </button>
+                        <button class="icon-link" id="ResetModal" title="Reset Modal" style="background:#faa05a;border-color:#faa05a;">
+                            <span uk-icon="icon: refresh; ratio: 1.1" style="color:white;"></span>
+                        </button>
+                        
+                        <button class="icon-link" id="SearchHistoryPNL" title="Riwayat PNL" style="background:#ffffff;border-color:#e91111;">
+                            <span uk-icon="icon: history; ratio: 1.1" style="color:red;"></span>
+                        </button>
+                    </div>
+
+                    <div class="uk-overflow-auto">
+                        <table class="table-glass" id="assetTablePNL">
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Modal Awal</th>
+                                    <th>Modal Akhir</th>
+                                    <th>PNL</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="uk-text-center uk-text-muted">
+                                    <td colspan="5">Belum ada data</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="pnl-pagination" class="uk-flex uk-flex-between uk-margin-small-top">
+                        <button id="pnlPrev" class="uk-button uk-button-small uk-button-secondary">&lt;&lt;prev</button>
+                        <span id="pnlPageInfo" class="uk-text-meta">Halaman 1/1</span>
+                        <button id="pnlNext" class="uk-button uk-button-small uk-button-secondary">next&gt;&gt;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Col 3: Wallet On-Chain -->
+            <div>
+                <div class="uk-card uk-card-default uk-card-body">
+                    <div id="statusBarWallet" class="status-bar"></div>
+                    <table class="table-glass" id="assetTableWallet" style="display:none;">
+                        <thead>
+                            <tr>
+                                <th>Chain</th>
+                                <th>Saldo & Rate USDT ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="output_chain"></tbody>
+                        <tfoot>
+                            <tr class="table-total-row">
+                                <th id="LTotalSaldoWallets">Total</th>
+                                <th id="TotalSaldoWallets">...</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div class="uk-flex uk-flex-right uk-margin-small-top">
+                        <button class="uk-button uk-button-small uk-button-primary" id="SaveWalletChains">
+                            <span uk-icon="icon: check"></span> CHECK WALLETS
+                        </button>
+                    </div> 
+                </div>
+            </div>
+        </div><!-- /grid -->
+    </div><!-- /container -->
+
+    <!-- UIkit JS -->
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.6.22/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.6.22/dist/js/uikit-icons.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  OKX DEX API KEYS — dari secrets.js (window.apiKeysOKXDEX)
+// ═══════════════════════════════════════════════════════
+const OKX_DEX_KEYS = (typeof apiKeysOKXDEX !== 'undefined' && Array.isArray(apiKeysOKXDEX) && apiKeysOKXDEX.length)
+    ? apiKeysOKXDEX : [];
+let _okxKeyIdx = 0;
+function getNextOkxKey() {
+    const k = OKX_DEX_KEYS[_okxKeyIdx % OKX_DEX_KEYS.length];
+    _okxKeyIdx++;
+    return k;
+}
+
+// ═══════════════════════════════════════════════════════
+//  CORS PROXY LIST — dari config.js (window.serverCORS)
+// ═══════════════════════════════════════════════════════
+const CORS_PROXIES = (typeof window.serverCORS !== 'undefined' && Array.isArray(window.serverCORS) && window.serverCORS.length)
+    ? window.serverCORS : [];
+let _proxyIdx = 0;
+function getNextProxy() {
+    const p = CORS_PROXIES[_proxyIdx % CORS_PROXIES.length];
+    _proxyIdx++;
+    return p;
+}
+
+// ═══════════════════════════════════════════════════════
+//  Chain definitions for OKX DEX API
+// ═══════════════════════════════════════════════════════
+const OKX_CHAINS = {
+    ethereum: { id: '1',     name: 'Ethereum', short: 'ETH',   color: '#627eea', icon: 'assets/icons/chains/ethereum.png' },
+    bsc:      { id: '56',    name: 'BNB Chain', short: 'BSC',  color: '#f0b90b', icon: 'assets/icons/chains/bsc.png' },
+    polygon:  { id: '137',   name: 'Polygon',   short: 'MATIC', color: '#9c6bf0', icon: 'assets/icons/chains/polygon.png' },
+    base:     { id: '8453',  name: 'Base',      short: 'BASE', color: '#0052ff', icon: 'assets/icons/chains/base.png' },
+    arbitrum: { id: '42161', name: 'Arbitrum',  short: 'ARB',  color: '#28a0f0', icon: 'assets/icons/chains/arbitrum.png' },
+    avax:     { id: '43114', name: 'Avalanche', short: 'AVAX', color: '#e84142', icon: '' },
+    solana:   { id: '501',   name: 'Solana',    short: 'SOL',  color: '#9945ff', icon: 'assets/icons/chains/solana.png' },
+};
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+function escHtml(s) {
+    if (!s) return '';
+    return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function fmtUsd(n) {
+    if (!n || n === 0) return '0.00';
+    return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtBalance(n) {
+    n = Number(n) || 0;
+    if (n === 0) return '0';
+    if (n < 1e-6) return n.toExponential(3);
+    if (n < 1)    return n.toFixed(6);
+    if (n < 1e4)  return n.toFixed(4);
+    return n.toLocaleString('en-US',{maximumFractionDigits:2});
+}
+
+function getFormattedTime() {
+    const now = new Date();
+    return now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID');
+}
+
+function isEvmAddress(addr) {
+    return /^0x[0-9a-fA-F]{40}$/i.test((addr||'').trim());
+}
+
+function showWalletStatus(msg, type='info') {
+    const el = document.getElementById('statusBarWallet');
+    el.className = `status-bar show status-${type}`;
+    el.textContent = msg;
+    if (type === 'success') setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ═══════════════════════════════════════════════════════
+//  OKX DEX REST API — HMAC-SHA256 Signature + Fetch
+// ═══════════════════════════════════════════════════════
+async function hmacSha256B64(secret, message) {
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+        'raw', enc.encode(secret),
+        { name:'HMAC', hash:'SHA-256' },
+        false, ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+    return btoa(String.fromCharCode(...new Uint8Array(sig)));
+}
+
+async function okxFetchTokenBalances(address, chainIds, creds, proxyUrl) {
+    const ts   = new Date().toISOString();
+    const path = '/api/v5/wallet/asset/all-token-balances-by-address';
+    const qs   = `address=${encodeURIComponent(address)}&chains=${chainIds.join(',')}&filter=1`;
+    const sign = await hmacSha256B64(creds.secretKeyOKX, `${ts}GET${path}?${qs}`);
+
+    const url  = `${proxyUrl}https://web3.okx.com${path}?${qs}`;
+    const res  = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type':         'application/json',
+            'OK-ACCESS-KEY':        creds.ApiKeyOKX,
+            'OK-ACCESS-SIGN':       sign,
+            'OK-ACCESS-PASSPHRASE': creds.PassphraseOKX,
+            'OK-ACCESS-TIMESTAMP':  ts,
+        }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+}
+
+async function okxFetchWithRetry(address, chainIds, maxRetries=4) {
+    let lastErr;
+    for (let i = 0; i < maxRetries; i++) {
+        const creds = getNextOkxKey();
+        const proxy = getNextProxy();
+        try {
+            return await okxFetchTokenBalances(address, chainIds, creds, proxy);
+        } catch (err) {
+            lastErr = err;
+            if (i < maxRetries-1) await sleep(300);
+        }
+    }
+    throw lastErr;
+}
+
+// ═══════════════════════════════════════════════════════
+//  MAIN APP
+// ═══════════════════════════════════════════════════════
+$(document).ready(async function () {
+
+    // ── Wait for storage ──
+    if (window.__IDB_LOCALSTORAGE_READY__) { try { await window.__IDB_LOCALSTORAGE_READY__; } catch(e){} }
+    if (window.whenStorageReady)           { try { await window.whenStorageReady; }           catch(e){} }
+
+    // ── Title ──
+    try {
+        const ver = window.CONFIG_APP?.APP?.VERSION || '';
+        if (ver) $('#saldoTitle').text(`CEK SALDO ASSET Versi {${ver}}`);
+    } catch(e){}
+
+    // ── PNL paging state ──
+    let pnlCurrentPage = 0;
+    const PNL_PAGE_SIZE = 15;
+
+    // ══════════════════════════════════════════════════
+    //  LOADING OVERLAY
+    // ══════════════════════════════════════════════════
+    window.BalanceCheckOverlay = {
+        isActive: false,
+        show(title='Memuat...', message='Mohon tunggu...') {
+            this.isActive = true;
+            $('#balanceCheckOverlay').addClass('active');
+            $('#overlayTitle').text(title);
+            $('#overlayMessage').text(message);
+            $('#overlayProgressBar').css('width','0%');
+            $('#overlayDetails').text('');
+        },
+        hide() {
+            this.isActive = false;
+            $('#balanceCheckOverlay').removeClass('active');
+            $('#overlayProgressBar').css('width','0%');
+        },
+        updateProgress(pct, detail='') {
+            if (!this.isActive) return;
+            $('#overlayProgressBar').css('width', pct+'%');
+            if (detail) $('#overlayDetails').text(detail);
+        },
+        updateMessage(title, msg) {
+            if (!this.isActive) return;
+            $('#overlayTitle').text(title);
+            $('#overlayMessage').text(msg);
+        }
+    };
+
+    // ══════════════════════════════════════════════════
+    //  CEX CREDENTIALS CACHE
+    // ══════════════════════════════════════════════════
+    let _cexKeysCache = null;
+
+    async function warmCEXCredentials() {
+        try {
+            if (window.__IDB_LOCALSTORAGE_READY__) await window.__IDB_LOCALSTORAGE_READY__;
+            if (window.whenStorageReady)           await window.whenStorageReady;
+
+            const raw = (typeof getFromLocalStorage === 'function')
+                ? getFromLocalStorage('CEX_API_KEYS', null) : null;
+
+            if (!raw) { _cexKeysCache = {}; return; }
+
+            if (typeof raw === 'string') {
+                const dec = (typeof appDecrypt === 'function') ? appDecrypt(raw) : null;
+                _cexKeysCache = (dec && typeof dec === 'object') ? dec : {};
+            } else if (typeof raw === 'object') {
+                _cexKeysCache = raw;
+            } else {
+                _cexKeysCache = {};
+            }
+            console.log('[CEX Cache] Keys:', Object.keys(_cexKeysCache));
+        } catch(e) {
+            console.error('[CEX Cache] Error:', e);
+            _cexKeysCache = {};
+        }
+    }
+
+    window.getCEXCredentials = function(cexName) {
+        if (!_cexKeysCache) return null;
+        return _cexKeysCache[cexName] || null;
+    };
+
+    await warmCEXCredentials();
+
+    // ══════════════════════════════════════════════════
+    //  PRICE / RATE HELPERS  (for CEX token conversion)
+    // ══════════════════════════════════════════════════
+    const stableCoinRates = { USDT:1,USDC:1,BUSD:1,TUSD:1,USDP:1,FDUSD:1,DAI:1 };
+    let idrRate = parseFloat(localStorage.getItem('MULTI_USDTRate')) || 0;
+
+    const priceCache = { tickers: new Map(), lastFetch: 0 };
+
+    async function ensureTickerCache() {
+        if (priceCache.tickers.size && (Date.now()-priceCache.lastFetch) < 60000)
+            return priceCache.tickers;
+        const map = new Map();
+        try {
+            const r = await fetch("https://data-api.binance.vision/api/v3/ticker/price");
+            if (r.ok) { (await r.json()).forEach(i => { if(i.symbol&&i.price) map.set(i.symbol.toUpperCase(), parseFloat(i.price)); }); }
+        } catch(e) { console.warn('[Ticker] Binance failed:', e.message); }
+        if (map.size > 0) { priceCache.tickers = map; priceCache.lastFetch = Date.now(); }
+        return priceCache.tickers;
+    }
+
+    async function getUsdtRate(symbol) {
+        const up = (symbol||'').toUpperCase();
+        if (!up) return 0;
+        if (up === 'IDR') return idrRate > 0 ? 1/idrRate : 0;
+        if (stableCoinRates[up] !== undefined) return stableCoinRates[up];
+        try {
+            const tickers = await ensureTickerCache();
+            const direct  = tickers.get(`${up}USDT`);
+            if (direct) return parseFloat(direct);
+            const inv = tickers.get(`USDT${up}`);
+            if (inv) return 1/parseFloat(inv);
+        } catch(e){}
+        return 0;
+    }
+
+    async function fetchIDRRate() {
+        try {
+            const r = await fetch("https://cors-proxy-rosy.vercel.app/api/proxy?url=https://indodax.com/api/ticker/USDTIDR");
+            if (r.ok) {
+                const d = await r.json();
+                idrRate = parseFloat(d?.ticker?.last) || 0;
+                if (idrRate > 0) localStorage.setItem('MULTI_USDTRate', idrRate);
+            }
+        } catch(e) { console.warn('[IDR Rate] Failed:', e.message); }
+    }
+    fetchIDRRate();
+
+    async function USDTIDR(usdt) {
+        if (idrRate <= 0) {
+            const stored = parseFloat(localStorage.getItem('MULTI_USDTRate')) || 0;
+            idrRate = stored;
+        }
+        return usdt * idrRate;
+    }
+
+    // ══════════════════════════════════════════════════
+    //  CEX ASSET RENDERING
+    // ══════════════════════════════════════════════════
+    const MIN_DISPLAY_USDT = 1.0;
+    const ALLOWED_TOKENS = new Set([
+        'USDT','USDC','BUSD','TUSD','USDP','FDUSD','DAI','USDD','PYUSD','EURC',
+        'BTC','ETH','BNB','WBTC','WETH',
+        'XRP','ADA','DOGE','SOL','DOT','SHIB','AVAX','LINK','TRX','UNI',
+        'ATOM','LTC','ETC','XLM','NEAR','FIL','APT','ALGO','VET','ICP',
+        'AAVE','GRT','FTM','SAND','MANA','AXS','THETA','EGLD','HBAR','XTZ',
+        'EOS','FLOW','CHZ','CAKE','ZIL','ENJ','BAT','CRV','LDO','COMP',
+        'SNX','MKR','SUSHI','1INCH','YFI','DYDX','GMX','INJ','SUI','SEI',
+        'ARB','OP','WLD','PEPE','FLOKI','BONK','WIF','JUP','TIA','STX',
+        'RENDER','FET','RNDR','TAO','JASMY','IMX','PENDLE','RUNE','ORDI',
+        'TON','NOT','DOGS','KAS','TWT','GALA','ROSE','CELO','ONE','ZRX',
+        'POL','MATIC','CRO','KLAY','MOVR','GLMR','IDR'
+    ]);
+
+    function escapeHtml(v) {
+        if (typeof v !== 'string') return v;
+        return v.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    }
+    function formatTokenAmount(n) {
+        if (!isFinite(n)) return '0';
+        const a = Math.abs(n);
+        if (a >= 1000) return n.toLocaleString('en-US',{maximumFractionDigits:2});
+        if (a >= 1)    return n.toLocaleString('en-US',{maximumFractionDigits:2});
+        if (a >= 0.01) return n.toFixed(4);
+        return n.toFixed(6);
+    }
+    function formatRate(v) {
+        if (!isFinite(v)||v<=0) return 'N/A';
+        const a = Math.abs(v);
+        if (a>=1000) return v.toLocaleString('en-US',{maximumFractionDigits:2});
+        if (a>=1)    return v.toFixed(4);
+        return v.toFixed(6);
+    }
+    function formatUsdtValue(v) {
+        if (!isFinite(v)) return '0.00';
+        return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    }
+    window.formatUsdtValue = formatUsdtValue;
+
+    function aggregateAssets(rawAssets) {
+        const map = new Map();
+        rawAssets.forEach(item => {
+            if (!item || typeof item.symbol !== 'string') return;
+            const sym = item.symbol.toUpperCase();
+            const amt = Number(item.amount);
+            if (!sym || !isFinite(amt) || amt <= 0) return;
+            map.set(sym, (map.get(sym)||0) + amt);
+        });
+        return Array.from(map.entries()).map(([symbol,amount])=>({symbol,amount}));
+    }
+
+    async function renderExchangeAssets(exchangeId, rawAssets, options={}) {
+        const saldoEl = document.getElementById(`${exchangeId}Saldo`);
+        if (!saldoEl) return;
+        const overrides  = options.overrides || {};
+        const aggregated = aggregateAssets(rawAssets);
+        const exClass    = `text-cex-${String(exchangeId).toLowerCase()}`;
+
+        if (!aggregated.length) {
+            saldoEl.innerHTML = `<span class="uk-text-muted ${exClass}">Tidak ada aset</span>`;
+            localStorage.setItem(`MULTI_${exchangeId}Saldo`, '0');
+            return;
+        }
+
+        const assetsWithValues = [];
+        for (const asset of aggregated) {
+            if (!ALLOWED_TOKENS.has(asset.symbol.toUpperCase())) continue;
+            const overrideRate = overrides[asset.symbol];
+            let rate = typeof overrideRate === 'number' ? overrideRate : await getUsdtRate(asset.symbol);
+            if (!isFinite(rate)||rate<0) rate = 0;
+            assetsWithValues.push({ symbol:asset.symbol, amount:asset.amount, rate, usdtValue: rate ? asset.amount*rate : 0 });
+        }
+        assetsWithValues.sort((a,b)=>(b.usdtValue||0)-(a.usdtValue||0));
+
+        const visibleAssets  = assetsWithValues.filter(i => i.rate>0 && i.usdtValue>=MIN_DISPLAY_USDT);
+        const filteredCount  = aggregated.length - assetsWithValues.length;
+        const hiddenCount    = assetsWithValues.length - visibleAssets.length;
+
+        if (!visibleAssets.length) {
+            saldoEl.innerHTML = `<span class="uk-text-muted ${exClass}">Tidak Ada</span>`;
+            localStorage.setItem(`MULTI_${exchangeId}Saldo`, '0');
+            return;
+        }
+
+        const totalUsdt = visibleAssets.reduce((s,i)=>s+i.usdtValue, 0);
+        const detail = {
+            total: parseFloat(totalUsdt.toFixed(2)), filteredCount, hiddenCount,
+            assets: visibleAssets.map(i=>({
+                symbol:i.symbol, amount:parseFloat(i.amount.toFixed(8)),
+                rate:parseFloat(i.rate.toFixed(8)), usdtValue:parseFloat(i.usdtValue.toFixed(2))
+            }))
+        };
+
+        saldoEl.innerHTML = buildExchangeHtml(detail, exchangeId);
+        localStorage.setItem(`MULTI_${exchangeId}Saldo`, detail.total.toFixed(2));
+        localStorage.setItem(`MULTI_${exchangeId}_DETAIL`, JSON.stringify(detail));
+    }
+
+    function buildExchangeHtml(detail, exchangeId='') {
+        if (!detail||!Array.isArray(detail.assets)||!detail.assets.length)
+            return `<span class="uk-text-muted">Tidak ada aset</span>`;
+        const exClass = exchangeId ? `text-cex-${String(exchangeId).toLowerCase()}` : '';
+        const lines = detail.assets.map(item=>`
+            <div class="asset-line uk-flex uk-flex-between uk-flex-wrap">
+                <span><b>${escapeHtml(item.symbol)}</b> ${formatTokenAmount(item.amount)}</span>
+                <span>@ ${formatRate(item.rate)} USDT</span>
+                <span>${item.rate ? formatUsdtValue(item.usdtValue)+' $' : 'N/A'}</span>
+            </div>`).join('');
+        const notes = [];
+        if ((detail.filteredCount||0) > 0) notes.push(`${detail.filteredCount} token tidak dihitung (bukan major token/gas fee)`);
+        if ((detail.hiddenCount||0) > 0)   notes.push(`${detail.hiddenCount} token disembunyikan (< $1)`);
+        const note = notes.length ? `<div class="uk-text-muted uk-text-small" style="margin-top:3px;">ⓘ ${notes.join(' · ')}</div>` : '';
+        return `${lines}<hr class="uk-margin-small-top uk-margin-small-bottom">
+            <b class="${exClass}">Total ${formatUsdtValue(detail.total||0)} {USDT}</b>${note}`;
+    }
+
+    function restoreExchangeRow(exchangeId) {
+        const saldoEl = document.getElementById(`${exchangeId}Saldo`);
+        if (!saldoEl) return;
+        const stored = localStorage.getItem(`MULTI_${exchangeId}_DETAIL`);
+        if (stored) {
+            try { saldoEl.innerHTML = buildExchangeHtml(JSON.parse(stored), exchangeId); return; } catch(e) {}
+        }
+        const saldo = parseFloat(localStorage.getItem(`MULTI_${exchangeId}Saldo`))||0;
+        saldoEl.innerHTML = `<span class="text-cex-${exchangeId.toLowerCase()}">${saldo.toFixed(2)} {USDT}</span>`;
+    }
+
+    function setCEXStatus(exchangeId, state, msg='') {
+        const saldoEl = document.getElementById(`${exchangeId}Saldo`);
+        if (!saldoEl) return;
+        if (state === 'loading') {
+            saldoEl.innerHTML = '<span class="uk-text-muted" style="font-size:11px;">Loading...</span>';
+        } else if (state === 'nokey') {
+            saldoEl.innerHTML = '<span class="uk-text-muted" style="font-size:11px;">NO API KEY</span>';
+        } else if (state === 'error') {
+            saldoEl.innerHTML = `<span class="uk-text-danger" style="font-size:11px;">ERROR: ${escHtml(msg)}</span>`;
+        }
+    }
+
+    // ══════════════════════════════════════════════════
+    //  CEX CHECK FUNCTIONS
+    // ══════════════════════════════════════════════════
+    const PROXY_BASE_KUCOIN = "https://cors-proxy-rosy.vercel.app/api/proxy";
+
+    async function cekAssetBinance() {
+        const creds = getCEXCredentials('BINANCE');
+        if (!creds?.ApiKey||!creds?.ApiSecret) { setCEXStatus('BINANCE','nokey'); return; }
+        const ts  = Date.now();
+        const qs  = `timestamp=${ts}`;
+        const sig = CryptoJS.HmacSHA256(qs, creds.ApiSecret).toString(CryptoJS.enc.Hex);
+        const url = `https://api.binance.com/api/v3/account?${qs}&signature=${sig}`;
+        try {
+            setCEXStatus('BINANCE','loading');
+            const r = await fetch(url,{headers:{'X-MBX-APIKEY':creds.ApiKey}});
+            const d = await r.json();
+            if (!r.ok||d?.code) throw new Error(d?.msg||`HTTP ${r.status}`);
+            await renderExchangeAssets('BINANCE', d.balances.map(i=>({symbol:i.asset,amount:(parseFloat(i.free||0))+(parseFloat(i.locked||0))})));
+        } catch(e) {
+            setCEXStatus('BINANCE','error',e.message);
+            localStorage.setItem('MULTI_BINANCESaldo','0');
+        }
+    }
+
+    async function cekAssetGate() {
+        const creds = getCEXCredentials('GATE');
+        if (!creds?.ApiKey||!creds?.ApiSecret) { setCEXStatus('GATE','nokey'); return; }
+        const prefix='/api/v4', method='GET', path='/spot/accounts';
+        const ts  = Math.floor(Date.now()/1000);
+        const bodyHash = CryptoJS.SHA512('').toString();
+        const signStr  = `${method}\n${prefix}${path}\n\n${bodyHash}\n${ts}`;
+        const sign     = CryptoJS.HmacSHA512(signStr, creds.ApiSecret).toString();
+        const url = `https://cors-proxy-rosy.vercel.app/api/proxy?url=https://api.gateio.ws${prefix}${path}`;
+        try {
+            setCEXStatus('GATE','loading');
+            const r = await fetch(url,{method,headers:{'Accept':'application/json','Content-Type':'application/json','Timestamp':ts,'KEY':creds.ApiKey,'SIGN':sign}});
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const d = await r.json();
+            await renderExchangeAssets('GATE', d.map(i=>({symbol:i.currency,amount:(parseFloat(i.available||0))+(parseFloat(i.locked||0))})));
+        } catch(e) {
+            setCEXStatus('GATE','error',e.message);
+            localStorage.setItem('MULTI_GATESaldo','0');
+        }
+    }
+
+    async function cekAssetBitget() {
+        const creds = getCEXCredentials('BITGET');
+        if (!creds?.ApiKey||!creds?.ApiSecret) { setCEXStatus('BITGET','nokey'); return; }
+        const ts   = Date.now().toString();
+        const sign = CryptoJS.HmacSHA256(ts+'GET'+'/api/v2/spot/account/assets', creds.ApiSecret).toString(CryptoJS.enc.Base64);
+        try {
+            setCEXStatus('BITGET','loading');
+            const r = await fetch('https://api.bitget.com/api/v2/spot/account/assets',{headers:{'ACCESS-KEY':creds.ApiKey,'ACCESS-SIGN':sign,'ACCESS-TIMESTAMP':ts,'ACCESS-PASSPHRASE':creds.Passphrase||''}});
+            const d = await r.json();
+            if (!r.ok) throw new Error(d?.msg||`HTTP ${r.status}`);
+            await renderExchangeAssets('BITGET', (d.data||[]).map(i=>({symbol:i.coin,amount:(parseFloat(i.available||0))+(parseFloat(i.frozen||0))})));
+        } catch(e) {
+            setCEXStatus('BITGET','error',e.message);
+            localStorage.setItem('MULTI_BITGETSaldo','0');
+        }
+    }
+
+    async function cekAssetKucoin() {
+        const creds = getCEXCredentials('KUCOIN');
+        if (!creds?.ApiKey||!creds?.ApiSecret||!creds?.Passphrase) { setCEXStatus('KUCOIN','nokey'); return; }
+        const ts   = Date.now().toString();
+        const sign = CryptoJS.HmacSHA256(ts+'GET'+'/api/v1/accounts', creds.ApiSecret).toString(CryptoJS.enc.Base64);
+        const pp   = CryptoJS.HmacSHA256(creds.Passphrase, creds.ApiSecret).toString(CryptoJS.enc.Base64);
+        const url  = `${PROXY_BASE_KUCOIN}?url=${encodeURIComponent('https://api.kucoin.com/api/v1/accounts')}`;
+        try {
+            setCEXStatus('KUCOIN','loading');
+            const r = await fetch(url,{headers:{'KC-API-KEY':creds.ApiKey,'KC-API-SIGN':sign,'KC-API-TIMESTAMP':ts,'KC-API-PASSPHRASE':pp,'KC-API-KEY-VERSION':'3','Content-Type':'application/json'}});
+            const d = await r.json();
+            if (!r.ok) throw new Error(d?.msg||`HTTP ${r.status}`);
+            await renderExchangeAssets('KUCOIN', (d.data||[]).map(i=>({symbol:i.currency,amount:parseFloat(i.balance||i.available||0)||0})));
+        } catch(e) {
+            setCEXStatus('KUCOIN','error',e.message);
+            localStorage.setItem('MULTI_KUCOINSaldo','0');
+        }
+    }
+
+    async function cekAssetBybit() {
+        const creds = getCEXCredentials('BYBIT');
+        if (!creds?.ApiKey||!creds?.ApiSecret) { setCEXStatus('BYBIT','nokey'); return; }
+        const ts   = Date.now().toString();
+        const qs   = 'accountType=UNIFIED';
+        const sign = CryptoJS.HmacSHA256(`${ts}${creds.ApiKey}5000${qs}`, creds.ApiSecret).toString(CryptoJS.enc.Hex);
+        const url  = `https://api.bybit.com/v5/account/wallet-balance?${qs}`;
+        try {
+            setCEXStatus('BYBIT','loading');
+            const r = await fetch(url,{headers:{'Accept':'application/json','Content-Type':'application/json','X-BAPI-API-KEY':creds.ApiKey,'X-BAPI-TIMESTAMP':ts,'X-BAPI-RECV-WINDOW':'5000','X-BAPI-SIGN':sign}});
+            const d = await r.json();
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const coins = d?.result?.list?.[0]?.coin||[];
+            await renderExchangeAssets('BYBIT', coins.map(i=>({symbol:i.coin,amount:parseFloat(i.equity||i.walletBalance||0)||0})));
+        } catch(e) {
+            setCEXStatus('BYBIT','error',e.message);
+            localStorage.setItem('MULTI_BYBITSaldo','0');
+        }
+    }
+
+    async function cekAssetMexc() {
+        const creds = getCEXCredentials('MEXC');
+        if (!creds?.ApiKey||!creds?.ApiSecret) { setCEXStatus('MEXC','nokey'); return; }
+        const serverTime = Date.now();
+        const qs   = `recvWindow=5000&timestamp=${serverTime}`;
+        const sign = CryptoJS.HmacSHA256(qs, creds.ApiSecret).toString(CryptoJS.enc.Hex);
+        const url  = `${PROXY_BASE_KUCOIN}?url=${encodeURIComponent(`https://api.mexc.com/api/v3/account?${qs}&signature=${sign}`)}`;
+        try {
+            setCEXStatus('MEXC','loading');
+            const r = await fetch(url,{headers:{'X-MEXC-APIKEY':creds.ApiKey,'Content-Type':'application/json'}});
+            const d = await r.json();
+            if (!r.ok||d?.code) throw new Error(d?.msg||`HTTP ${r.status}`);
+            await renderExchangeAssets('MEXC', (d.balances||[]).map(i=>({symbol:i.asset,amount:(parseFloat(i.free||0))+(parseFloat(i.locked||0))})));
+        } catch(e) {
+            setCEXStatus('MEXC','error',e.message);
+            localStorage.setItem('MULTI_MEXCSaldo','0');
+        }
+    }
+
+    async function cekAssetIndodax() {
+        const creds = getCEXCredentials('INDODAX');
+        if (!creds?.ApiKey||!creds?.ApiSecret) { setCEXStatus('INDODAX','nokey'); return; }
+        const ts   = Date.now();
+        const body = `method=getInfo&timestamp=${ts}&recvWindow=5000`;
+        const sign = CryptoJS.HmacSHA512(body, creds.ApiSecret).toString();
+        try {
+            setCEXStatus('INDODAX','loading');
+            const r = await $.ajax({ url:'https://proxykiri.awokawok.workers.dev/?https://indodax.com/tapi', type:'POST', headers:{'Key':creds.ApiKey,'Sign':sign}, data:body });
+            if (!r.success) throw new Error('Indodax API error');
+            const bal = r.return?.balance||{}, hold = r.return?.balance_hold||{};
+            const combined = {};
+            Object.entries(bal).forEach(([s,v])=>{ const a=parseFloat(v||0); if(a>0) combined[s]=a; });
+            Object.entries(hold).forEach(([s,v])=>{ const a=parseFloat(v||0); if(a>0) combined[s]=(combined[s]||0)+a; });
+            const rateIDR = await USDTIDR(1);
+            const overrides = rateIDR > 0 ? { IDR: 1/rateIDR } : {};
+            await renderExchangeAssets('INDODAX', Object.entries(combined).map(([s,a])=>({symbol:s.toUpperCase(),amount:a})), {overrides});
+        } catch(e) {
+            setCEXStatus('INDODAX','error',e.message||String(e));
+            localStorage.setItem('MULTI_INDODAXSaldo','0');
+        }
+    }
+
+    async function cekAssetHtx() {
+        const creds = getCEXCredentials('HTX');
+        if (!creds?.ApiKey||!creds?.ApiSecret) { setCEXStatus('HTX','nokey'); return; }
+        function htxSign(method, host, path, params, secret) {
+            const sorted = Object.keys(params).sort().map(k=>`${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`).join('&');
+            return CryptoJS.HmacSHA256(`${method}\n${host}\n${path}\n${sorted}`, secret).toString(CryptoJS.enc.Base64);
+        }
+        try {
+            setCEXStatus('HTX','loading');
+            const host = 'api.huobi.pro';
+            const ts   = new Date().toISOString().slice(0,19);
+            const aPath = '/v1/account/accounts';
+            const aParams = { AccessKeyId:creds.ApiKey, SignatureMethod:'HmacSHA256', SignatureVersion:'2', Timestamp:ts };
+            aParams.Signature = htxSign('GET', host, aPath, aParams, creds.ApiSecret);
+            const aUrl = `${PROXY_BASE_KUCOIN}?url=${encodeURIComponent(`https://${host}${aPath}?`+Object.keys(aParams).map(k=>`${encodeURIComponent(k)}=${encodeURIComponent(aParams[k])}`).join('&'))}`;
+            const aResp = await (await fetch(aUrl)).json();
+            if (aResp.status!=='ok'||!aResp.data?.length) throw new Error(aResp['err-msg']||'HTX accounts failed');
+            const accountId = (aResp.data.find(a=>a.type==='spot')||aResp.data[0]).id;
+            const bPath  = `/v1/account/accounts/${accountId}/balance`;
+            const bTs    = new Date().toISOString().slice(0,19);
+            const bParams = { AccessKeyId:creds.ApiKey, SignatureMethod:'HmacSHA256', SignatureVersion:'2', Timestamp:bTs };
+            bParams.Signature = htxSign('GET', host, bPath, bParams, creds.ApiSecret);
+            const bUrl = `${PROXY_BASE_KUCOIN}?url=${encodeURIComponent(`https://${host}${bPath}?`+Object.keys(bParams).map(k=>`${encodeURIComponent(k)}=${encodeURIComponent(bParams[k])}`).join('&'))}`;
+            const bResp = await (await fetch(bUrl)).json();
+            if (bResp.status!=='ok'||!bResp.data?.list) throw new Error(bResp['err-msg']||'HTX balance failed');
+            const balMap = new Map();
+            bResp.data.list.forEach(i=>{ const c=String(i.currency||'').toUpperCase(); const b=parseFloat(i.balance||0)||0; balMap.set(c,(balMap.get(c)||0)+b); });
+            await renderExchangeAssets('HTX', Array.from(balMap.entries()).map(([s,a])=>({symbol:s,amount:a})));
+        } catch(e) {
+            setCEXStatus('HTX','error',e.message);
+            localStorage.setItem('MULTI_HTXSaldo','0');
+        }
+    }
+
+    async function cekAssetOkx() {
+        const creds = getCEXCredentials('OKX');
+        if (!creds?.ApiKey||!creds?.ApiSecret||!creds?.Passphrase) { setCEXStatus('OKX','nokey'); return; }
+        const ts   = new Date().toISOString();
+        const path = '/api/v5/account/balance';
+        const sign = CryptoJS.HmacSHA256(ts+'GET'+path, creds.ApiSecret).toString(CryptoJS.enc.Base64);
+        const proxy = typeof CONFIG_PROXY !== 'undefined' ? CONFIG_PROXY.PREFIX : 'https://proxykanan.awokawok.workers.dev/?';
+        const url   = `${proxy}https://www.okx.com${path}`;
+        try {
+            setCEXStatus('OKX','loading');
+            const r = await fetch(url,{headers:{'OK-ACCESS-KEY':creds.ApiKey,'OK-ACCESS-SIGN':sign,'OK-ACCESS-TIMESTAMP':ts,'OK-ACCESS-PASSPHRASE':creds.Passphrase}});
+            const d = await r.json();
+            if (d?.code!=='0') throw new Error(d?.msg||'OKX failed');
+            const details = d.data?.[0]?.details||[];
+            await renderExchangeAssets('OKX', details.map(i=>({symbol:String(i.ccy||'').toUpperCase(),amount:parseFloat(i.cashBal||i.availBal||0)+parseFloat(i.frozenBal||0)})));
+        } catch(e) {
+            setCEXStatus('OKX','error',e.message);
+            localStorage.setItem('MULTI_OKXSaldo','0');
+        }
+    }
+
+    // ══════════════════════════════════════════════════
+    //  TOTAL & SUMMARY CARDS
+    // ══════════════════════════════════════════════════
+    function getTotalSaldoCEXS() {
+        const allCEX = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
+            : ['BINANCE','GATE','BITGET','KUCOIN','BYBIT','INDODAX','MEXC','HTX','OKX'];
+        let total = 0;
+        allCEX.forEach(cex => { total += parseFloat(localStorage.getItem(`MULTI_${cex}Saldo`))||0; });
+        localStorage.setItem('MULTI_TotalSaldoCEX', total);
+        $('#TotalSaldoCEX').text(`${total.toFixed(2)} $`);
+        updateSummaryCards();
+    }
+
+    function updateSummaryCards() {
+        const totalCEX    = parseFloat(localStorage.getItem('MULTI_TotalSaldoCEX'))||0;
+        const totalWallet = parseFloat(localStorage.getItem('MULTI_TotalSaldoChain'))||0;
+        const totalAsset  = totalCEX + totalWallet;
+        const modalAwal   = parseFloat(localStorage.getItem('MULTI_MODALAWAL'))||0;
+        const pnl         = totalAsset - modalAwal;
+
+        const fmt = usd => idrRate > 0 ? `Rp ${new Intl.NumberFormat('id-ID').format(Math.round(usd*idrRate))}` : 'Rp 0';
+
+        $('#summaryTotalCEX').text('$'+totalCEX.toFixed(2));
+        $('#summaryTotalCEX_IDR').text(fmt(totalCEX));
+        $('#summaryTotalWallet').text('$'+totalWallet.toFixed(2));
+        $('#summaryTotalWallet_IDR').text(fmt(totalWallet));
+        $('#summaryTotalAsset').text('$'+totalAsset.toFixed(2));
+        $('#summaryTotalAsset_IDR').text(fmt(totalAsset));
+        $('#summaryPNL').text((pnl>=0?'+':'')+'$'+pnl.toFixed(2));
+        $('#summaryPNL_IDR').text(fmt(pnl));
+
+        const pnlCard = $('#summaryPNLCard');
+        pnlCard.removeClass('positive negative');
+        if (pnl>0) pnlCard.addClass('positive');
+        else if (pnl<0) pnlCard.addClass('negative');
+    }
+
+    function ShowLabelModal(method) {
+        const saldoCEX    = parseFloat(localStorage.getItem('MULTI_TotalSaldoCEX'))||0;
+        const saldoChain  = parseFloat(localStorage.getItem('MULTI_TotalSaldoChain'))||0;
+        const modalAwal   = parseFloat(localStorage.getItem('MULTI_MODALAWAL'))||0;
+        const saldoAkhir  = saldoCEX + saldoChain;
+        const pnl         = (method==='reset'||method==='start') ? 0 : saldoAkhir - modalAwal;
+
+        $('#m_awal').text(modalAwal.toFixed(2)+' USDT');
+        $('#m_akhir').text(saldoAkhir.toFixed(2)+' USDT');
+        $('#m_pnl').text(pnl.toFixed(2)+' USDT');
+
+        const $pc = $('#pnl-container');
+        $pc.removeClass('uk-text-success uk-text-danger uk-text-primary');
+        if (pnl>0) $pc.addClass('uk-text-success');
+        else if (pnl<0) $pc.addClass('uk-text-danger');
+        else $pc.addClass('uk-text-primary');
+
+        $('#lastUpdate').text(localStorage.getItem('MULTI_lastCheck')||'—');
+
+        USDTIDR(1).then(rate => {
+            $('#m_akhirs').text(`${saldoAkhir.toFixed(2)} $ (Rp ${Math.round(saldoAkhir*rate).toLocaleString('id-ID')})`);
+            $('#m_pnls').text(`${pnl.toFixed(2)} $ (Rp ${Math.round(pnl*rate).toLocaleString('id-ID')})`);
+        });
+
+        updateSummaryCards();
+    }
+
+    // ══════════════════════════════════════════════════
+    //  CEX CHECK BUTTON
+    // ══════════════════════════════════════════════════
+    $('#SaveConfigCEXS').on('click', async function () {
+        await warmCEXCredentials();
+        const cexKeys = _cexKeysCache || {};
+        const enabledCEXs = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs() : Object.keys(cexKeys);
+        const toCheck = Object.keys(cexKeys).filter(cex => {
+            const c = cexKeys[cex];
+            return c?.ApiKey && c?.ApiSecret && enabledCEXs.includes(cex);
+        });
+
+        if (!toCheck.length) {
+            if (typeof toast !== 'undefined') toast.warning('Tidak ada CEX yang dikonfigurasi!');
+            $(document).trigger('CEXCheckCompleted');
+            return;
+        }
+
+        const isStandalone = !window.BalanceCheckOverlay.isActive;
+        if (isStandalone) window.BalanceCheckOverlay.show('Cek Saldo Exchanger', `Memproses ${toCheck.length} exchanger...`);
+
+        const CEX_FN = {
+            BINANCE: cekAssetBinance, GATE: cekAssetGate, BITGET: cekAssetBitget,
+            KUCOIN: cekAssetKucoin,   BYBIT: cekAssetBybit, INDODAX: cekAssetIndodax,
+            MEXC: cekAssetMexc,       HTX: cekAssetHtx,     OKX: cekAssetOkx
+        };
+
+        let done = 0;
+        await Promise.all(toCheck.map(async cex => {
+            try {
+                window.BalanceCheckOverlay.updateProgress(20+(done/toCheck.length)*70, `Memproses ${cex}...`);
+                if (CEX_FN[cex]) await CEX_FN[cex]();
+            } catch(e) { console.error(`[${cex}]`, e); }
+            done++;
+        }));
+
+        window.BalanceCheckOverlay.updateProgress(95, 'Menghitung total...');
+        getTotalSaldoCEXS();
+        ShowLabelModal('load');
+        $(document).trigger('CEXCheckCompleted');
+        if (isStandalone) setTimeout(() => window.BalanceCheckOverlay.hide(), 300);
+    });
+
+    // ══════════════════════════════════════════════════
+    //  WALLET CHECK — OKX REST API
+    // ══════════════════════════════════════════════════
+    $('#SaveWalletChains').on('click', async function () {
+        $(this).prop('disabled', true);
+
+        localStorage.removeItem('MULTI_TotalSaldoChain');
+        localStorage.removeItem('MULTI_assetDataCEX');
+
+        const isStandalone = !window.BalanceCheckOverlay.isActive;
+        if (isStandalone) window.BalanceCheckOverlay.show('Cek Saldo Wallet on Chain', 'Mengambil saldo via OKX REST API...');
+        window.BalanceCheckOverlay.updateProgress(10, 'Memuat wallet dari settings...');
+
+        try {
+            // Load wallets from settings
+            const settings      = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('SETTING_SCANNER', {}) : {};
+            const userWallets   = settings.userWallets || {};
+            const enabledChains = (typeof getEnabledChains === 'function') ? getEnabledChains() : Object.keys(OKX_CHAINS);
+
+            if (!enabledChains.length) throw new Error('Tidak ada chain yang diaktifkan di Settings!');
+
+            const validWallets = [];
+            enabledChains.forEach(chain => {
+                const addr = userWallets[chain];
+                if (addr && addr.trim()) {
+                    validWallets.push({ chain, address: addr.trim() });
+                }
+            });
+
+            if (!validWallets.length) throw new Error('Belum ada wallet address di Settings!');
+
+            window.BalanceCheckOverlay.updateProgress(20, `Memproses ${validWallets.length} wallet...`);
+
+            // Group wallets by address to batch calls
+            const addrMap = new Map();
+            validWallets.forEach(({ chain, address }) => {
+                const chainInfo = OKX_CHAINS[chain];
+                if (!chainInfo) return;
+                if (!addrMap.has(address)) addrMap.set(address, { chains:[], chainKeys:[] });
+                addrMap.get(address).chains.push(chainInfo.id);
+                addrMap.get(address).chainKeys.push(chain);
+            });
+
+            showWalletStatus(`Scanning ${addrMap.size} address via OKX API...`, 'info');
+
+            const allRows   = [];
+            let   totalUsdt = 0;
+            let   addrDone  = 0;
+            const totalAddr = addrMap.size;
+
+            for (const [address, { chains: chainIds, chainKeys }] of addrMap) {
+                const pct = 20 + (addrDone/totalAddr)*70;
+                window.BalanceCheckOverlay.updateProgress(pct, `Memproses ${address.slice(0,8)}...`);
+
+                // Split EVM / Solana
+                const evmIds = isEvmAddress(address) ? chainIds.filter(id=>id!=='501') : [];
+                const solIds = !isEvmAddress(address) ? chainIds.filter(id=>id==='501') : [];
+                const reqIds = isEvmAddress(address) ? evmIds : solIds;
+
+                if (!reqIds.length) { addrDone++; continue; }
+
+                try {
+                    const data = await okxFetchWithRetry(address, reqIds);
+                    if (data.code !== '0') throw new Error(`OKX API: ${data.msg}`);
+
+                    const tokens = data.data?.[0]?.tokenAssets || [];
+
+                    // Group by chain
+                    const chainTotals = {};
+                    tokens.forEach(t => {
+                        const usd = (parseFloat(t.balance)||0) * (parseFloat(t.tokenPrice)||0);
+                        const cId = String(t.chainIndex);
+                        if (!chainTotals[cId]) chainTotals[cId] = { tokens:[], total:0 };
+                        chainTotals[cId].tokens.push(t);
+                        chainTotals[cId].total += usd;
+                    });
+
+                    // Map OKX chain ID → chain key
+                    const chainIdToKey = {};
+                    Object.entries(OKX_CHAINS).forEach(([k,v]) => { chainIdToKey[v.id] = k; });
+
+                    reqIds.forEach(cId => {
+                        const chainKey  = chainIdToKey[cId] || cId;
+                        const chainInfo = OKX_CHAINS[chainKey] || { name:chainKey, color:'#888', short:chainKey.toUpperCase() };
+                        const cData     = chainTotals[cId] || { tokens:[], total:0 };
+                        const cTotal    = cData.total;
+                        totalUsdt += cTotal;
+
+                        const allTokensSorted = [...cData.tokens]
+                            .map(t => ({ ...t, usd: (parseFloat(t.balance)||0)*(parseFloat(t.tokenPrice)||0) }))
+                            .filter(t => t.usd > 0)
+                            .sort((a,b) => b.usd - a.usd);
+                        const visibleTokens = allTokensSorted.filter(t => t.usd >= 1);
+                        const hiddenCount   = allTokensSorted.length - visibleTokens.length;
+
+                        const tokenLines = visibleTokens.map(t => {
+                            const bal   = parseFloat(t.balance)||0;
+                            const price = parseFloat(t.tokenPrice)||0;
+                            const usd   = bal * price;
+                            return `<div class="asset-line uk-flex uk-flex-between uk-flex-wrap">
+                                <span><b>${escHtml(t.symbol||'?')}</b> ${fmtBalance(bal)}</span>
+                                <span>@ ${fmtUsd(price)} $</span>
+                                <span class="val-usd">${fmtUsd(usd)} $</span>
+                            </div>`;
+                        }).join('');
+                        const hiddenNote = hiddenCount > 0
+                            ? `<div class="uk-text-muted uk-text-small" style="margin-top:3px;">ⓘ ${hiddenCount} token disembunyikan (< $1)</div>` : '';
+
+                        allRows.push({
+                            chainKey, chainInfo, address, cTotal,
+                            tokenCount: visibleTokens.length,
+                            tokenLines, hiddenNote,
+                        });
+                    });
+                } catch(err) {
+                    console.error(`[OKX Wallet] ${address}:`, err.message);
+                    chainKeys.forEach(ck => {
+                        const ci = OKX_CHAINS[ck]||{name:ck,color:'#888',short:ck.toUpperCase()};
+                        allRows.push({ chainKey:ck, chainInfo:ci, address, cTotal:0, tokenCount:0, tokenBadges:'', error:err.message });
+                    });
+                }
+
+                addrDone++;
+                await sleep(300);
+            }
+
+            window.BalanceCheckOverlay.updateProgress(90, 'Merender tabel...');
+
+            // Render table
+            if (allRows.length > 0) {
+                const html = allRows.map(r => {
+                    const ci = r.chainInfo;
+                    const chainIcon = ci.icon ? `<img src="${ci.icon}" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;">` : '';
+                    const chainLabel = `<td class="uk-text-left" style="white-space:nowrap;">${chainIcon}<span style="color:${ci.color};font-weight:700;text-transform:uppercase;">${escHtml(ci.name||ci.short)}</span></td>`;
+                    if (r.error) {
+                        return `<tr>
+                            ${chainLabel}
+                            <td class="uk-text-danger" style="font-size:11px;">${escHtml(r.error.slice(0,80))}</td>
+                        </tr>`;
+                    }
+                    const chainDetail = (r.tokenLines || '<span class="uk-text-muted">—</span>')
+                        + `<hr class="uk-margin-small-top uk-margin-small-bottom">`
+                        + `<b style="color:${ci.color};">Total ${fmtUsd(r.cTotal)} $</b>`
+                        + (r.hiddenNote||'');
+                    return `<tr>
+                        ${chainLabel}
+                        <td style="font-size:11px;">${chainDetail}</td>
+                    </tr>`;
+                }).join('');
+
+                $('#output_chain').html(html);
+                $('#assetTableWallet').show();
+                $('#LTotalSaldoWallets').text('Total');
+                $('#TotalSaldoWallets').text('$'+fmtUsd(totalUsdt));
+
+                localStorage.setItem('MULTI_TotalSaldoChain', totalUsdt.toFixed(2));
+                localStorage.setItem('MULTI_lastUpdateChain', getFormattedTime());
+                localStorage.setItem('MULTI_assetDataCEX', JSON.stringify(
+                    allRows.filter(r=>!r.error).map(r=>({
+                        chain:r.chainKey, total:parseFloat(r.cTotal.toFixed(2)),
+                        tokenCount:r.tokenCount,
+                        tokenLines:r.tokenLines||'',
+                        hiddenNote:r.hiddenNote||''
+                    }))
+                ));
+
+                updateSummaryCards();
+                showWalletStatus(`Selesai — ${allRows.length} chain diproses, total $${fmtUsd(totalUsdt)}`, 'success');
+            } else {
+                $('#output_chain').html('<tr><td colspan="4" class="uk-text-muted uk-text-center">Tidak ada data</td></tr>');
+                $('#assetTableWallet').show();
+                localStorage.setItem('MULTI_TotalSaldoChain','0');
+            }
+
+            window.BalanceCheckOverlay.updateProgress(100, 'Selesai!');
+            ShowLabelModal('load');
+
+        } catch(err) {
+            console.error('[Wallet Check]', err);
+            showWalletStatus(`Error: ${err.message}`, 'error');
+            $('#output_chain').html(`<tr><td colspan="4" class="uk-text-danger">ERROR: ${escHtml(err.message)}</td></tr>`);
+            $('#assetTableWallet').show();
+            localStorage.setItem('MULTI_TotalSaldoChain','0');
+        }
+
+        $(document).trigger('WalletCheckCompleted');
+        if (!window.BalanceCheckOverlay.isActive || true) {
+            setTimeout(() => window.BalanceCheckOverlay.hide(), 300);
+        }
+        $(this).prop('disabled', false);
+    });
+
+    // ══════════════════════════════════════════════════
+    //  COMBINED CHECK (Play button)
+    // ══════════════════════════════════════════════════
+    $('#CheckModal').on('click', async function () {
+        LoadTableHistory();
+        window.BalanceCheckOverlay.show('Cek Semua Saldo','Mengambil data dari wallet dan exchanger...');
+        window.BalanceCheckOverlay.updateProgress(5, 'Memulai...');
+
+        try {
+            await Promise.all([
+                new Promise(resolve => { $(document).one('WalletCheckCompleted', resolve); $('#SaveWalletChains').trigger('click'); }),
+                new Promise(resolve => { $(document).one('CEXCheckCompleted',    resolve); $('#SaveConfigCEXS').trigger('click');   })
+            ]);
+
+            const formattedTime = getFormattedTime();
+            localStorage.setItem('MULTI_lastCheck', formattedTime);
+            ShowLabelModal('check');
+            window.BalanceCheckOverlay.updateProgress(100,'Selesai!');
+            setTimeout(() => window.BalanceCheckOverlay.hide(), 300);
+        } catch(e) {
+            setTimeout(() => window.BalanceCheckOverlay.hide(), 500);
+        }
+    });
+
+    // ══════════════════════════════════════════════════
+    //  PNL HISTORY
+    // ══════════════════════════════════════════════════
+    function addTableHistory(date, awal, akhir, pnl, action) {
+        const history = JSON.parse(localStorage.getItem('MULTI_history'))||[];
+        history.unshift({ date, saldoAwal:parseFloat(awal).toFixed(2), saldoAkhir:parseFloat(akhir).toFixed(2), pnl:parseFloat(pnl).toFixed(2), action });
+        localStorage.setItem('MULTI_history', JSON.stringify(history));
+        LoadTableHistory();
+    }
+
+    function LoadTableHistory() {
+        const history  = JSON.parse(localStorage.getItem('MULTI_history'))||[];
+        const total    = history.length;
+        const pages    = Math.max(1, Math.ceil(total/PNL_PAGE_SIZE));
+        if (pnlCurrentPage >= pages) pnlCurrentPage = pages-1;
+        if (pnlCurrentPage < 0)     pnlCurrentPage = 0;
+
+        $('#pnlPageInfo').text(`Halaman ${total===0?0:pnlCurrentPage+1}/${pages}`);
+        $('#pnlPrev').prop('disabled', pnlCurrentPage<=0||total===0);
+        $('#pnlNext').prop('disabled', pnlCurrentPage>=pages-1||total===0);
+        $('#assetTablePNL tbody').empty();
+
+        if (total > 0) {
+            const items = history.slice(pnlCurrentPage*PNL_PAGE_SIZE, (pnlCurrentPage+1)*PNL_PAGE_SIZE);
+            items.forEach(e => {
+                const pv  = parseFloat(e.pnl);
+                const pc  = pv<0?'uk-text-danger':pv>0?'uk-text-success':'uk-text-primary';
+                const ac  = e.action==='update'?'uk-text-success':e.action==='reset'?'uk-text-warning':'uk-text-secondary';
+                const at  = e.action.charAt(0).toUpperCase()+e.action.slice(1);
+                $('#assetTablePNL tbody').append(`<tr>
+                    <td>${e.date}</td><td><b>${e.saldoAwal}</b></td>
+                    <td><b>${e.saldoAkhir}</b></td>
+                    <td><b><span class="${pc}">${e.pnl}</span></b></td>
+                    <td><b><span class="${ac}">${at}</span></b></td>
+                </tr>`);
+            });
+        } else {
+            $('#assetTablePNL tbody').append('<tr class="uk-text-center uk-text-muted"><td colspan="5">Belum ada data</td></tr>');
+        }
+    }
+
+    $(document).on('click','#pnlPrev',()=>{ if(pnlCurrentPage>0){pnlCurrentPage--;LoadTableHistory();} });
+    $(document).on('click','#pnlNext',()=>{
+        const pages=Math.max(1,Math.ceil((JSON.parse(localStorage.getItem('MULTI_history'))||[]).length/PNL_PAGE_SIZE));
+        if(pnlCurrentPage<pages-1){pnlCurrentPage++;LoadTableHistory();}
+    });
+
+    // Update History PNL
+    $('#UpdateHistoryPNL').on('click', async function () {
+        const formattedTime = getFormattedTime();
+        window.BalanceCheckOverlay.show('Update History PNL','Mengambil data saldo terbaru...');
+        try {
+            await Promise.all([
+                new Promise(resolve => { $(document).one('WalletCheckCompleted', resolve); $('#SaveWalletChains').trigger('click'); }),
+                new Promise(resolve => { $(document).one('CEXCheckCompleted',    resolve); $('#SaveConfigCEXS').trigger('click');   })
+            ]);
+            const saldoCEX   = parseFloat(localStorage.getItem('MULTI_TotalSaldoCEX'))||0;
+            const saldoChain = parseFloat(localStorage.getItem('MULTI_TotalSaldoChain'))||0;
+            const modal      = parseFloat(localStorage.getItem('MULTI_MODALAWAL'))||0;
+            const akhir      = saldoCEX + saldoChain;
+            const pnl        = akhir - modal;
+            addTableHistory(formattedTime, modal, akhir, pnl, 'update');
+            localStorage.setItem('MULTI_lastUpdatePNL', formattedTime);
+            window.BalanceCheckOverlay.updateProgress(100,'Selesai!');
+            setTimeout(() => { window.BalanceCheckOverlay.hide(); if(typeof toast!=='undefined') toast.success('Update History PNL berhasil!'); }, 500);
+        } catch(e) { setTimeout(() => window.BalanceCheckOverlay.hide(), 500); }
+    });
+
+    // Reset Modal
+    $('#ResetModal').on('click', async function () {
+        const formattedTime = getFormattedTime();
+        window.BalanceCheckOverlay.show('Reset Modal','Mengambil data saldo terbaru...');
+        try {
+            await Promise.all([
+                new Promise(resolve => { $(document).one('WalletCheckCompleted', resolve); $('#SaveWalletChains').trigger('click'); }),
+                new Promise(resolve => { $(document).one('CEXCheckCompleted',    resolve); $('#SaveConfigCEXS').trigger('click');   })
+            ]);
+            const saldoCEX   = parseFloat(localStorage.getItem('MULTI_TotalSaldoCEX'))||0;
+            const saldoChain = parseFloat(localStorage.getItem('MULTI_TotalSaldoChain'))||0;
+            const akhir      = saldoCEX + saldoChain;
+            localStorage.setItem('MULTI_MODALAWAL', akhir.toFixed(2));
+            $('#MODALAWAL').val(akhir.toFixed(2));
+            addTableHistory(formattedTime, akhir, akhir, 0, 'reset');
+            localStorage.setItem('MULTI_lastUpdatePNL', formattedTime);
+            window.BalanceCheckOverlay.updateProgress(100,'Selesai!');
+            setTimeout(() => { window.BalanceCheckOverlay.hide(); location.reload(); }, 1500);
+        } catch(e) { setTimeout(() => window.BalanceCheckOverlay.hide(), 500); }
+    });
+
+    // Save Modal
+    $('#SaveModal').on('click', function () {
+        const raw = parseFloat($('#MODALAWAL').val());
+        const val = isNaN(raw) ? 0 : parseFloat(raw.toFixed(2));
+        $('#MODALAWAL').val(val.toFixed(2));
+        localStorage.setItem('MULTI_MODALAWAL', val.toFixed(2));
+        const ft = getFormattedTime();
+        localStorage.setItem('MULTI_lastUpdatePNL', ft);
+        const saldoCEX   = parseFloat(localStorage.getItem('MULTI_TotalSaldoCEX'))||0;
+        const saldoChain = parseFloat(localStorage.getItem('MULTI_TotalSaldoChain'))||0;
+        addTableHistory(ft, val, saldoCEX+saldoChain, 0, 'start');
+        ShowLabelModal('start');
+        loadData();
+        if(typeof toast!=='undefined') toast.success('Modal awal berhasil disimpan!');
+    });
+
+    // Reload
+    $('#reload').on('click', e=>{ e.preventDefault(); location.reload(); });
+
+    // ══════════════════════════════════════════════════
+    //  INITIAL LOAD
+    // ══════════════════════════════════════════════════
+    function loadData() {
+        let modal = parseFloat(localStorage.getItem('MULTI_MODALAWAL'));
+        if (isNaN(modal)) { modal=0; localStorage.setItem('MULTI_MODALAWAL','0'); }
+        $('#MODALAWAL').val(modal.toFixed(2));
+
+        USDTIDR(modal).then(idr => {
+            $('#RPMODAL').text('Rp '+Math.round(idr).toLocaleString('id-ID'));
+        });
+
+        // Restore CEX rows
+        const allCEX = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
+            : ['BINANCE','GATE','BITGET','KUCOIN','BYBIT','INDODAX','MEXC','HTX','OKX'];
+
+        // Show/hide by enabledCEXs setting
+        const enabledCEXs = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
+            : ['BINANCE','GATE','BITGET','KUCOIN','BYBIT','INDODAX','MEXC','HTX','OKX'];
+        ['BINANCE','GATE','BITGET','KUCOIN','BYBIT','INDODAX','MEXC','HTX','OKX'].forEach(cex => {
+            const $row = $(`tr[data-cex="${cex}"]`);
+            if (enabledCEXs.includes(cex)) $row.show(); else $row.hide();
+        });
+
+        allCEX.forEach(cex => { restoreExchangeRow(cex); });
+
+        const totCex = parseFloat(localStorage.getItem('MULTI_TotalSaldoCEX'))||0;
+        $('#TotalSaldoCEX').text(`${totCex.toFixed(2)} $`);
+
+        // Restore wallet table
+        const cachedWallet = JSON.parse(localStorage.getItem('MULTI_assetDataCEX'))||[];
+        if (cachedWallet.length) {
+            const html = cachedWallet.map(r => {
+                const ci = OKX_CHAINS[r.chain] || { short:r.chain.toUpperCase(), color:'#888', icon:'' };
+                const chainIcon = ci.icon ? `<img src="${ci.icon}" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;">` : '';
+                const chainDetail = (r.tokenLines || '<span class="uk-text-muted">—</span>')
+                    + `<hr class="uk-margin-small-top uk-margin-small-bottom">`
+                    + `<b style="color:${ci.color};">Total ${fmtUsd(r.total)} $</b>`
+                    + (r.hiddenNote||'');
+                return `<tr>
+                    <td class="uk-text-left" style="white-space:nowrap;">${chainIcon}<span style="color:${ci.color};font-weight:700;text-transform:uppercase;">${escHtml(ci.name||ci.short)}</span></td>
+                    <td style="font-size:11px;">${chainDetail}</td>
+                </tr>`;
+            }).join('');
+            $('#output_chain').html(html);
+            $('#assetTableWallet').show();
+            const totW = cachedWallet.reduce((s,r)=>s+(r.total||0),0);
+            $('#TotalSaldoWallets').text('$'+fmtUsd(totW));
+        }
+
+        LoadTableHistory();
+        ShowLabelModal('load');
+        updateSummaryCards();
+    }
+
+    loadData();
+
+    // Filter CEX rows by enabled setting
+    try {
+        const enabledCEXs2 = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs() : null;
+        if (enabledCEXs2 && enabledCEXs2.length) {
+            ['BINANCE','GATE','BITGET','KUCOIN','BYBIT','INDODAX','MEXC','HTX','OKX'].forEach(cex => {
+                $(`tr[data-cex="${cex}"]`)[enabledCEXs2.includes(cex) ? 'show' : 'hide']();
+            });
+        }
+    } catch(e) {}
+
+}); // end document.ready
+    // Kalkulator button handler
+    $('#openModalKalkulator').on('click', function(e) {
+        e.preventDefault();
+        UIkit.modal('#calculator-modal').show();
+    });
+
+</script>
+
+<!-- Modal Kalkulator -->
+<div id="calculator-modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-width-large uk-padding-remove-bottom">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h3 class="uk-heading-divider uk-text-center uk-align-center uk-text-secondary uk-margin-small-bottom">
+            <span uk-icon="icon: thumbnails"></span> KALKULATOR CRYPTO
+        </h3>
+        <div class="uk-grid-small uk-child-width-1-1 uk-align-center uk-margin-remove uk-padding-remove" uk-grid>
+            <div class="uk-margin-small-top">
+                <div class="uk-form-controls">
+                    <label for="usdtprice" class="uk-form-label uk-margin-large-right"><b>USDT</b></label>
+                    <input id="usdtprice" class="uk-input dynamic-input uk-form-width-large" type="text" placeholder="Masukkan nilai USDT">
+                </div>
+            </div>
+            <div class="uk-margin-small-top">
+                <div class="uk-form-controls">
+                    <label for="idrprice" class="uk-form-label uk-margin-large-right"><b>IDR&nbsp;&nbsp;</b></label>
+                    <input id="idrprice" class="uk-input dynamic-input uk-form-width-large" type="text" placeholder="Masukkan nilai IDR">
+                </div>
+            </div>
+            <div class="uk-margin-small-top">
+                <div class="uk-form-controls">
+                    <label for="btcprice" class="uk-form-label uk-margin-large-right"><b>BTC&nbsp;&nbsp;</b></label>
+                    <input id="btcprice" class="uk-input dynamic-input uk-form-width-large" type="text" placeholder="Masukkan nilai BTC">
+                </div>
+            </div>
+            <div class="uk-margin-small-top">
+                <div class="uk-form-controls">
+                    <label for="ethprice" class="uk-form-label uk-margin-large-right"><b>ETH&nbsp;&nbsp;</b></label>
+                    <input id="ethprice" class="uk-input dynamic-input uk-form-width-large" type="text" placeholder="Masukkan nilai ETH">
+                </div>
+            </div>
+            <div class="uk-margin-small-top">
+                <div class="uk-form-controls">
+                    <label for="bnbprice" class="uk-form-label uk-margin-large-right"><b>BNB&nbsp;&nbsp;</b></label>
+                    <input id="bnbprice" class="uk-input dynamic-input uk-form-width-large" type="text" placeholder="Masukkan nilai BNB">
+                </div>
+            </div>
+            <div class="uk-margin-small-top">
+                <div class="uk-form-controls">
+                    <label for="random1symbol" class="uk-form-label uk-text-danger"><b>CUSTOM TOKEN:</b></label>
+                    <div class="uk-button-group">
+                        <input type="text" class="uk-input dynamic-input uk-form-width-medium" id="random1symbol" placeholder="Symbol TOKEN">
+                        <input type="text" class="uk-input dynamic-input" id="random1price" placeholder="Harga TOKEN" readonly>
+                    </div>
+                </div>
+            </div>
+            <div class="uk-form-controls uk-align-center">
+                <div class="uk-button-group uk-form-width-large">
+                    <button class="uk-button uk-button-small uk-button-danger uk-margin-large-left" id="cekTokensBtn">CEK Tokens</button>
+                    <button class="uk-button uk-button-small uk-button-primary" id="updatePriceBtn">Update Price</button>
+                </div>
+            </div>
+            <div></div>
+        </div>
+    </div>
+</div>
+
+<script src="calculator-crypto.js"></script>
+</body>
+</html>
