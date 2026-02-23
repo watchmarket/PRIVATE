@@ -399,7 +399,7 @@
                             <img src="assets/icons/calculator.png" alt="Kalkulator" style="width:17px;height:17px;">
                         </button>
                         <a class="icon-link" href="#" id="reload" title="Reload">
-                            <img src="assets/icons/reload.png" alt="Reload" style="width:23px;height:23px;">
+                            <img src="assets/icons/reload.png" alt="Refresh Halaman" style="width:23px;height:23px;">
                         </a>
                         <button class="icon-link" id="CheckModal" title="Cek Semua Saldo" style="background:#583df0;border-color:#583df0;">
                             <span uk-icon="icon: play-circle; ratio: 1.1" style="color:white;"></span>
@@ -1517,6 +1517,103 @@ $(document).ready(async function () {
     $('#reload').on('click', e=>{ e.preventDefault(); location.reload(); });
 
     // ══════════════════════════════════════════════════
+    //  REKAP PNL BERDASARKAN TANGGAL
+    // ══════════════════════════════════════════════════
+    $('#SearchHistoryPNL').on('click', function () {
+        renderRekapPNL();
+        UIkit.modal('#rekap-pnl-modal').show();
+    });
+
+    $('#rekapFilterBtn').on('click', renderRekapPNL);
+    $('#rekapResetBtn').on('click', function () {
+        $('#rekapDateFrom').val('');
+        $('#rekapDateTo').val('');
+        renderRekapPNL();
+    });
+
+    // Support berbagai format tanggal history:
+    // Format baru (id-ID): "23/2/2026 14.23.34"
+    // Format lama: "23 Feb 26-04:18:19", "22 Feb 26-22:16:11"
+    const _BULAN = { jan:0,feb:1,mar:2,apr:3,mei:4,may:4,jun:5,jul:6,agu:7,aug:7,sep:8,okt:9,oct:9,nov:10,des:11,dec:11 };
+
+    function parseHistoryDate(dateStr) {
+        if (!dateStr) return null;
+        // Format baru: "23/2/2026 ..." → dd/M/yyyy
+        const m1 = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+        if (m1) return new Date(parseInt(m1[3]), parseInt(m1[2]) - 1, parseInt(m1[1]));
+        // Format lama: "23 Feb 26-..." atau "23 Feb 2026-..."
+        const m2 = dateStr.match(/^(\d{1,2})\s+([A-Za-z]{3})\s*(\d{2,4})/);
+        if (m2) {
+            const mIdx = _BULAN[m2[2].toLowerCase()];
+            if (mIdx !== undefined) {
+                const yr = parseInt(m2[3]) < 100 ? 2000 + parseInt(m2[3]) : parseInt(m2[3]);
+                return new Date(yr, mIdx, parseInt(m2[1]));
+            }
+        }
+        return null;
+    }
+
+    // Normalisasi key per tanggal → "d/M/yyyy" agar format lama & baru masuk group sama
+    function getDateKey(dateStr) {
+        const d = parseHistoryDate(dateStr);
+        if (!d) return (dateStr || '').split(' ')[0];
+        return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+    }
+
+    function renderRekapPNL() {
+        const history  = JSON.parse(localStorage.getItem('MULTI_history')) || [];
+        const fromVal  = $('#rekapDateFrom').val();
+        const toVal    = $('#rekapDateTo').val();
+        const fromDate = fromVal ? new Date(fromVal) : null;
+        const toDate   = toVal   ? new Date(toVal + 'T23:59:59') : null;
+
+        // Kelompokkan entri per tanggal (normalized key)
+        const groups = {};
+        history.forEach(entry => {
+            const d = parseHistoryDate(entry.date);
+            if (!d) return;
+            if (fromDate && d < fromDate) return;
+            if (toDate   && d > toDate)   return;
+            const key = getDateKey(entry.date);
+            if (!groups[key]) groups[key] = { key, entries: [], dateObj: d };
+            groups[key].entries.push(entry);
+        });
+
+        // Urutkan per tanggal terbaru
+        const sorted = Object.values(groups).sort((a, b) => b.dateObj - a.dateObj);
+
+        const $tbody = $('#rekapPNLBody').empty();
+        if (!sorted.length) {
+            $tbody.append('<tr class="uk-text-center uk-text-muted"><td colspan="4">Belum ada data</td></tr>');
+            $('#rekapSummary').hide();
+            return;
+        }
+
+        let grandTotal = 0;
+        sorted.forEach(group => {
+            // history memakai unshift: entries[0] = terbaru, entries[last] = terlama di hari itu
+            const oldest = group.entries[group.entries.length - 1];
+            const newest = group.entries[0];
+            const awal   = parseFloat(oldest.saldoAwal);
+            const akhir  = parseFloat(newest.saldoAkhir);
+            const pnlDay = akhir - awal;
+            grandTotal  += pnlDay;
+            const pc = pnlDay < 0 ? 'uk-text-danger' : pnlDay > 0 ? 'uk-text-success' : 'uk-text-primary';
+            $tbody.append(`<tr>
+                <td>${group.key}</td>
+                <td><b>${awal.toFixed(2)}</b></td>
+                <td><b>${akhir.toFixed(2)}</b></td>
+                <td><b><span class="${pc}">${(pnlDay >= 0 ? '+' : '') + pnlDay.toFixed(2)}</span></b></td>
+            </tr>`);
+        });
+
+        const totalPc = grandTotal < 0 ? 'uk-text-danger' : grandTotal > 0 ? 'uk-text-success' : 'uk-text-primary';
+        $('#rekapTotalPNL').attr('class', totalPc)
+            .text((grandTotal >= 0 ? '+' : '') + grandTotal.toFixed(2) + ' USDT');
+        $('#rekapSummary').show();
+    }
+
+    // ══════════════════════════════════════════════════
     //  INITIAL LOAD
     // ══════════════════════════════════════════════════
     function loadData() {
@@ -1651,5 +1748,130 @@ $(document).ready(async function () {
 </div>
 
 <script src="calculator-crypto.js"></script>
+
+<!-- Modal Rekap PNL Berdasarkan Tanggal -->
+<style>
+#rekap-pnl-modal .uk-modal-dialog {
+    background: #fff;
+    border: 2px solid #e74c3c;
+    border-radius: 12px;
+    color: #1a2e1a;
+    box-shadow: 0 12px 40px rgba(231,76,60,.18), 0 2px 8px rgba(0,0,0,.1);
+    overflow: hidden;
+}
+#rekap-pnl-modal .rekap-header {
+    background: linear-gradient(135deg, #a31618 0%, #e74855 60%, #651616 100%);
+    margin: 0;
+    padding: 14px 20px;
+    text-align: center;
+    position: relative;
+}
+#rekap-pnl-modal .rekap-title {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: .02em;
+    text-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+#rekap-pnl-modal .uk-modal-close-default {
+    color: rgba(255,255,255,.9);
+    top: 12px; right: 14px;
+}
+#rekap-pnl-modal .uk-modal-close-default:hover { color: #fff; }
+#rekap-pnl-modal .filter-section {
+    background: #d7f3e4;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 14px 0 12px;
+    display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+}
+#rekap-pnl-modal .filter-group { flex: 1; min-width: 130px; }
+#rekap-pnl-modal .uk-form-label {
+    color: #c0392b; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .04em; display: block; margin-bottom: 4px;
+}
+#rekap-pnl-modal .uk-input {
+    background: #fff; border: 1px solid #fca5a5; color: #1a2e1a;
+    border-radius: 6px; font-size: 0.84rem; height: 34px; padding: 4px 8px;
+    width: 100%;
+}
+#rekap-pnl-modal .uk-input:focus {
+    border-color: #e74c3c; outline: none; box-shadow: 0 0 0 2px rgba(231,76,60,.15);
+}
+#rekap-pnl-modal #rekapFilterBtn {
+    background: #e74c3c; border: none; color: #fff; border-radius: 6px;
+    font-size: 0.8rem; font-weight: 700; padding: 0 16px; height: 34px;
+    letter-spacing: .03em; white-space: nowrap; box-shadow: 0 2px 6px rgba(231,76,60,.35);
+}
+#rekap-pnl-modal #rekapFilterBtn:hover { background: #c0392b; }
+#rekap-pnl-modal #rekapResetBtn {
+    background: #fff; border: 1px solid #fca5a5; color: #c0392b;
+    border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+    padding: 0 14px; height: 34px; white-space: nowrap;
+}
+#rekap-pnl-modal #rekapResetBtn:hover { background: #fff5f5; border-color: #e74c3c; }
+#rekap-pnl-modal .table-rekap {
+    width: 100%; border-collapse: collapse; border-radius: 8px; overflow: hidden;
+    border: 1px solid #fecaca;
+}
+#rekap-pnl-modal .table-rekap thead th {
+    background: #15803d; color: #fff; font-weight: 600; letter-spacing: .04em;
+    padding: 9px 10px; text-align: center; text-transform: uppercase; font-size: 0.73rem;
+}
+#rekap-pnl-modal .table-rekap tbody td {
+    padding: 8px 10px; border-bottom: 1px solid #fee2e2;
+    font-size: 0.83rem; color: #1a2e1a; vertical-align: middle;
+}
+#rekap-pnl-modal .table-rekap tbody tr:nth-child(even) { background: #fff5f5; }
+#rekap-pnl-modal .table-rekap tbody tr:hover { background: #fee2e2; }
+#rekap-pnl-modal #rekapSummary {
+    font-size: 0.84rem; margin-top: 10px; text-align: right;
+    color: #7f1d1d; padding-top: 8px; border-top: 1px solid #d7f8df; font-weight: 600;
+}
+</style>
+<div id="rekap-pnl-modal" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body" style="max-width:640px;padding:0;">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <div class="rekap-header">
+            <div class="rekap-title"><span uk-icon="icon: history"></span> Rekap PNL Berdasarkan Tanggal</div>
+        </div>
+        <div style="padding:0 18px 18px;">
+        <div class="filter-section">
+            <div class="filter-group">
+                <label class="uk-form-label">Dari Tanggal</label>
+                <input type="date" id="rekapDateFrom" class="uk-input">
+            </div>
+            <div class="filter-group">
+                <label class="uk-form-label">Sampai Tanggal</label>
+                <input type="date" id="rekapDateTo" class="uk-input">
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+                <button id="rekapFilterBtn" class="uk-button uk-button-small">Filter</button>
+                <button id="rekapResetBtn" class="uk-button uk-button-small">Reset</button>
+            </div>
+        </div>
+        <div class="uk-overflow-auto">
+            <table class="table-rekap" id="rekapPNLTable">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Modal Awal</th>
+                        <th>Modal Akhir</th>
+                        <th>PNL</th>
+                    </tr>
+                </thead>
+                <tbody id="rekapPNLBody">
+                    <tr class="uk-text-center uk-text-muted"><td colspan="4">Belum ada data</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="rekapSummary" style="display:none;">
+            Total PNL: <strong id="rekapTotalPNL">0</strong>
+        </div>
+        </div><!-- end inner padding -->
+    </div>
+</div>
 </body>
 </html>
