@@ -257,6 +257,11 @@
                 normalizedEntries.set(indexKey, Object.assign({}, item, { _chainKey: chainKey, _symbol: symbol }));
             });
 
+            // Chain yang memang ada datanya di response CEX ini
+            const chainsWithData = new Set(
+                walletItems.map(item => normalizeChainKey(item.chain, mode))
+            );
+
             normalizedEntries.forEach(entry => {
                 const refs = coinIndex.get(`${entry._chainKey}:${entry._symbol}`);
                 if (!refs || refs.length === 0) {
@@ -329,6 +334,25 @@
                     }
                 });
             });
+
+            // Second pass: jika CEX punya data untuk chain tertentu tapi token tidak ada
+            // di response → berarti CEX tidak support token di chain ini → CLOSED
+            merged.forEach((coin, idx) => {
+                if (!allowedCexByCoin[idx].has(cexUpper)) return;
+                const coinChainKey = normalizeChainKey(coin.chain, mode);
+                // Lewati jika CEX tidak mengembalikan data apapun untuk chain ini
+                if (!chainsWithData.has(coinChainKey)) return;
+                const tokenSymbol = String(coin.symbol_in || coin.tokenName || '').toUpperCase();
+                if (!tokenSymbol) return;
+                // Jika token tidak ada di data CEX untuk chain ini → CLOSED
+                if (!normalizedEntries.has(`${coinChainKey}:${tokenSymbol}`)) {
+                    const target = ensureCexEntry(coin, cexUpper);
+                    coin.withdrawToken = false;
+                    coin.depositToken = false;
+                    target.withdrawToken = false;
+                    target.depositToken = false;
+                }
+            });
         });
 
         return merged;
@@ -342,8 +366,7 @@
             // Gunakan saveActiveTokens() untuk konsistensi dengan sistem storage
             if (typeof saveActiveTokens === 'function') {
                 saveActiveTokens(coins);
-                const storageKey = (typeof getActiveTokenKey === 'function') ? getActiveTokenKey() : 'TOKEN_MULTICHAIN';
-                // console.log(`[Wallet Exchanger] Saved ${coins.length} coins to ${storageKey}`);
+                // console.log(`[Wallet Exchanger] Saved ${coins.length} coins`);
             } else {
                 const mode = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
 
@@ -581,11 +604,7 @@
                     chainBreakdown[chainKey] = (chainBreakdown[chainKey] || 0) + 1;
                 });
 
-                const breakdown = Object.entries(chainBreakdown)
-                    .map(([chain, count]) => `${chain.toUpperCase()}:${count}`)
-                    .join(', ');
-
-                // console.log(`[${cexName}] Koin bermasalah (multichain): ${problemCount} dari ${totalCount} | Breakdown: ${breakdown}`);
+                // console.log(`[${cexName}] Koin bermasalah (multichain): ${problemCount} dari ${totalCount}`);
             } else {
                 // console.log(`[${cexName}] Koin bermasalah di chain ${activeChain}: ${problemCount} dari total ${totalCount}`);
             }

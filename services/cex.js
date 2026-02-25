@@ -443,13 +443,18 @@
                         const chainCode = String(chain.name || chain.chain || chain.network || chain.chain_name || '').toUpperCase();
                         const feeMap = match.withdraw_fix_on_chains || {};
                         const feeOnChain = feeMap[chainCode] ?? feeMap[chain.name] ?? feeMap[chain.chain] ?? 0;
+                        // Gate chain object pakai is_deposit_disabled / is_withdraw_disabled (int 0/1)
+                        // bukan deposit_disabled / withdraw_disabled (boolean) yg ada di level currency
+                        const chainOff = Boolean(chain.is_disabled) || Boolean(chain.chain_disabled);
+                        const depOff   = chainOff || Boolean(chain.is_deposit_disabled)  || Boolean(chain.deposit_disabled);
+                        const wdOff    = chainOff || Boolean(chain.is_withdraw_disabled) || Boolean(chain.withdraw_disabled);
                         return {
                             cex,
                             tokenName: item.currency,
                             chain: chainCode,
                             feeWDs: parseFloat(chain.withdraw_fee || feeOnChain || 0),
-                            depositEnable: !Boolean(chain.deposit_disabled),
-                            withdrawEnable: !Boolean(chain.withdraw_disabled),
+                            depositEnable: !depOff,
+                            withdrawEnable: !wdOff,
                             contractAddress: chain.addr || '',
                             trading: !item.delisted // GATE: trading = true jika tidak delisted
                         };

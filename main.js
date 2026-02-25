@@ -449,8 +449,11 @@ function refreshTokensTable() {
         attachEditButtonListeners(); // Re-attach listeners after table render
     };
 
-    // Defer rendering to allow UI thread to breathe
-    if (window.requestIdleCallback) {
+    // If no tokens to display, render synchronously so empty state message
+    // is not overwritten by any subsequent deferred/async rendering
+    if (filteredTokens.length === 0) {
+        renderTable();
+    } else if (window.requestIdleCallback) {
         window.requestIdleCallback(renderTable, { timeout: 100 });
     } else {
         setTimeout(renderTable, 0);
@@ -588,8 +591,12 @@ function hasValidTokens() {
         const t = getTokensChain(m.chain);
         return Array.isArray(t) && t.length > 0;
     } else {
-        const t = getTokensMulti();
-        return Array.isArray(t) && t.length > 0;
+        // Cek TOKEN_MULTICHAIN dulu
+        const tMulti = getTokensMulti();
+        if (Array.isArray(tMulti) && tMulti.length > 0) return true;
+        // Fallback: cek per-chain DBs (dipakai CEX mode & saat token disimpan per-chain)
+        const allFlat = typeof window.getAllChainTokensFlat === 'function' ? window.getAllChainTokensFlat() : [];
+        return allFlat.length > 0;
     }
 }
 
@@ -758,8 +765,12 @@ function setupChainCheckboxHandlers() {
 /**
  * Load CEX API Keys from IndexedDB and populate input fields
  */
-function loadCEXApiKeys() {
+async function loadCEXApiKeys() {
     try {
+        // Tunggu cache IDB warm terlebih dahulu agar data hasil restore terbaca
+        if (window.whenStorageReady) {
+            try { await window.whenStorageReady; } catch (_) { }
+        }
         const raw = getFromLocalStorage('CEX_API_KEYS', null);
         let cexKeys = raw;
         if (typeof raw === 'string' && typeof appDecrypt === 'function') {
@@ -1008,7 +1019,7 @@ function renderSettingsForm() {
                        class="uk-input uk-form-small wallet-input"
                        data-chain="${chain}"
                        id="wallet_${chain}"
-                       placeholder="${chain === 'solana' ? 'Solana Address (base58)' : '0x... (EVM Address)'}"
+                       placeholder="${chain === 'solana' ? 'Solana Address' : '0x... (Wallet Address)'}"
                        style="font-size: 0.78rem; margin-top: 3px;">
             </div>
         `;
@@ -1179,7 +1190,16 @@ function cekDataAwal() {
     let errorMessages = [];
 
     const mBoot = getAppMode();
-    let DataTokens = (mBoot.type === 'single') ? getTokensChain(mBoot.chain) : getTokensMulti();
+    let DataTokens;
+    if (mBoot.type === 'single') {
+        DataTokens = getTokensChain(mBoot.chain);
+    } else {
+        DataTokens = getTokensMulti();
+        // Fallback ke per-chain DBs jika TOKEN_MULTICHAIN kosong (CEX mode pakai getAllChainTokensFlat)
+        if ((!Array.isArray(DataTokens) || DataTokens.length === 0) && typeof window.getAllChainTokensFlat === 'function') {
+            DataTokens = window.getAllChainTokensFlat();
+        }
+    }
     let SavedSettingData = getFromLocalStorage('SETTING_SCANNER', {});
 
     if (!Array.isArray(DataTokens) || DataTokens.length === 0) {
@@ -1772,6 +1792,24 @@ async function deferredInit() {
                 flat = flat.filter(t => String(t.cex || '').toUpperCase() === selCEX);
                 cexSel = [selCEX];
             }
+            // If no tokens exist, show import message and skip filter sections
+            if (flat.length === 0) {
+                const _cexLabel = isCEXModeNow ? window.CEXModeManager.getSelectedCEX() : null;
+                const _noTokenMsg = isCEXModeNow
+                    ? `<div style="padding:24px 16px; text-align:center;">
+                        <div style="font-size:13px; font-weight:700; color:#e74c3c; margin-bottom:8px;">⚠️ Belum ada koin untuk EXCHANGER <b>${_cexLabel}</b></div>
+                        <div style="font-size:12px; color:#666;">Tambahkan koin di mode chain dan set exchanger ke <b>${_cexLabel}</b>.</div>
+                       </div>`
+                    : `<div style="padding:24px 16px; text-align:center;">
+                        <div style="font-size:13px; font-weight:700; color:#e74c3c; margin-bottom:8px;">⚠️ Belum ada koin untuk mode MULTICHAIN</div>
+                        <div style="font-size:12px; color:#666; margin-bottom:12px;">Gunakan tombol <b>IMPORT</b> di halaman Manajemen Koin untuk menambahkan koin.</div>
+                       </div>`;
+                $wrap.append($(_noTokenMsg));
+                $sum.text('TOTAL KOIN: 0');
+                $('#modal-summary-bar').empty().append($sum);
+                return;
+            }
+
             const byChain = flat.reduce((a, t) => { const k = String(t.chain || '').toLowerCase(); a[k] = (a[k] || 0) + 1; return a; }, {});
             const byCex = flat.filter(t => (chainsSel.length === 0 || chainsSel.includes(String(t.chain || '').toLowerCase())))
                 .reduce((a, t) => { const k = String(t.cex || '').toUpperCase(); a[k] = (a[k] || 0) + 1; return a; }, {});
@@ -2271,6 +2309,13 @@ async function deferredInit() {
                 return;
             }
 
+            // CEX mode: scanner is always the primary view, never redirect to management
+            // Cek dari state DAN dari URL param (fallback saat IDB cache belum warm)
+            const cexFromURL = (new URLSearchParams(window.location.search)).get('cex');
+            if ((window.CEXModeManager && window.CEXModeManager.isCEXMode()) || cexFromURL) {
+                return;
+            }
+
             const mode = getAppMode();
             let hasTokens = false;
             if (mode.type === 'single') {
@@ -2279,6 +2324,11 @@ async function deferredInit() {
             } else {
                 const t = getTokensMulti();
                 hasTokens = Array.isArray(t) && t.length > 0;
+                // Fallback: cek per-chain DBs jika TOKEN_MULTICHAIN kosong
+                if (!hasTokens && typeof window.getAllChainTokensFlat === 'function') {
+                    const allFlat = window.getAllChainTokensFlat();
+                    hasTokens = Array.isArray(allFlat) && allFlat.length > 0;
+                }
             }
             if (!hasTokens) {
                 showMainSection('#token-management');
@@ -2507,9 +2557,11 @@ async function deferredInit() {
         try { location.reload(); } catch (_) { }
     });
 
-    $("#SettingConfig").on("click", function () {
+    $("#SettingConfig").on("click", async function () {
         showMainSection('#form-setting-app');
         try { document.getElementById('form-setting-app').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) { }
+        // Tunggu storage ready agar data hasil restore sudah masuk cache
+        try { if (window.whenStorageReady) await window.whenStorageReady; } catch (_) { }
         renderSettingsForm();
     });
 

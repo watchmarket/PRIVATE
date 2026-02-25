@@ -200,15 +200,15 @@ a:hover,
 
 /* DETAIL column - Fixed width untuk menampilkan semua info tanpa terpotong */
 .th-detail {
-    width: 220px !important;
-    min-width: 220px !important;
-    max-width: 220px !important;
+    width: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
 }
 
 .td-detail {
-    width: 220px !important;
-    min-width: 220px !important;
-    max-width: 220px !important;
+    width: 170px !important;
+    min-width: 170px !important;
+    max-width: 170px !important;
     white-space: normal !important;
     word-wrap: break-word !important;
     vertical-align: top !important;
@@ -1235,7 +1235,7 @@ body.dark-mode {
 .dark-mode h5,
 .dark-mode h6,
 .dark-mode .uk-modal-title {
-    color: #f3f4f6 !important;
+    color: #101113 !important;
 }
 
 .dark-mode .uk-overflow-auto,
@@ -1454,9 +1454,9 @@ body.dark-mode {
 
     .th-detail,
     .td-detail {
-        width: 180px !important;
-        min-width: 180px !important;
-        max-width: 180px !important;
+        width: 155px !important;
+        min-width: 155px !important;
+        max-width: 155px !important;
     }
 }
 
@@ -1469,9 +1469,9 @@ body.dark-mode {
 
     .th-detail,
     .td-detail {
-        width: 150px !important;
-        min-width: 150px !important;
-        max-width: 150px !important;
+        width: 140px !important;
+        min-width: 140px !important;
+        max-width: 140px !important;
         font-size: 11.5px;
     }
 

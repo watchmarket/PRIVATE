@@ -433,7 +433,7 @@
                 // Use href navigation (like chain icons) so page refreshes
                 const href = `${currentPage}?cex=${encodeURIComponent(cex.toLowerCase())}`;
                 html += `
-                    <a href="${href}" class="cex-icon-btn ${activeClass}" id="cex-btn-${cex}" title="Mode ${cex}"
+                    <a href="${href}" class="cex-icon-btn ${activeClass}" id="cex-btn-${cex}" title="EXCHANGER ${cex}"
                        style="${activeStyle}">
                         <img class="icon" src="${iconSrc}" width="24" />
                     </a>

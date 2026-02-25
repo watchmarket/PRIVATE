@@ -6,7 +6,7 @@
     <title>CEK SALDO ASSET</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.6.22/dist/css/uikit.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="icon" href="assets/icons/asset.png" type="image/x-icon">
+    <link rel="icon" href="assets/icons/money.png" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <script src="js/notify-shim.js"></script>
@@ -683,8 +683,15 @@ $(document).ready(async function () {
     }
 
     window.getCEXCredentials = function(cexName) {
-        if (!_cexKeysCache) return null;
-        return _cexKeysCache[cexName] || null;
+        // 1. Cek dari storage cache
+        if (_cexKeysCache && _cexKeysCache[cexName]) return _cexKeysCache[cexName];
+        // 2. Fallback ke window.CEX_API jika tersedia
+        if (window.CEX_API && window.CEX_API[cexName]) {
+            const c = window.CEX_API[cexName];
+            // Normalisasi: ApiPassphrase → Passphrase (untuk KuCoin, OKX, Bitget)
+            return { ...c, Passphrase: c.Passphrase || c.ApiPassphrase || '' };
+        }
+        return null;
     };
 
     await warmCEXCredentials();

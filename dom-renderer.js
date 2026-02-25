@@ -187,7 +187,71 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
 
   if (!hasRows) {
     const totalCols = getTotalColumnCount(dexList);
-    if ($tableBody.length) $tableBody.html(`<tr><td colspan="${totalCols}" class="uk-text-center">No tokens to display.</td></tr>`);
+    if ($tableBody.length) {
+      let emptyMsg = 'Tidak ada koin yang ditampilkan.';
+      if (tableBodyId === 'dataTableBody') {
+        try {
+          const _m = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
+          const _isCEX = window.CEXModeManager && window.CEXModeManager.isCEXMode();
+          const _activeCEX = _isCEX ? window.CEXModeManager.getSelectedCEX() : null;
+
+          if (_m.type === 'single') {
+            const _allChain = (typeof getTokensChain === 'function') ? getTokensChain(_m.chain) : [];
+            const _hasChain = Array.isArray(_allChain) && _allChain.length > 0;
+            const _savedF = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage(`FILTER_${String(_m.chain).toUpperCase()}`, null) : null;
+            if (!_hasChain) {
+              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#e74c3c; margin-bottom:8px;">⚠️ Belum ada koin untuk chain <span style="text-transform:uppercase;">${_m.chain}</span></div>
+                <div style="font-size:12px; color:#666; margin-bottom:12px;">Tambahkan koin melalui <b>Manajemen Koin</b> atau gunakan tombol <b>SYNC</b>.</div>
+                <button onclick="try{$('#ManajemenKoin').trigger('click')}catch(_){}" class="uk-button uk-button-primary uk-button-small"><span uk-icon="plus-circle"></span> MANAJEMEN KOIN</button>
+              </div>`;
+            } else if (_savedF) {
+              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#f39c12; margin-bottom:8px;">🔍 Tidak ada koin yang sesuai filter aktif</div>
+                <div style="font-size:12px; color:#666;">Ubah filter <b>CEX / PAIR / DEX</b> melalui tombol <b>FILTER</b>.</div>
+              </div>`;
+            }
+          } else if (_isCEX) {
+            const _allFlat = (typeof window.getAllChainTokensFlat === 'function') ? window.getAllChainTokensFlat() : [];
+            const _hasCEXTokens = _allFlat.some(t => String(t.cex || '').toUpperCase() === _activeCEX);
+            if (!_hasCEXTokens) {
+              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#e74c3c; margin-bottom:8px;">⚠️ Belum ada koin untuk EXCHANGER <b>${_activeCEX}</b></div>
+                <div style="font-size:12px; color:#666;">Tambahkan koin di mode chain dan set exchanger ke <b>${_activeCEX}</b>.</div>
+              </div>`;
+            } else {
+              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#f39c12; margin-bottom:8px;">🔍 Tidak ada koin sesuai filter untuk <b>${_activeCEX}</b></div>
+                <div style="font-size:12px; color:#666;">Ubah filter <b>CHAIN / PAIR / DEX</b> melalui tombol <b>FILTER</b>.</div>
+              </div>`;
+            }
+          } else {
+            // Multichain mode
+            const _multiTokens = (typeof getTokensMulti === 'function') ? getTokensMulti() : [];
+            const _hasMulti = Array.isArray(_multiTokens) && _multiTokens.length > 0;
+            const _savedMultiF = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('FILTER_MULTICHAIN', null) : null;
+            if (!_hasMulti) {
+              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#e74c3c; margin-bottom:8px;">⚠️ Belum ada koin untuk mode <b>MULTICHAIN</b></div>
+                <div style="font-size:12px; color:#666; margin-bottom:12px;">Tambahkan koin melalui <b>Manajemen Koin</b> agar bisa mulai scanning.</div>
+                <button onclick="try{$('#ManajemenKoin').trigger('click')}catch(_){}" class="uk-button uk-button-primary uk-button-small"><span uk-icon="plus-circle"></span> MANAJEMEN KOIN</button>
+              </div>`;
+            } else if (_savedMultiF) {
+              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#f39c12; margin-bottom:8px;">🔍 Tidak ada koin yang sesuai filter aktif</div>
+                <div style="font-size:12px; color:#666;">Ubah filter <b>CHAIN / EXCHANGER / DEX</b> melalui tombol <b>FILTER</b>.</div>
+              </div>`;
+            } else {
+              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
+                <div style="font-size:14px; font-weight:700; color:#f39c12; margin-bottom:8px;">🔍 Belum ada koin yang ditampilkan</div>
+                <div style="font-size:12px; color:#666;">Atur filter <b>CHAIN / EXCHANGER / DEX</b> melalui tombol <b>FILTER</b> untuk mulai scanning.</div>
+              </div>`;
+            }
+          }
+        } catch (_) { }
+      }
+      $tableBody.html(`<tr><td colspan="${totalCols}" class="uk-text-center uk-padding-small">${emptyMsg}</td></tr>`);
+    }
     return;
   }
 
@@ -264,8 +328,13 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
         data.withdrawPair === false ||
         data.depositPair === false
       );
-      const detailBgColor = hasDisabledWallet ? '#fce0e0' : ''; // Warning pink/red background if disabled
-      const detailBgStyle = hasDisabledWallet ? `font-size:11px; background-color: ${detailBgColor} !important;` : '';
+      // Background kolom detail: warna chain dengan opacity (lebih pekat jika ada wallet disabled)
+      const _cHex = warnaChain.replace('#', '');
+      const _cR = parseInt(_cHex.substring(0, 2) || '0', 16) || 0;
+      const _cG = parseInt(_cHex.substring(2, 4) || '0', 16) || 0;
+      const _cB = parseInt(_cHex.substring(4, 6) || '0', 16) || 0;
+      const _cAlpha = hasDisabledWallet ? 0.22 : 0.13;
+      const detailBgStyle = `font-size:11px; background-color: rgba(${_cR},${_cG},${_cB},${_cAlpha}) !important;${hasDisabledWallet ? ' border: 2px solid #e74c3c !important;' : ''}`;
 
       const chainData = getChainData(data.chain);
       const walletObj = chainData?.CEXCHAIN?.[data.cex] || {};
@@ -316,9 +385,9 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const chainShort = chainRaw === 'BASE' ? 'BASE' : chainRaw.substring(0, 3);
 
       rowHtml += `
-            <td id="${idPrefix}${rowId}" class="uk-text-center uk-background td-detail" style="text-align: center; border:1px solid black; padding:10px; ${detailBgStyle}">
+            <td id="${idPrefix}${rowId}" class="uk-text-center uk-background td-detail" style="text-align: center; border:1px solid black; padding:5px; ${detailBgStyle}">
              [${index + 1}]<span style="color: ${warnaCex}; font-weight:bolder; font-size:medium;"> ${data.cex} </span> on <span style="color: ${warnaChain}; font-weight:bolder; font-size:medium;">${chainShort} </span>
-    
+
             <span class="detail-line">
                 <span style="color: ${warnaChain}; font-weight:bolder; font-size:medium;"  >${linkToken} </span> ⇄ <span style="color: ${warnaChain}; font-weight:bolder; font-size:medium;">${linkPair} </span>
                 <span id="${idPrefix}EditMulti-${data.id}" data-id="${data.id}"
@@ -327,7 +396,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                       data-symbol-in="${String(data.symbol_in).toUpperCase()}"
                       data-symbol-out="${String(data.symbol_out).toUpperCase()}"
                        title="UBAH DATA KOIN" uk-icon="icon: settings; ratio: 0.7" class="uk-text-primary uk-text-bolder edit-token-button" style="cursor:pointer"></span>
-                
+
                 <span id="${idPrefix}DelMulti-${data.id}"
                       data-id="${data.id}"
                       data-chain="${String(data.chain).toLowerCase()}"
@@ -340,7 +409,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                       style="cursor:pointer;">
                 </span>
                 </span>
-                              
+
                 <span class="detail-line uk-text-bolder">${WD_TOKEN}~ ${DP_TOKEN} | ${WD_PAIR}~ ${DP_PAIR}</span>
                 <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_in || '').toUpperCase()}</span> ${linkSCtoken} : ${linkStokToken}</span>
                 <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_out || '').toUpperCase()}</span> ${linkSCpair} : ${linkStokPair}</span>
@@ -398,9 +467,18 @@ try { if (typeof window !== 'undefined') { window.prepareMonitoringSkeleton = pr
  */
 function updateTokenStatsOnly() {
   const m = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
-  let allTokens = (m.type === 'single')
-    ? (getFromLocalStorage(`TOKEN_${String(m.chain).toUpperCase()}`, []) || [])
-    : (getFromLocalStorage('TOKEN_MULTICHAIN', []) || []);
+  const isCEXMode = window.CEXModeManager && window.CEXModeManager.isCEXMode();
+  const activeCEX = isCEXMode ? window.CEXModeManager.getSelectedCEX() : null;
+
+  let allTokens;
+  if (m.type === 'single') {
+    allTokens = getFromLocalStorage(`TOKEN_${String(m.chain).toUpperCase()}`, []) || [];
+  } else if (isCEXMode) {
+    const allFlat = typeof window.getAllChainTokensFlat === 'function' ? window.getAllChainTokensFlat() : [];
+    allTokens = allFlat.filter(t => String(t.cex || '').toUpperCase() === activeCEX);
+  } else {
+    allTokens = getFromLocalStorage('TOKEN_MULTICHAIN', []) || [];
+  }
   if (!Array.isArray(allTokens)) allTokens = [];
 
   // Apply active filters (Chain, CEX, Pair, DEX) to determine the base list for stats
@@ -425,6 +503,13 @@ function updateTokenStatsOnly() {
         .filter(t => (t.selectedDexs || []).some(d => filters.dex.includes(String(d).toLowerCase())));
     } else {
       filteredForStats = [];
+    }
+  } else if (isCEXMode) {
+    // CEX mode: filter by chain selection from CEX filter (if any)
+    const fCex = (typeof getFilterCEX === 'function') ? getFilterCEX(activeCEX) : { chains: [] };
+    const chainsSel = (fCex && fCex.chains || []).map(c => String(c).toLowerCase());
+    if (chainsSel.length > 0) {
+      filteredForStats = filteredForStats.filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()));
     }
   } else { // multi-chain mode
     const saved = getFromLocalStorage('FILTER_MULTICHAIN', null);
@@ -475,6 +560,20 @@ function updateTokenStatsOnly() {
                 <b class="uk-text-primary uk-text-bolder">MANAJEMEN KOIN CHAIN ${chainKey.toUpperCase()} (Total: ${totalActive})</b>
                 <div class="uk-text-small"><b>CEX:</b> ${cexStatsHtml}</div>
                 <div class="uk-text-small"><b>PAIR:</b> ${pairStatsHtml}</div>
+            </div>
+        `;
+  } else if (isCEXMode) {
+    const countByChain = activeTokensForStats.reduce((acc, t) => { const k = String(t.chain || '').toLowerCase(); acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+    const chainStatsHtml = Object.entries(countByChain).map(([chain, count]) => {
+      const cfg = CONFIG_CHAINS?.[chain] || {}; const color = cfg.WARNA || '#666';
+      const label = (cfg.Nama_Pendek || cfg.SHORT_NAME || chain).toUpperCase();
+      return `<span style="color:${color}; margin:2px; font-weight:bolder;">${label}</span> <span class="uk-text-dark uk-text-bolder">[${count}]</span>`;
+    }).join(' ') || '-';
+    const totalActive = activeTokensForStats.length;
+    statsHtml = `
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <b class="uk-text-primary uk-text-bolder">MANAJEMEN KOIN (EXCHANGER: ${activeCEX}) (Total: ${totalActive})</b>
+                <div class="uk-text-small"><b>CHAIN:</b> ${chainStatsHtml}</div>
             </div>
         `;
   } else { // multi-chain mode
@@ -511,9 +610,19 @@ function updateTokenStatsOnly() {
 
 function renderTokenManagementList() {
   const m = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
-  let allTokens = (m.type === 'single')
-    ? (getFromLocalStorage(`TOKEN_${String(m.chain).toUpperCase()}`, []) || [])
-    : (getFromLocalStorage('TOKEN_MULTICHAIN', []) || []);
+  const isCEXMode = window.CEXModeManager && window.CEXModeManager.isCEXMode();
+  const activeCEX = isCEXMode ? window.CEXModeManager.getSelectedCEX() : null;
+
+  let allTokens;
+  if (m.type === 'single') {
+    allTokens = getFromLocalStorage(`TOKEN_${String(m.chain).toUpperCase()}`, []) || [];
+  } else if (isCEXMode) {
+    // CEX mode: baca dari per-chain DBs via getAllChainTokensFlat, filter by active CEX
+    const allFlat = typeof window.getAllChainTokensFlat === 'function' ? window.getAllChainTokensFlat() : [];
+    allTokens = allFlat.filter(t => String(t.cex || '').toUpperCase() === activeCEX);
+  } else {
+    allTokens = getFromLocalStorage('TOKEN_MULTICHAIN', []) || [];
+  }
   if (!Array.isArray(allTokens)) allTokens = [];
 
   // This variable will hold the list of tokens after applying chain/cex/pair filters.
@@ -540,6 +649,14 @@ function renderTokenManagementList() {
     } else {
       filteredForStats = [];
     }
+  } else if (isCEXMode) {
+    // CEX mode: filter by chain selection from CEX filter (if any)
+    const fCex = (typeof getFilterCEX === 'function') ? getFilterCEX(activeCEX) : { chains: [] };
+    const chainsSel = (fCex && fCex.chains || []).map(c => String(c).toLowerCase());
+    if (chainsSel.length > 0) {
+      filteredForStats = filteredForStats.filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()));
+    }
+    // if no chain filter saved, keep all CEX tokens
   } else { // multi-chain mode
     const saved = getFromLocalStorage('FILTER_MULTICHAIN', null);
     const filters = getFilterMulti() || { chains: [], cex: [], dex: [] };
@@ -591,6 +708,20 @@ function renderTokenManagementList() {
                 <div class="uk-text-small"><b>PAIR:</b> ${pairStatsHtml}</div>
             </div>
         `;
+  } else if (isCEXMode) {
+    const countByChain = activeTokensForStats.reduce((acc, t) => { const k = String(t.chain || '').toLowerCase(); acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+    const chainStatsHtml = Object.entries(countByChain).map(([chain, count]) => {
+      const cfg = CONFIG_CHAINS?.[chain] || {}; const color = cfg.WARNA || '#666';
+      const label = (cfg.Nama_Pendek || cfg.SHORT_NAME || chain).toUpperCase();
+      return `<span style="color:${color}; margin:2px; font-weight:bolder;">${label}</span> <span class="uk-text-dark uk-text-bolder">[${count}]</span>`;
+    }).join(' ') || '-';
+    const totalActive = activeTokensForStats.length;
+    statsHtml = `
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <b class="uk-text-primary uk-text-bolder">MANAJEMEN KOIN (EXCHANGER: ${activeCEX}) (Total: ${totalActive})</b>
+                <div class="uk-text-small"><b>CHAIN:</b> ${chainStatsHtml}</div>
+            </div>
+        `;
   } else { // multi-chain mode
     const countByChain = activeTokensForStats.reduce((acc, t) => { const k = String(t.chain || '').toLowerCase(); acc[k] = (acc[k] || 0) + 1; return acc; }, {});
     const countByCex = activeTokensForStats.reduce((acc, t) => { (t.selectedCexs || []).forEach(cx => { const u = String(cx).toUpperCase(); acc[u] = (acc[u] || 0) + 1; }); return acc; }, {});
@@ -622,16 +753,18 @@ function renderTokenManagementList() {
   const controls = (() => {
     const base = [
       `<input type="text" id="mgrSearchInput" class="uk-input uk-form-small" placeholder="🔍 Cari koin..." value="${currentQ}" style="width:180px; padding:4px 8px; font-size:12px; margin-right:8px;">`,
-      `<button id=\"btnNewToken\" class=\"uk-button uk-button-default uk-button-small\" title=\"Tambah Data Koin\"><span uk-icon=\"plus-circle\"></span> ADD COIN</button>`,
-      `<button id=\"btnToggleMgrFilter\" class=\"uk-button uk-button-small uk-button-primary\" title=\"Toggle Filter Setting\"><span uk-icon=\"settings\"></span> FILTER</button>`,
-      `<button id=\"btnExportTokens\" data-feature=\"export\" class=\"uk-button uk-button-small uk-button-secondary\" title=\"Export CSV\"><span uk-icon=\"download\"></span> Export</button>`,
-      `<button id=\"btnImportTokens\" data-feature=\"import\" class=\"uk-button uk-button-small uk-button-danger\" title=\"Import CSV\"><span uk-icon=\"upload\"></span> Import</button>`,
-      `<input type=\"file\" id=\"uploadJSON\" accept=\".csv,text/csv\" style=\"display:none;\" onchange=\"uploadTokenScannerCSV(event)\"> <button type="button" id="btn-cancel-setting" class="uk-button uk-button-muted uk-button-small">
-        <span uk-icon="icon:  arrow-left" class="uk-text-primary"></span>  <span class="uk-text-primary">KEMBALI</span>
-      </button>  `
     ];
-    // Add SYNC button only for single chain mode
-    // Note: BULK MODAL button moved to header toolbar (BulkModalScanner icon)
+    // ADD COIN and FILTER only for single chain mode; multichain management uses import/export only
+    if (m.type === 'single') {
+      base.push(`<button id=\"btnNewToken\" class=\"uk-button uk-button-default uk-button-small\" title=\"Tambah Data Koin\"><span uk-icon=\"plus-circle\"></span> ADD COIN</button>`);
+      base.push(`<button id=\"btnToggleMgrFilter\" class=\"uk-button uk-button-small uk-button-primary\" title=\"Toggle Filter Setting\"><span uk-icon=\"settings\"></span> FILTER</button>`);
+    }
+    base.push(`<button id=\"btnExportTokens\" data-feature=\"export\" class=\"uk-button uk-button-small uk-button-secondary\" title=\"Export CSV\"><span uk-icon=\"download\"></span> Export</button>`);
+    base.push(`<button id=\"btnImportTokens\" data-feature=\"import\" class=\"uk-button uk-button-small uk-button-danger\" title=\"Import CSV\"><span uk-icon=\"upload\"></span> Import</button>`);
+    base.push(`<input type=\"file\" id=\"uploadJSON\" accept=\".csv,text/csv\" style=\"display:none;\" onchange=\"uploadTokenScannerCSV(event)\"> <button type="button" id="btn-cancel-setting" class="uk-button uk-button-muted uk-button-small">
+        <span uk-icon="icon:  arrow-left" class="uk-text-primary"></span>  <span class="uk-text-primary">KEMBALI</span>
+      </button>  `);
+    // Add SYNC button only for single chain mode (after ADD COIN + FILTER = index 3)
     if (m.type === 'single') {
       base.splice(3, 0, `<button id=\"sync-tokens-btn\" class=\"uk-button uk-button-small uk-button-primary\" title=\"Sinkronisasi Data Koin\"><span uk-icon=\"database\"></span> SYNC</button>`);
     }

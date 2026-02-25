@@ -60,8 +60,18 @@
 
             // CEX mode: skip theme application here, let CEXModeManager handle it
             if (m.type === 'cex') {
-                // If CEXModeManager already applied theme, don't override with green
-                if (body.classList.contains('theme-cex')) return;
+                // If CEXModeManager already applied theme, only sync dark mode and return
+                if (body.classList.contains('theme-cex')) {
+                    try {
+                        const stCex = (typeof getAppState === 'function') ? getAppState() : {};
+                        const stMulti = (typeof getFromLocalStorage === 'function') ? (getFromLocalStorage('FILTER_MULTICHAIN', {}) || {}) : {};
+                        const isDark = !!(stCex && stCex.darkMode !== undefined ? stCex.darkMode : stMulti.darkMode);
+                        if (isDark) { body.classList.add('dark-mode', 'uk-dark'); body.classList.remove('uk-light'); }
+                        else { body.classList.remove('dark-mode', 'uk-dark'); }
+                        try { if (typeof updateDarkIcon === 'function') updateDarkIcon(isDark); } catch (_) { }
+                    } catch (_) { }
+                    return;
+                }
                 // Apply CEX theme immediately to prevent green flash
                 const cexCfg = (window.CONFIG_CEX || {})[m.cex] || {};
                 accent = cexCfg.WARNA || accent;
@@ -100,6 +110,19 @@
                         if (cexCfg.ICON) fav.setAttribute('href', cexCfg.ICON);
                     }
                     document.title = `${m.cex} SCANNER`;
+                } catch (_) { }
+                // Restore dark mode di CEX mode (baca dari CEX filter, fallback ke FILTER_MULTICHAIN)
+                try {
+                    const stCex = (typeof getAppState === 'function') ? getAppState() : {};
+                    const stMulti = (typeof getFromLocalStorage === 'function') ? (getFromLocalStorage('FILTER_MULTICHAIN', {}) || {}) : {};
+                    const isDark = !!(stCex && stCex.darkMode !== undefined ? stCex.darkMode : stMulti.darkMode);
+                    if (isDark) {
+                        body.classList.add('dark-mode', 'uk-dark');
+                        body.classList.remove('uk-light');
+                    } else {
+                        body.classList.remove('dark-mode', 'uk-dark');
+                    }
+                    try { if (typeof updateDarkIcon === 'function') updateDarkIcon(isDark); } catch (_) { }
                 } catch (_) { }
                 return;
             }

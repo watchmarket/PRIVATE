@@ -1063,9 +1063,20 @@
                             try {
                                 const tokenDbMap = await loadChainTokenDatabase(chainKey);
                                 if (tokenDbMap.size > 0) {
+                                    const allChainKeys = Object.keys(
+                                        (typeof window !== 'undefined' && window.CHAIN_SYNONYMS) ? window.CHAIN_SYNONYMS : {}
+                                    );
                                     chainRejected.forEach(item => {
                                         const symbol = String(item.tokenName || '').toUpperCase();
                                         if (tokenDbMap.has(symbol)) {
+                                            // Guard: skip if item.chain matches a different canonical chain
+                                            // (e.g. AI/BSC should NOT be recovered into ETH snapshot)
+                                            const itemChain = String(item.chain || '');
+                                            const belongsToOtherChain = allChainKeys.some(
+                                                otherKey => otherKey !== chainKey && matchesCex(otherKey, itemChain)
+                                            );
+                                            if (belongsToOtherChain) return;
+
                                             const dbEntry = tokenDbMap.get(symbol);
                                             recovered.push({
                                                 ...item,

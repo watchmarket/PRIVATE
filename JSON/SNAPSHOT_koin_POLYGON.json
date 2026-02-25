@@ -1,0 +1,4335 @@
+[
+  {
+    "cex": "BINANCE",
+    "nama_token": "The Sandbox",
+    "ticker": "SAND",
+    "sc": "0xbbba073c31bf03b8acf7c28ef0738decf3695683",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Rupiah Token",
+    "ticker": "IDRT",
+    "sc": "0x554cd6bdd03214b10aafa3e0d4d42de0c5d2937b",
+    "decimals": 6
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "QuickSwap",
+    "ticker": "QUICK",
+    "sc": "0xb5c064f955d8e7f38fe0460c556a72987494ee17",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "BUSD",
+    "ticker": "BUSD",
+    "sc": "0x9c9e5fd8bbc25984b178fdce6117defa39d2db39",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Stargate Finance",
+    "ticker": "STG",
+    "sc": "0x2f6f07cdcf3588944bf4c42ac74ff24bf56e7590",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "QuickSwap OLD",
+    "ticker": "QUICKOLD",
+    "sc": "0x831753dd7087cac61ab5644b308642cc1c33dc13",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Synapse",
+    "ticker": "SYN",
+    "sc": "0xf8f9efc0db77d8881500bb06ff5d6abc3070e695",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Nexo",
+    "ticker": "NEXO",
+    "sc": "0x41b3966b4ff7b427969ddf5da3627d6aeae9a48e",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "OokiDAO",
+    "ticker": "OOKI",
+    "sc": "0xcd150b1f528f326f5194c012f32eb30135c7c2c9",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "KyberNetwork",
+    "ticker": "KNC",
+    "sc": "0x1c954e8fe737f99f68fa1ccda3e51ebdb291948c",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "TetherUS",
+    "ticker": "USDT",
+    "sc": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "decimals": 6
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+    "decimals": 6
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Bridged USDC",
+    "ticker": "MATICUSDCE",
+    "sc": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+    "decimals": 6
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "LayerZero",
+    "ticker": "ZRO",
+    "sc": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Green Metaverse Token",
+    "ticker": "GMT",
+    "sc": "0x714db550b574b3e927af3d93e26127d15721d4c2",
+    "decimals": 8
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Gains Network",
+    "ticker": "GNS",
+    "sc": "0xe5417af564e4bfda1c483642db72007871397896",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Vanar",
+    "ticker": "VANRY",
+    "sc": "0x8de5b80a0c1b02fe4976851d030b36122dbb8624",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "The Graph",
+    "ticker": "GRT",
+    "sc": "0x5fe2b58c013d7601147dcdd68c143a77499f5531",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Voxies",
+    "ticker": "VOXEL",
+    "sc": "0xd0258a3fd00f38aa8090dfee343f10a9d4d30d3f",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Polygon Ecosystem Token",
+    "ticker": "POL",
+    "sc": "0x0000000000000000000000000000000000001010",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Axelar",
+    "ticker": "AXL",
+    "sc": "0x6e4e624106cb12e168e6533f8ec7c82263358940",
+    "decimals": 6
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Vulcan Forged PYR",
+    "ticker": "PYR",
+    "sc": "0x430ef9263e76dae63c84292c3409d61c598e9682",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Dai",
+    "ticker": "DAI",
+    "sc": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Spring Dev Bank",
+    "ticker": "SDB",
+    "sc": "0xd2D21EBC27dc39e188BF51fa28D3d09B93Ab49c8",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Sunflower Farm",
+    "ticker": "SFF",
+    "sc": "0xdf9b4b57865b403e08c85568442f95c26b7896b0",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Shuffle",
+    "ticker": "SFL",
+    "sc": "0xbbe2b016271c22D3DE3f961480AF2941a0C4d067",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SRCGAME",
+    "ticker": "SGM",
+    "sc": "0x5332d2B3Bb62035566b24E987BD58C0715714E27",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Reental",
+    "ticker": "REENTAL",
+    "sc": "0x27Ab6E82F3458eDbC0703DB2756391B899Ce6324",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "yPredict",
+    "ticker": "YPRED",
+    "sc": "0xdFaF2680239d678d9551669727b93b62Ad0D18Cc",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Wirex Pay",
+    "ticker": "WPAY",
+    "sc": "0x7ABE9Edf5C544A04dA83e9110CF46DBC4759170c",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SKY Play",
+    "ticker": "SKP",
+    "sc": "0x4c665BBafd28Ec9e5D792345f470ebFcA21E3d15",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SKX",
+    "ticker": "SKX",
+    "sc": "0xa9a8eeD4c7B91de6d6D2a6B2D21300ec162b1375",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Finsteco",
+    "ticker": "FNST",
+    "sc": "0x36DEeB841c30DC76bdEA0A81B641731D3d348DDc",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "One Rare Token",
+    "ticker": "ORARE",
+    "sc": "0xff2382bd52efacef02cc895bcbfc4618608aa56f",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Smell Token",
+    "ticker": "SML",
+    "sc": "0xfCB54Da3F4193435184F3F647467e12b50754575",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "StrongNodeEdge Token",
+    "ticker": "SNE",
+    "sc": "0x32934CB16DA43fd661116468c1B225Fc26CF9A8c",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Monsoon Finance",
+    "ticker": "MCASH",
+    "sc": "0xa25610a77077390a75ad9072a084c5fbc7d43a0d",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Active Token",
+    "ticker": "$ACTIVE",
+    "sc": "0xd9a9B4d466747E1Ebcb7aEb42784452F40452367",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Forest Knight",
+    "ticker": "KNIGHT",
+    "sc": "0x4455eF8B4B4A007a93DaA12DE63a47EEAC700D9D",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Tradeleaf Token",
+    "ticker": "TLF",
+    "sc": "0x0F8Db146eC1288FC35C05e3b78c2F27d3fA7c4a5",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Carrieverse",
+    "ticker": "CVTX",
+    "sc": "0x40F97Ec376aC1c503E755433BF57f21e3a49f440",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "RoboHero",
+    "ticker": "ROBO",
+    "sc": "0xB3886B3aAA6087B3d185dAeb89AC113D195b5Eb9",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SUPERTRUST",
+    "ticker": "SUT",
+    "sc": "0x98965474EcBeC2F532F1f780ee37b0b05F77Ca55",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "BuildUP",
+    "ticker": "BUP",
+    "sc": "0xa32BbbD1B91830Af32432e2d9c060C0E45F5c981",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Sailwars",
+    "ticker": "SWT",
+    "sc": "0x1c356b463ce3E46CF494F5fdD2172bDffe5C688D",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DPlat Token",
+    "ticker": "DPLAT",
+    "sc": "0xbe7702Dc9c3fB80B96B7AD894cC012f6405E54ce",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Bloxies Coin",
+    "ticker": "BXC",
+    "sc": "0x05f52cc483c50C2a7E25a13DAc17D736Fa50F259",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Cobak Token",
+    "ticker": "CBK",
+    "sc": "0x4EC203dD0699Fac6adAF483CDd2519BC05D2c573",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Credit Check Coin",
+    "ticker": "CCC",
+    "sc": "0x0907B8B13970DF091ECc9d4d4c7AE12A599Ad923",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Telcoin",
+    "ticker": "TEL",
+    "sc": "0xdF7837DE1F2Fa4631D716CF2502f8b230F1dcc32",
+    "decimals": 2
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Whalebit",
+    "ticker": "CES",
+    "sc": "0x1Bdf71EDe1a4777dB1EebE7232BcdA20d6FC1610",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "FoodChain Global",
+    "ticker": "FOOD",
+    "sc": "0x6F06e6beD64cF4c4187c06Ee2a4732f6a171BC4e",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Non-Fungible History",
+    "ticker": "NFH2",
+    "sc": "0x92FbB3D0484Fb3fe14081012596ECFCE9A36040e",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "UFORIKA",
+    "ticker": "FORA",
+    "sc": "0x081c280cD5C1c934DbAfc97A2aB2e596FfE7DFC4",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Kryon",
+    "ticker": "KRYON",
+    "sc": "0x2C5604fFcbbd1Ad371E7Cf54F063E179cA92AC1d",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Realm Defenders",
+    "ticker": "TRD",
+    "sc": "0x2a1f0ad3cab040e28845734d932f3ff0a24b14f4",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Blockchain Monster",
+    "ticker": "BCMC",
+    "sc": "0xc10358f062663448a3489fC258139944534592ac",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "RAYS (PoS)",
+    "ticker": "RAYS",
+    "sc": "0x2d027e55b85429e9f205930a8aff6d8e6c8c3021",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "CryptoTradingFund",
+    "ticker": "CTF",
+    "sc": "0x7B3bD12675c6B9d6993eB81283cb68E6eB9260b5",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Seamans tec",
+    "ticker": "SEAT",
+    "sc": "0xc79FC2885e207E1C4cc69Cf94402DD1a5642452e",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Tx24",
+    "ticker": "TXT",
+    "sc": "0x85931ad37Af0a3bb892086d13030330e93Eac9dF",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Bounty Temple",
+    "ticker": "TYT",
+    "sc": "0xE5cf781d9e6E92B051FFb8037a5d81981863EA82",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "ZIZY",
+    "ticker": "ZIZY",
+    "sc": "0xAf3CbaeBA9fe7A7d4E7531F1B2553972FD1c4E9c",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "bitsCrunch",
+    "ticker": "BCUT",
+    "sc": "0x3fb83A9A2c4408909c058b0BfE5B4823f54fAfE2",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GIB",
+    "ticker": "GIB",
+    "sc": "0x3EFcD659b7A45D14DDA8A102836ce4b765C42324",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "UBU",
+    "ticker": "UBU",
+    "sc": "0x78445485A8d5b3BE765e3027bc336e3c272a23c9",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "UC Finance",
+    "ticker": "UCF",
+    "sc": "0x315B16BFc91BD6c5d9054f961938b924c7dA4964",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Archethic Universal Coin",
+    "ticker": "UCO",
+    "sc": "0xaa53B93608C88EE55fAD8db4C504Fa20E52642aD",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Wombat",
+    "ticker": "WOMBAT",
+    "sc": "0x0C9c7712C83B3C70e7c5E11100D33D9401BdF9dd",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EMG SuperApp",
+    "ticker": "EMGS",
+    "sc": "0xA0aF9f13e067562AaE8E52a5Fb6A74FebfCF7D41",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Krida Fans",
+    "ticker": "KRIDA",
+    "sc": "0x3c5a5885f6ee4acc2597069fe3c19f49c6efba96",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Blood Crystal (PoS)",
+    "ticker": "BC",
+    "sc": "0xFe049F59963545bF5469f968E04C9646D6e2C2c5",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Decentral Games",
+    "ticker": "DG",
+    "sc": "0xef938b6da8576a896f6E0321ef80996F4890f9c4",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EthermonToken",
+    "ticker": "EMON",
+    "sc": "0xd6a5ab46ead26f49b03bbb1f9eb1ad5c1767974a",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Dragoma",
+    "ticker": "DMA",
+    "sc": "0x16DFb898cf7029303c2376031392cb9baC450f94",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Grindery X",
+    "ticker": "GX",
+    "sc": "0x8730762Cad4a27816A467fAc54e3dd1E2e9617A1",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "BSCstarter",
+    "ticker": "START",
+    "sc": "0x6ccf12b480a99c54b23647c995f4525d544a7e72",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "UpOnly",
+    "ticker": "UPO",
+    "sc": "0x9dBfc1cbf7a1E711503a29B4b5F9130ebeCcaC96",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DinoSwap (PoS)",
+    "ticker": "DINO",
+    "sc": "0xaa9654becca45b5bdfa5ac646c939c62b527d394",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Daystarter",
+    "ticker": "DST",
+    "sc": "0x82DbF4227a981211d84f59092889eAdbb9C2a4D2",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MT TOWER",
+    "ticker": "MT",
+    "sc": "0x0Da6A7a0A2E7525950204Bb2C511E47a52235B17",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GensoKishi Metaverse",
+    "ticker": "MV",
+    "sc": "0xA3c322Ad15218fBFAEd26bA7f616249f7705D945",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MW",
+    "ticker": "MW",
+    "sc": "0xDd098F8F2c2D4daeEfDABA441dbcd79bE5F4cD38",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DriveToEarn",
+    "ticker": "DTE",
+    "sc": "0xA9806851eB87aD27E8d75660CEC2FE6297F92a59",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Mint Marble",
+    "ticker": "MIM",
+    "sc": "0xA12566Dd315B1419e7B9F5f4E5559a7E7E48Db22",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "AROS",
+    "ticker": "AROS",
+    "sc": "0x8f06b876a74453dcae61954A4E8b4309B662461b",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Burp",
+    "ticker": "BURP",
+    "sc": "0x538D47D142F6993038a667E9D6210d3735749B36",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DUX",
+    "ticker": "DUX",
+    "sc": "0x623EBdA5fc6B271DD597E20ae99927eA9eF8515e",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SwissCheese",
+    "ticker": "SWCH",
+    "sc": "0x3ce1327867077B551ae9A6987bF10C9fd08edCE1",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "NextEarthToken",
+    "ticker": "NXTT",
+    "sc": "0x0d0B8488222F7f83B23E365320a4021b12eAD608",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Divo",
+    "ticker": "DVO",
+    "sc": "0x8708cCEb45b218E93a4D2cfc95Eb8250AB13Fa9D",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Continuum",
+    "ticker": "UM",
+    "sc": "0x3b1a0c9252ee7403093ff55b4a5886d49a3d837a",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Second World Games",
+    "ticker": "SWIO",
+    "sc": "0xbE75385304b3BCA6FD25B755e849f63b70E84793",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Astrafer",
+    "ticker": "ASTRAFER",
+    "sc": "0xDfCe1e99A31C4597a3f8A8945cBfa9037655e335",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Verida",
+    "ticker": "VDA",
+    "sc": "0x683565196C3EAb450003C964D4bad1fd3068D4cC",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EDEXA BLOCKCHAIN",
+    "ticker": "EDX",
+    "sc": "0xC114678C6e4654d041B2006C90f08478b444c4E2",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Catheon Gaming",
+    "ticker": "CATHEON",
+    "sc": "0x7e7737C40878e720b32e7bC9CD096259f876d69f",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Vault Hill City (PoS)",
+    "ticker": "VHC",
+    "sc": "0x51b5619f5180e333d18b6310c8d540aea43a0371",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Puggy Meme",
+    "ticker": "PUGGY",
+    "sc": "0x762b56F3E36A4BE65763056d6464668B4C7B2f49",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Bethel",
+    "ticker": "BECX",
+    "sc": "0x6B7Cd2b0863e9e80b425566fEbBe15309Bb1803d",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "OkLetsPlay",
+    "ticker": "OKLP",
+    "sc": "0x5D48a5E5a3e737322Ae27e25897F1c9E19EcC941",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Wisdomise AI",
+    "ticker": "WSDM",
+    "sc": "0x5F2F8818002dc64753daeDF4A6CB2CcB757CD220",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EscoinToken",
+    "ticker": "ELG",
+    "sc": "0x8226AC9EdB26ff16DA19151042a8BA3BB2cC237F",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "W3Gamez Network",
+    "ticker": "W3G",
+    "sc": "0x25cBE406Aa02053feDC955095415fd8f497f072d",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "VERSUS-X",
+    "ticker": "VSX",
+    "sc": "0xB8d5f5f236C24e09c7f55EEc313818742aC4cF79",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "VRJAM Coin",
+    "ticker": "VRJAM",
+    "sc": "0xe84c2Edca71fC3cc570c70665178d90C8721623b",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EarnTV",
+    "ticker": "ETV",
+    "sc": "0xC77AEa972F862df1F6A520BE673Df63A01255ff9",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EVE Exchange (PoS)",
+    "ticker": "EVE",
+    "sc": "0xaE29AC47A9E3b0a52840E547aDf74B912999F7fc",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MeshSwap",
+    "ticker": "MESH",
+    "sc": "0x82362Ec182Db3Cf7829014Bc61E9BE8a2E82868a",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "WolfSafePoorPeople",
+    "ticker": "WSPP",
+    "sc": "0x46d502fac9aea7c5bc7b13c8ec9d02378c33d36f",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "UMMA Token",
+    "ticker": "UMMA",
+    "sc": "0x36596A1dC57c695Bed1A063470a7802797Dca133",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Sponge",
+    "ticker": "SPONGE",
+    "sc": "0x53dF32548214f51821CF1Fe4368109ac5DdeA1Ff",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "KlimaDAO",
+    "ticker": "KLIMA",
+    "sc": "0x4e78011Ce80ee02d2c3e649Fb657E45898257815",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "TrinityOfTheFabled",
+    "ticker": "ABYS",
+    "sc": "0x23001AE6cd2F0644C5846e156565998334FC2BE3",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "FAN",
+    "ticker": "FAN",
+    "sc": "0x3B9E9100Db1389c518d47c635D80a90ad4C4f41b",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Panther Protocol",
+    "ticker": "PANTHER",
+    "sc": "0x9A06Db14D639796B25A6ceC6A1bf614fd98815EC",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Web3Games.com",
+    "ticker": "WGT",
+    "sc": "0x8F15330737184643473348004ef70C1C57c2966D",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Fidira",
+    "ticker": "FID",
+    "sc": "0x9A4Eb698e5DE3D3Df0a68F681789072DE1E50222",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Niftify (PoS)",
+    "ticker": "NIFT",
+    "sc": "0x4a1d542b52a95ad01ddc70c2e7df0c7bbaadc56f",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Edge Video AI",
+    "ticker": "FAST",
+    "sc": "0xffBF21632d4AD2B1F85031B418a8f69638118364",
+    "decimals": 24
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MetaShooter",
+    "ticker": "MHUNT",
+    "sc": "0x61f95bd637e3034133335C1baA0148E518D438ad",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "FishVerse",
+    "ticker": "FVS",
+    "sc": "0x72319a036CCb449cffbAc0D6e95dCd5c6E86cd0c",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "QORBI",
+    "ticker": "QORBI",
+    "sc": "0x07278800fFBbB715C826E9D780FFfE7ec7001127",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Floxypay",
+    "ticker": "FXY",
+    "sc": "0x4Ec465D5DB20A01Bc8404dc84f33bb7A398B8335",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Affyn",
+    "ticker": "FYN",
+    "sc": "0x3B56a704C01D650147ADE2b8cEE594066b3F9421",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "POLYPAD.com",
+    "ticker": "POLYPAD",
+    "sc": "0x30eA765D4DDA26e0f89e1B23A7c7b2526B7d29ec",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Backstage Pass Notes",
+    "ticker": "NOTES",
+    "sc": "0x2d66953fC2eb650F0fD992Dbe1e71D743a4e9fee",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Earthmeta",
+    "ticker": "EARTHMETA",
+    "sc": "0x708383ae0e80E75377d664E4D6344404dede119A",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Revolt 2 Earn",
+    "ticker": "RVLT",
+    "sc": "0x5d301750cc9719f00872E33Ee81f9C37aBa242F4",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GEOD",
+    "ticker": "GEOD",
+    "sc": "0xAC0F66379A6d7801D7726d5a943356A172549Adb",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GenomeFi",
+    "ticker": "GENO",
+    "sc": "0xCa730042595a1809793fbe2e9883c184c7Eb27Db",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GEOPOLY",
+    "ticker": "GEO$",
+    "sc": "0xf1428850f92b87e629c6f3a3b75bffbc496f7ba6",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Revolt 2 Earn",
+    "ticker": "RVLT",
+    "sc": "0xf0f9D895aCa5c8678f706FB8216fa22957685A13",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GO GAME TOKEN",
+    "ticker": "GGT",
+    "sc": "0x8349314651eDe274f8c5FeF01Aa65fF8da75E57c",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "XEN Crypto",
+    "ticker": "MXEN",
+    "sc": "0x2AB0e9e4eE70FFf1fB9D67031E44F6410170d00e",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "ELIS",
+    "ticker": "XLS",
+    "sc": "0x4CffCa9DF0Db66274A624b6017690Da1c6AD74e4",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "OMMNIVERSE",
+    "ticker": "OMMI",
+    "sc": "0xBc2659EaD8d2D13A157A75BfC5acC156E1eA06DF",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Gains Network",
+    "ticker": "GNS",
+    "sc": "0xE5417Af564e4bFDA1c483642db72007871397896",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "The Unfettered Souls",
+    "ticker": "SOULS",
+    "sc": "0xaa4fBC6809a8E1924520FC85282aC4C76A7671d7",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GQB",
+    "ticker": "GQB",
+    "sc": "0xE319519d910E733098fb559c2B10Cb70ED854603",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "W3GG",
+    "ticker": "W3GG",
+    "sc": "0x8D60FB5886497851AaC8c5195006ecf07647ba0D",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SolarX",
+    "ticker": "SOLX",
+    "sc": "0x6D295DA283c4C0658EAfe608e4145e8a86777B88",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GAMESTA (PoS)",
+    "ticker": "GSG",
+    "sc": "0x778949e707A0eb6c32ca20b1F9E0Db9685d18024",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Galaxy Fight Club",
+    "ticker": "GCOINOLD",
+    "sc": "0x071AC29d569a47EbfFB9e57517F855Cb577DCc4C",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Dogira",
+    "ticker": "DOGIRA",
+    "sc": "0xdda40cdfe4a0090f42ff49f264a831402adb801a",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Greever",
+    "ticker": "GVL",
+    "sc": "0x1A1027b2c787c362ae6E4a6495BfcC8fB3e9aEBd",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Realium",
+    "ticker": "REALIUM",
+    "sc": "0x425d80F5aB26f568582FaaE5Cbc8DE80a9E32Ce2",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "LunarStorm Gamified Network Token",
+    "ticker": "LUST",
+    "sc": "0x2B867A0f2C67D13f19178E2fe37a8F3769E1BeA7",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Milo",
+    "ticker": "MILO",
+    "sc": "0xd0AC5Be680Bfbc0f1958413f4201f91934F61BEA",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Human Token (PoS)",
+    "ticker": "HMT",
+    "sc": "0xc748B2A084F8eFc47E086ccdDD9b7e67aEb571BF",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Homeety",
+    "ticker": "HOM",
+    "sc": "0x12A4CeBF81F8671fAF1AB0aCEa4e3429E42869e7",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "WeFi",
+    "ticker": "WEFI",
+    "sc": "0xfFA188493C15DfAf2C206c97D8633377847b6a52",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Hibiki Run",
+    "ticker": "HUT",
+    "sc": "0x3e15Cd00B456B0Fb33827e3c9B49952bB0Ec126C",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "FABWELT",
+    "ticker": "WELT",
+    "sc": "0x23e8b6a3f6891254988b84da3738d2bfe5e703b9",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Mysterium",
+    "ticker": "MYST",
+    "sc": "0x1379E8886A944d2D9d440b3d88DF536Aea08d9F3",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Bridgent",
+    "ticker": "BRIDGENT",
+    "sc": "0x5Fe1870b12819248dE653D6e7ea61dCD80e58901",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Aventis Metaverse",
+    "ticker": "AVTM",
+    "sc": "0x4E67b4598BcE5F0B2706407407da0D4D8e1D7433",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "TMN Global Wrapper",
+    "ticker": "TMNG",
+    "sc": "0xE57594F829b3d514EE12C41e81DF3861B19c26e3",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "iAI Token",
+    "ticker": "IAI",
+    "sc": "0x418a89B177b41e24FA50712a1822F6e6E8C629A1",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "ZED RUN",
+    "ticker": "ZED",
+    "sc": "0x5eC03C1f7fA7FF05EC476d19e34A22eDDb48ACdc",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DOGAMI",
+    "ticker": "DOGA",
+    "sc": "0x2F3E306d9F02ee8e8850F9040404918d0b345207",
+    "decimals": 5
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Midnight",
+    "ticker": "NIGHTOLD",
+    "sc": "0xD33fd95fC17bc808b35e98458e078330F35Dbfa3",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "STEPWATCH",
+    "ticker": "STEPWATCH",
+    "sc": "0xabEDe05598760E399ed7EB24900b30C51788f00F",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "FURI",
+    "ticker": "FURI",
+    "sc": "0x5742fE477b2afed92c25D092418BaC06CD076ceA",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DOLZ",
+    "ticker": "DOLZ",
+    "sc": "0x6ab4E20f36ca48B61ECd66c0450fDf665Fa130be",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "iNFTspace",
+    "ticker": "INS",
+    "sc": "0xb988Bd378A0754957d5D9471C96E0F8051645a26",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Zerora Protocol",
+    "ticker": "ZRA",
+    "sc": "0x63564e28906337e688BF7EB1E8eC645127F6fc28",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "IRIS",
+    "ticker": "IRC",
+    "sc": "0xf9a3e803ed270cf0cA6CD76eA40b8CC8562CF93F",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MINX TOKEN",
+    "ticker": "MINX",
+    "sc": "0x552f4D98F338fBbD3175ddf38cE1260F403Bbba2",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "pax.world",
+    "ticker": "PAXW",
+    "sc": "0xC79Ae93D9C215EAa8c8DA5C77E465baC7dE28891",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EARN M Rewards",
+    "ticker": "EARNM",
+    "sc": "0xaeb3DD897Ade187B9F9e4c491Bc7A81F69F7093E",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Bollycoin (PoS)",
+    "ticker": "BOLLY",
+    "sc": "0x7dc47cfb674beb5827283f6140f635680a5ce992",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GeniuX",
+    "ticker": "IUX",
+    "sc": "0x346404079b3792a6c548B072B9C4DDdFb92948d5",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Ultimate Champions Token",
+    "ticker": "CHAMP",
+    "sc": "0xED755dBa6Ec1eb520076Cec051a582A6d81A8253",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Lopes",
+    "ticker": "LOPES",
+    "sc": "0xCEBdc775E9f18156EC2e04Fb4150f1bc54DE690f",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MOM",
+    "ticker": "MOM",
+    "sc": "0x441950037aE4D61Bb20B6D639F2073062fA551B1",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Zynecoin",
+    "ticker": "ZYN",
+    "sc": "0x41a3ad9Be836d6917E2D84583dEbffb753648061",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "IX Token",
+    "ticker": "IXT",
+    "sc": "0xE06Bd4F5aAc8D0aA337D13eC88dB6defC6eAEefE",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "BitStarters",
+    "ticker": "BITS",
+    "sc": "0x5f5f7ca63A9d2c5200BC03CA3335a975D8f771d9",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Chain Games",
+    "ticker": "CHAIN",
+    "sc": "0xd55fce7cdab84d84f2ef3f99816d765a2a94a509",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DEUS",
+    "ticker": "DEUS",
+    "sc": "0xde5ed76e7c05ec5e4572cfc88d1acea165109e44",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Crypto Raiders",
+    "ticker": "RAIDER",
+    "sc": "0xcd7361ac3307d1c5a46b63086a90742ff44c63b3",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DPEX",
+    "ticker": "DPEX",
+    "sc": "0x3eD4c2D63DEf617F436EB031BAcAE16f478f3B00",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "JennyCoToken",
+    "ticker": "JCO",
+    "sc": "0x8105f88e77a5D102099bf73Db4469d3F1e3B0cD6",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Satoshi Airline",
+    "ticker": "JET",
+    "sc": "0xb02eF03245fc7DF987BBd876768E6d441b7099B6",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "WaultSwap Polygon",
+    "ticker": "WEXPOLY",
+    "sc": "0x4c4bf319237d98a30a929a96112effa8da3510eb",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "RadioShack Token",
+    "ticker": "RADIO",
+    "sc": "0x613a489785C95afEB3b404CC41565cCff107B6E0",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Cleo",
+    "ticker": "CLEO",
+    "sc": "0xF9B2Ebdfa24688f0Dfb12cc55782e635f91E64a2",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "OvalPixel",
+    "ticker": "OPAIG",
+    "sc": "0x89159aabF5CA5D82a499366e3FC25a308dA132b7",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "FAR",
+    "ticker": "FAROLD1",
+    "sc": "0x5F32AbeeBD3c2fac1E7459A27e1AE9f1C16ccccA",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "APE and PEPE",
+    "ticker": "APEPE",
+    "sc": "0xA3f751662e282E83EC3cBc387d225Ca56dD63D3A",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "ECET Token",
+    "ticker": "ECET",
+    "sc": "0x799c98fEFB094f5EF3E7850cAe4a9401f9382F45",
+    "decimals": 16
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Kalp Network",
+    "ticker": "GINI",
+    "sc": "0xA1A39558718d6FA57C699dC45981e5a1b2e25d08",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "K-POP Click",
+    "ticker": "KPC",
+    "sc": "0x6b340661bb35553E1279D334f3454cc59A5d1492",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "KonnektVPN",
+    "ticker": "KPN",
+    "sc": "0x8328e6fceC9477C28298c9f02d740Dd87a1683e5",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Candy Pocket",
+    "ticker": "CANDY",
+    "sc": "0x32043520205367a68b527881fA594Bbc714f80ec",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Arciel",
+    "ticker": "ARCIEL",
+    "sc": "0x6D0c9A9260EBe87722a96cbb301127153fE175a1",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "IPMB Token",
+    "ticker": "IPMB",
+    "sc": "0xFF22c94FFb6bB5d1DF18bEb5fd1dFE7583D3B214",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Voxies",
+    "ticker": "VOXEL",
+    "sc": "0xd0258a3fD00f38aa8090dfee343f10A9D4d30D3F",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Tanpin",
+    "ticker": "TANPIN",
+    "sc": "0xd9D77B113e6Ef2696267E20C35f3AbD87cdaca2c",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Starchi Liquid Luck",
+    "ticker": "ELIXIR",
+    "sc": "0xed0bb69f9f96e8c5fffdf16c468ecec385134ea5",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Veloce",
+    "ticker": "VEXT",
+    "sc": "0x27842334C55c01DDFE81Bf687425F906816c5141",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "COCA",
+    "ticker": "COCA",
+    "sc": "0x7B12598E3616261df1C05EC28De0d2fB10c1F206",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Duel Token",
+    "ticker": "DUEL",
+    "sc": "0xFFC4B25557bB4327d437C3B3eAD6b2B15fAb391A",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EDOM",
+    "ticker": "EDOM",
+    "sc": "0x954AEC663b893D81b4C8dbE1a0544491fD63FA77",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Legends of Elysium",
+    "ticker": "LOE",
+    "sc": "0x8b78927048de67b9e8c8F834359F15C3822eD871",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "WiFi Map",
+    "ticker": "WIFI",
+    "sc": "0xE238Ecb42C424E877652AD82d8A939183A04C35f",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Copute",
+    "ticker": "COPU",
+    "sc": "0x5B709970A675722748fAb650806054508b59a83D",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Reaxa",
+    "ticker": "REAXA",
+    "sc": "0xa0260c9736365A3278a8A6E44DB6bF82EEFC1e91",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "LandRocker",
+    "ticker": "LRT",
+    "sc": "0xfb7f8A2C0526D01BFB00192781B7a7761841B16C",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Nord Token (PoS)",
+    "ticker": "NORD",
+    "sc": "0xF6F85b3f9fd581C2eE717c404F7684486F057F95",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Bloktopia",
+    "ticker": "BLOK",
+    "sc": "0x229b1b6C23ff8953D663C4cBB519717e323a0a84",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Digital Fitness",
+    "ticker": "DEFIT",
+    "sc": "0x428360b02C1269bc1c79fbC399ad31d58C1E8fdA",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Wistaverse",
+    "ticker": "WISTA",
+    "sc": "0xB7042C40De76CFc607aC05e68F9C28A778F0C8a6",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MAP Network",
+    "ticker": "MAP",
+    "sc": "0x80DAD5C3985aEF54c368F64230CA07768f11C8f6",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Matr1x",
+    "ticker": "MAX",
+    "sc": "0xbEd0B9240bdbcC8e33f66d2ca650A5Ef60a5bAb0",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Quickswap",
+    "ticker": "QUICK",
+    "sc": "0xB5C064F955D8e7F38fE0460C556a72987494eE17",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Medieval Empires",
+    "ticker": "MEE",
+    "sc": "0xEB7eaB87837f4Dad1bb80856db9E4506Fc441f3D",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SNPIT",
+    "ticker": "SNPT",
+    "sc": "0x22737f5Bbb7C5b5BA407b0c1C9a9cdf66CF25D7d",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Oshi",
+    "ticker": "OSHI",
+    "sc": "0x09cAD96Bc28f55e9253cfB9a84a3A1Ab79061E54",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GuardiansOfTheBallToken",
+    "ticker": "GOBAL",
+    "sc": "0x70F300FE3c8d62A169D3c1d656D284c3b4E00461",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "OSIS",
+    "ticker": "OSIS",
+    "sc": "0x3e5351935595600D8e094dEE3Ec7E942CAf9907F",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "My Lovely Planet",
+    "ticker": "MLC",
+    "sc": "0x0566C506477cD2d8dF4e0123512dBc344bD9D111",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Mad Meerkat Finance",
+    "ticker": "MMF",
+    "sc": "0x22a31bD4cB694433B6de19e0aCC2899E553e9481",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Mad Meerkat Optimizer",
+    "ticker": "MMO",
+    "sc": "0x859a50979fdB2A2fD8Ba1AdCC66977C6f6b1CD5B",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "UDAO",
+    "ticker": "UDAO",
+    "sc": "0x433cCeBC95ad458E74d81837Db0D4aa27e30E117",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "OvalPixel",
+    "ticker": "OPAIG",
+    "sc": "0xBc35EA3506880964874D95629850e4C911503BB7",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MOM",
+    "ticker": "MOM",
+    "sc": "0x4593b173439835ad8f4bB29210668e8FAFb18F56",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MINNA",
+    "ticker": "MINNA",
+    "sc": "0xfBe59eBf7a188045c87c4A65093Ed1E50520408b",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MSQUARE",
+    "ticker": "MSQ",
+    "sc": "0x6A8Ec2d9BfBDD20A7F5A4E89D640F7E7cebA4499",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Meta Plus Token",
+    "ticker": "MTS",
+    "sc": "0x58d70EF99a1d22E1a8F8f0e8F27C1bAbCf8464F3",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Multi Universe Central",
+    "ticker": "MUC",
+    "sc": "0x03B92EBF0615D44D8C782C209E4405b74cb77D1d",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MetaVirus Token",
+    "ticker": "MVT",
+    "sc": "0xcd7BCaCc38d71ED14C875d3aBFec5a781812551E",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Metavault Trade",
+    "ticker": "MVX",
+    "sc": "0x2760E46d9BB43dafCbEcaad1F64b93207f9f0eD7",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Sport",
+    "ticker": "SPORT",
+    "sc": "0x503836c8c3A453c57f58CC99B070F2E78Ec14fC0",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MyWorld",
+    "ticker": "MWT",
+    "sc": "0xE00DeC05D7601D4a3729B03e451CcD9bc63a4B7e",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "IRON Titanium",
+    "ticker": "TITAN",
+    "sc": "0xaaa5b9e6c589642f98a1cda99b9d024b8407285a",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Trakx",
+    "ticker": "TRKX",
+    "sc": "0x61bf130d973D59c69d3227f1668d534d83119860",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Soil",
+    "ticker": "SOIL",
+    "sc": "0x43C73b90E0C2A355784dCf0Da12f477729b31e77",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SurfBoard",
+    "ticker": "BOARD",
+    "sc": "0xD8513c22Dd61161ba3872859A6D10eB1612Df742",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Tamadoge",
+    "ticker": "TAMA",
+    "sc": "0xc61f39418cd27820b5D4E9Ba4a7197eefAEB8b05",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Dtec",
+    "ticker": "DTEC",
+    "sc": "0xd87aF7B418d64FF2cdE48d890285bA64fc6E115F",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "H3RO3S",
+    "ticker": "H3RO3S",
+    "sc": "0x480fD103973357266813EcfcE9faABAbF3C4ca3A",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "AI Pepe King",
+    "ticker": "AIPEPE",
+    "sc": "0xBAC3368B5110f3a3ddA8B5a0F7B66EDb37C47AFe",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Neighbourhoods Token",
+    "ticker": "NHT",
+    "sc": "0x84342e932797FC62814189f01F0Fb05F52519708",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Niko Token",
+    "ticker": "NKO",
+    "sc": "0xca3C652e994D88740b8Ab3b33B4935592aB1DfbA",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "FLOYX TOKEN",
+    "ticker": "FLOYX",
+    "sc": "0x7067BeBfA1720132DFb9373d65B522AfBe3A201e",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Gaia EverWorld",
+    "ticker": "GAIA1",
+    "sc": "0x723b17718289a91af252d616de2c77944962d122",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Nereus Token",
+    "ticker": "NRS",
+    "sc": "0x94615302bCB36309371ea7454f3e99A4002105dE",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "InterStellar Kredits",
+    "ticker": "ISK",
+    "sc": "0x0F39cBa23cd1DAc160De282cF40008767004304F",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Mithril Token",
+    "ticker": "MITHRIL",
+    "sc": "0xb0e4eC69115E61d8D2c8401e1f254308572Abe49",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Nodewaves",
+    "ticker": "NWS",
+    "sc": "0x13646e0E2d768D31B75d1A1e375e3E17F18567f2",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Nexus Dubai",
+    "ticker": "NXD",
+    "sc": "0x228b5C21ac00155cf62c57bcc704c0dA8187950b",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Skyblocks",
+    "ticker": "ISKY",
+    "sc": "0x5DFD5edFde4d8EC9e632dCA9d09Fc7E833f74210",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Wicrypt Network Token",
+    "ticker": "WNT",
+    "sc": "0x82a0e6c02b91ec9f6ff943c0a933c03dbaa19689",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Spit Token",
+    "ticker": "SPIT",
+    "sc": "0x5c947eB80D096A5e332bF79bfDc9feb3D0a201d7",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Sity Token   ",
+    "ticker": "SITY",
+    "sc": "0xB044e4d2B145a8e7832889FC4609f654446C22f9",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Bitboard",
+    "ticker": "BITBOARD",
+    "sc": "0x4F7Cc8eF14f3Dc76Ee2fB60028749E1B61CEa162",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Sheesha Finance",
+    "ticker": "MSHEESHA",
+    "sc": "0x88C949b4eB85a90071f2C0beF861BDDEe1a7479D",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "o-mee",
+    "ticker": "OME",
+    "sc": "0x8E0232183fDa2932A04601EadDAF90191e2bdfcd",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DDMTOWN",
+    "ticker": "DDMT",
+    "sc": "0x59536E645E5f394045049c38EA98aE45B4B0DEd2",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Algebra",
+    "ticker": "ALGB",
+    "sc": "0x0169eC1f8f639B32Eec6D923e24C2A2ff45B9DD6",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Cryvantis",
+    "ticker": "CRYVANTIS",
+    "sc": "0x86BDDa840309578b55a31F7c1d9F9c484A5b9389",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Nakamoto Games",
+    "ticker": "NAKA",
+    "sc": "0x311434160d7537be358930def317afb606c0d737",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GamersXP",
+    "ticker": "GMXP",
+    "sc": "0x6ca6F60bd339Da93124ba29E4fd957aEe766B1b3",
+    "decimals": 10
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Cros",
+    "ticker": "CROS",
+    "sc": "0x70E05a930baB8c3Bf24b2B182aF3f857D19377ef",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "NFT Champions",
+    "ticker": "CHAMP",
+    "sc": "0x8f9E8e833A69Aa467E42c46cCA640da84DD4585f",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Cryptomeda",
+    "ticker": "TECH",
+    "sc": "0x6286a9e6f7e745a6d884561d88f94542d6715698",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "ORBCITY",
+    "ticker": "ORB",
+    "sc": "0x20C750C57C3bc5145aF4b7a33d4fB66A8E79FE05",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Magic Shoes",
+    "ticker": "MAGICSHOES",
+    "sc": "0x13eFAA3D5E2C86E7ABa168F925FeF9827648Cff4",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Carnomaly",
+    "ticker": "CARR",
+    "sc": "0x9b765735C82BB00085e9DBF194F20E3Fa754258E",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Icon.X World",
+    "ticker": "ICNX",
+    "sc": "0x91f3B9366801C1fCa6184C3bD99d5Ab0C43A9033",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "PolyDoge",
+    "ticker": "POLYDOGE",
+    "sc": "0x8A953CfE442c5E8855cc6c61b1293FA648BAE472",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "ITSBLOC",
+    "ticker": "ITSB",
+    "sc": "0x998013798440d44C1dD4c767bdD9580E16E46e28",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Paycer Protocol",
+    "ticker": "PCR",
+    "sc": "0xa6083abe845fbB8649d98B8586cBF50b7f233612",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "KASTA",
+    "ticker": "KASTA",
+    "sc": "0x235737dbb56e8517391473f7c964db31fa6ef280",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Swords of Blood",
+    "ticker": "SWDTKN",
+    "sc": "0x968B493a2B27D03Dad92B9eA1e2E8232a72c9C2C",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Farmsent",
+    "ticker": "FARMS",
+    "sc": "0xf2dA37643c25Ca14291c2A69F51423ed9B7Ff4b0",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "PHILCOIN",
+    "ticker": "PHL",
+    "sc": "0x24c80D7F032Bc8D308F10d59e20d5a65b90b7334",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "PHT Stablecoin",
+    "ticker": "PHT",
+    "sc": "0xe75220cB014Dfb2D354bb59be26d7458bB8d0706",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "AMBO",
+    "ticker": "AMBO",
+    "sc": "0x9B8B6A1298d34B3c4bBDDce8a7fF0149121592C1",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "KOLnet Token",
+    "ticker": "KOLNET",
+    "sc": "0xfd195a17e2a60D248a7148A919c5166AE907479A",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Polker",
+    "ticker": "PKR",
+    "sc": "0x140a4e80dD8184536acc45F1C452D7540472e6E1",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Rain Coin",
+    "ticker": "RAIN",
+    "sc": "0x8E677CA17065eD74675BC27bCaBadB7Eef10A292",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Route",
+    "ticker": "ROUTE (POS)",
+    "sc": "0x16eccfdbb4ee1a85a33f3a9b21175cd7ae753db4",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Reel Token",
+    "ticker": "REELT",
+    "sc": "0x19CcfE396006ffe7A92Ab667b0ef90CE61B66f9f",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Polygon",
+    "ticker": "POL",
+    "sc": "0x0000000000000000000000000000000000001010",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "PolysportsToken",
+    "ticker": "PS1",
+    "sc": "0x32Cd1BCB75473845b5d1dB6ecE60AEC6E41d8518",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Ideaology",
+    "ticker": "IDEA",
+    "sc": "0xA26Df7F21D752BCd3A413ba496485D87D65eef8F",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Dexioprotocol",
+    "ticker": "DEXI",
+    "sc": "0x65ba64899c2c7DbFDb5130e42E2CC56de281c78b",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Playermon",
+    "ticker": "PYM",
+    "sc": "0x0bd49815ea8e2682220bcb41524c0dd10ba71d41",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Vulcan Forged PYR",
+    "ticker": "PYR",
+    "sc": "0x430EF9263E76DAE63c84292C3409D61c598E9682",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Mechanium",
+    "ticker": "MECHA",
+    "sc": "0xaCd4E2d936Be9B16c01848A3742A34B3D5A5bDfa",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MoonEdge",
+    "ticker": "MOONED",
+    "sc": "0x7E4c577ca35913af564ee2a24d882a4946Ec492B",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Qoodo.io",
+    "ticker": "QDO",
+    "sc": "0x63c54c41794e14D283123CD38895f7ABdF33C379",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "GONE",
+    "ticker": "GONE",
+    "sc": "0x162539172b53E9a93b7d98Fb6c41682De558a320",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "CRETA",
+    "ticker": "CRETA",
+    "sc": "0x202655af326dE310491Cb54f120E02eE0da92b55",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "CREPE",
+    "ticker": "CREPE",
+    "sc": "0xe81432473290F4ffCFc5E823F8069Db83e8A677B",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "QUICK",
+    "ticker": "QUICKOLD",
+    "sc": "0x831753dd7087cac61ab5644b308642cc1c33dc13",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "PIVN",
+    "ticker": "PIVN",
+    "sc": "0x38A232CABb8A7f745c7D6E0A5bf300E3499aa8A6",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "QuantCheck",
+    "ticker": "QTK",
+    "sc": "0xADEB98a12b2CdFBDb45Cdd2274a369E79A7002e0",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Tangible",
+    "ticker": "TNGBL",
+    "sc": "0x49e6A20f1BBdfEeC2a8222E052000BbB14EE6007",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DFYN",
+    "ticker": "DFYN",
+    "sc": "0xC168E40227E4ebD8C1caE80F7a55a4F0e6D66C97",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "AnRKey X",
+    "ticker": "ANRX",
+    "sc": "0x554f074d9cCda8F483d1812d4874cBebD682644E",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Decentral Games ICE",
+    "ticker": "ICEOLD",
+    "sc": "0xc6C855AD634dCDAd23e64DA71Ba85b8C51E5aD7c",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Rainbow Token",
+    "ticker": "RBW",
+    "sc": "0x431CD3C9AC9Fc73644BF68bF5691f4B83F9E104f",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Angry Bulls Club",
+    "ticker": "ABC",
+    "sc": "0xCe899f5fcF55B0c1d7478910f812Cfe68C5bcf0f",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Pigcoin",
+    "ticker": "PIGCOIN",
+    "sc": "0xe9bC9AD74CCa887Aff32ba09a121B1256fC9f052",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Art de Finance",
+    "ticker": "ADF",
+    "sc": "0x6BD10299f4f1d31b3489Dc369eA958712d27c81b",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Aree Shards",
+    "ticker": "AES",
+    "sc": "0x2A07461a493b994C2a32f549Fd185524f306aB38",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Ribus",
+    "ticker": "RIB",
+    "sc": "0x3Af2dd7B91D8fACECCC26d21a065267817213D37",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Aki Protocol",
+    "ticker": "AKI",
+    "sc": "0x1A7e49125a6595588c9556f07a4c006461b24545",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Reality Metaverse",
+    "ticker": "RMV",
+    "sc": "0xf0949Dd87D2531D665010d6274F06a357669457a",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Polytrade",
+    "ticker": "TRADE",
+    "sc": "0x692ac1e363ae34b6b489148152b12e2785a3d8d6",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "MetaTrace",
+    "ticker": "TRACE",
+    "sc": "0x40d9fc77027A281d85de1fa660C887E645AE26C3",
+    "decimals": 2
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "TSUBASA Governance",
+    "ticker": "TSUGT",
+    "sc": "0x70e29b7E036B14D496431b77e0B6EB0008be6165",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Arrland",
+    "ticker": "RUM",
+    "sc": "0x14E5386f47466A463f85D151653E1736c0c50Fc3",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "STAU",
+    "ticker": "STAU",
+    "sc": "0x37C5eBfaE4E4dA225e9D8042B05063c4A2C94bb6",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Attack Wagon",
+    "ticker": "ATK",
+    "sc": "0xF868939Ee81F04f463010BC52EAb91c0839eF08c",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "AdvertisingTimeTrace",
+    "ticker": "ATT",
+    "sc": "0xcCCf7C6552437ab1504C384C6Ed4501dAa3a9aC6",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Abyss World",
+    "ticker": "AWT",
+    "sc": "0x0c705862f56cD8eC70337F5f5184feA4158a3c00",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Mars Token",
+    "ticker": "MRST",
+    "sc": "0x411bc96881A62572FF33c9d8CE60dF99E3d96cd8",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Wrapped Optimus",
+    "ticker": "WOPT",
+    "sc": "0x676fcD577d0C8705F9f81577C4bFC4cc7979E69B",
+    "decimals": 0
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Artmeta",
+    "ticker": "MART",
+    "sc": "0xDcfF29b7bd211Aaef6E4a3989e4d3F732cF5b4b6",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SOULS",
+    "ticker": "SOULSOLD",
+    "sc": "0xefCFEce12A99d1DbBf6F3264ee97F8C045e97F1f",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Wirex Pay",
+    "ticker": "WPAY",
+    "sc": "0x7ABE9Edf5C544A04dA83e9110CF46DBC4759170c",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "SKPANAX",
+    "ticker": "SKX",
+    "sc": "0xa9a8eed4c7b91de6d6d2a6b2d21300ec162b1375",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Social Master & Branch",
+    "ticker": "SMB",
+    "sc": "0x68f610f2220a6974eb69963bdaf5a0de0dc9bd8c",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Snook",
+    "ticker": "SNK",
+    "sc": "0x689f8e5913C158fFB5Ac5aeb83b3C875F5d20309",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Monsoon Finance",
+    "ticker": "MCASH",
+    "sc": "0xa25610a77077390a75ad9072a084c5fbc7d43a0d",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Carrieverse",
+    "ticker": "CVTX",
+    "sc": "0x40F97Ec376aC1c503E755433BF57f21e3a49f440",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "SUPERTRUST",
+    "ticker": "SUT",
+    "sc": "0x98965474ecbec2f532f1f780ee37b0b05f77ca55",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Stepwatch",
+    "ticker": "SWP",
+    "sc": "0xabEDe05598760E399ed7EB24900b30C51788f00F",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Ness LAB",
+    "ticker": "NESS",
+    "sc": "0x6eaea1ed457e06f8cf6ee7adf34e621844c3b0fc",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "NexGami",
+    "ticker": "NEXG",
+    "sc": "0xaF0dC42725db75AE54f5E8945e71017Bc7ACd27d",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Angle Protocol",
+    "ticker": "ANGLE",
+    "sc": "0x900F717EA076E1E7a484ad9DD2dB81CEEc60eBF1",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Gaia Everworld",
+    "ticker": "GAIA",
+    "sc": "0x723b17718289a91af252d616de2c77944962d122",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Cobak",
+    "ticker": "CBK",
+    "sc": "0x4ec203dd0699fac6adaf483cdd2519bc05d2c573",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "UFORIKA",
+    "ticker": "FORA",
+    "sc": "0x081c280cD5C1c934DbAfc97A2aB2e596FfE7DFC4",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Forta",
+    "ticker": "FORT",
+    "sc": "0x9ff62d1FC52A907B6DCbA8077c2DDCA6E6a9d3e1",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Cryptopia",
+    "ticker": "TOS",
+    "sc": "0x50AA659E6aB263B77d61Ff44cF4A1090141e7111",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Blockchain Monster Hunt",
+    "ticker": "BCMC",
+    "sc": "0xc10358f062663448a3489fC258139944534592ac",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "The World Seamans Project",
+    "ticker": "SEAT",
+    "sc": "0xc79FC2885e207E1C4cc69Cf94402DD1a5642452e",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "MacaronSwap",
+    "ticker": "MCRN",
+    "sc": "0xba25b552c8a098afdf276324c32c71fe28e0ad40",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Karmaverse",
+    "ticker": "KNOT",
+    "sc": "0xb763F1177E9B2Fb66FBe0d50372E3e2575c043e5",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "bitsCrunch Token",
+    "ticker": "BCUT",
+    "sc": "0x3fb83A9A2c4408909c058b0BfE5B4823f54fAfE2",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Dai",
+    "ticker": "DAI",
+    "sc": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Rebel Bots",
+    "ticker": "RBLS",
+    "sc": "0xe26cda27c13f4f87cFFc2F437C5900b27eBb5bbB",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "DeSpace Protocol",
+    "ticker": "DES",
+    "sc": "0xa062fc09cA6bdeb2f6E3b77E1d4e09C42C964742",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Black Stallion",
+    "ticker": "BS",
+    "sc": "0x0C47298beEe5203358e7Bc30B9954B584361eAB5",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "DeHive",
+    "ticker": "DHV",
+    "sc": "0x5fcb9de282af6122ce3518cde28b7089c9f97b26",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Decentral Games",
+    "ticker": "DG",
+    "sc": "0xef938b6da8576a896f6e0321ef80996f4890f9c4",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Croatian Football Federation Token",
+    "ticker": "VATRENI",
+    "sc": "0xD60DebA014459F07BBcC077a5B817f31DaFD5229",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Onston",
+    "ticker": "ONSTON",
+    "sc": "0xa4ce4a467e51aefec683a649c3f14427f104667f",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "GensoKishi Metaverse",
+    "ticker": "MV",
+    "sc": "0xa3c322ad15218fbfaed26ba7f616249f7705d945",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Sway Protocol",
+    "ticker": "SWAY",
+    "sc": "0x262B8AA7542004f023B0eB02bc6b96350A02b728",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Burp",
+    "ticker": "BURP",
+    "sc": "0x538d47d142f6993038a667e9d6210d3735749b36",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "SwissCheese",
+    "ticker": "SWCH",
+    "sc": "0x3ce1327867077B551ae9A6987bF10C9fd08edCE1",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Medieus",
+    "ticker": "MDUS",
+    "sc": "0xab9cb20a28f97e189ca0b666b8087803ad636b3c",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Vortex Protocol",
+    "ticker": "VP",
+    "sc": "0xf46CB10e8c5FB9368bbF497A3176b80c0AF66d44",
+    "decimals": 11
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Vaiot",
+    "ticker": "VAI",
+    "sc": "0xD13cfD3133239a3c73a9E535A5c4DadEE36b395c",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Axelar",
+    "ticker": "WAXL",
+    "sc": "0x6e4e624106cb12e168e6533f8ec7c82263358940",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Verida",
+    "ticker": "VDA",
+    "sc": "0x683565196C3EAb450003C964D4bad1fd3068D4cC",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Vendetta",
+    "ticker": "VDT",
+    "sc": "0x765Af38A6e8FDcB1EFEF8a3dd2213EFD3090B00F",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Catheon Gaming",
+    "ticker": "CATHEON",
+    "sc": "0x7e7737C40878e720b32e7bC9CD096259f876d69f",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Puggy Coin",
+    "ticker": "PUGGY",
+    "sc": "0x762b56F3E36A4BE65763056d6464668B4C7B2f49",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "OkLetsPlay",
+    "ticker": "OKLP",
+    "sc": "0x5D48a5E5a3e737322Ae27e25897F1c9E19EcC941",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Wisdomise AI",
+    "ticker": "WSDM",
+    "sc": "0x5F2F8818002dc64753daeDF4A6CB2CcB757CD220",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Tenti",
+    "ticker": "AIRTNT",
+    "sc": "0x25C498781cA536547B147e2199f572E5393D36f0",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Versus-X",
+    "ticker": "VSX",
+    "sc": "0xB8d5f5f236C24e09c7f55EEc313818742aC4cF79",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "VRJAM Coin",
+    "ticker": "VRJAM",
+    "sc": "0xe84c2Edca71fC3cc570c70665178d90C8721623b",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "KlimaDAO",
+    "ticker": "KLIMA",
+    "sc": "0x4e78011Ce80ee02d2c3e649Fb657E45898257815",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Trinity Of The Fabled",
+    "ticker": "ABYS",
+    "sc": "0x23001ae6cd2f0644c5846e156565998334fc2be3",
+    "decimals": 8
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "FreshCut Diamond",
+    "ticker": "FCD",
+    "sc": "0xf78610D0a197842bF98ca45254897edd13c5D182",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "NIFTIFY",
+    "ticker": "NIFT",
+    "sc": "0x4a1d542b52a95ad01ddc70c2e7df0c7bbaadc56f",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "POPKON",
+    "ticker": "POPK",
+    "sc": "0x428fb1055f5a0E7A59eC4B50216Db1CDF8E16Cc5",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "MetaShooter",
+    "ticker": "MHUNT",
+    "sc": "0x61f95bd637e3034133335C1baA0148E518D438ad",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Affyn",
+    "ticker": "FYN",
+    "sc": "0x3B56a704C01D650147ADE2b8cEE594066b3F9421",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "DRESSdio",
+    "ticker": "DRESS",
+    "sc": "0xe6800cf598015a3ec5dd534f328f349da239bc78",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Trias",
+    "ticker": "TRIAS",
+    "sc": "0x0D5eA33C2540a3071d8770F8ffee9817D0624E7d",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "PolyPad",
+    "ticker": "POLYPAD",
+    "sc": "0x30eA765D4DDA26e0f89e1B23A7c7b2526B7d29ec",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Revolt 2 Earn",
+    "ticker": "RVLT",
+    "sc": "0xf0f9D895aCa5c8678f706FB8216fa22957685A13",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "GEODNET",
+    "ticker": "GEOD",
+    "sc": "0xac0f66379a6d7801d7726d5a943356a172549adb",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Kaby Arena",
+    "ticker": "KABY",
+    "sc": "0x5198E7cC1640049dE37D1Bd10b03Fa5A3AFDA120",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Gains Network",
+    "ticker": "GNS",
+    "sc": "0xE5417Af564e4bFDA1c483642db72007871397896",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "The Unfettered",
+    "ticker": "SOULS",
+    "sc": "0xaa4fBC6809a8E1924520FC85282aC4C76A7671d7",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "W3 Guild Games",
+    "ticker": "W3GG",
+    "sc": "0x8D60FB5886497851AaC8c5195006ecf07647ba0D",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "HID3",
+    "ticker": "HID3",
+    "sc": "0x87847703d4bb4fcd42db887ffdcb94496e77e3ab",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Yin",
+    "ticker": "YIN",
+    "sc": "0x794Baab6b878467F93EF17e2f2851ce04E3E34C8",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Cyrus",
+    "ticker": "CYRUS",
+    "sc": "0xb853f7852Aa780831F165899ccbAF5DB0882B0d6",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "WETH3",
+    "ticker": "WETH3",
+    "sc": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Dogami",
+    "ticker": "DOGA",
+    "sc": "0x2F3E306d9F02ee8e8850F9040404918d0b345207",
+    "decimals": 5
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "ZIGChain",
+    "ticker": "ZIG",
+    "sc": "0x7bebd226154e865954a87650faefa8f485d36081",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "IQ Protocol",
+    "ticker": "IQT",
+    "sc": "0x41084fDc569099d9E527ccf126e12d9C7c688ec3",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "EARN M Rewards",
+    "ticker": "EARNM",
+    "sc": "0xaeb3dd897ade187b9f9e4c491bc7a81f69f7093e",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "MOJO_OLD",
+    "ticker": "MOJO_OLD",
+    "sc": "0xeD2d13A70acbD61074fC56bd0d0845e35f793e5E",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "NFT CHAMPIONS",
+    "ticker": "CHAMP",
+    "sc": "0x8f9e8e833a69aa467e42c46cca640da84dd4585f",
+    "decimals": 8
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "FEAR",
+    "ticker": "FEAR",
+    "sc": "0xa2CA40DBe72028D3Ac78B5250a8CB8c404e7Fb8C",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "CNAME_MATIC",
+    "ticker": "CNAME_MATIC",
+    "sc": "0x948A5DC885d103Eb2B889CEb29Be42bC36Df516C",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Teddy Doge V2",
+    "ticker": "TEDDY",
+    "sc": "0x10f6f2b97F3aB29583D9D38BaBF2994dF7220C21",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Angola",
+    "ticker": "AGLA",
+    "sc": "0xD6A33F67b733d422c821C36F0f79ca145B930d01",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Ape and Pepe",
+    "ticker": "APEPE",
+    "sc": "0xa3f751662e282e83ec3cbc387d225ca56dd63d3a",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Konnect",
+    "ticker": "KCT",
+    "sc": "0x75913249de0e483f3c7989fca4f772fc34296bba",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Bondly",
+    "ticker": "BONDLY",
+    "sc": "0x64ca1571d1476b7a21c5aaf9f1a750a193a103c0",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Tether",
+    "ticker": "USDT",
+    "sc": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "USDCoin",
+    "ticker": "USDC",
+    "sc": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Vent Finance",
+    "ticker": "VENT",
+    "sc": "0xf21441f9ec4c1fe69cb7cf186eceab31af2b658d",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Voxies",
+    "ticker": "VOXEL",
+    "sc": "0xd0258a3fd00f38aa8090dfee343f10a9d4d30d3f",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Chrono. tech",
+    "ticker": "TIMECHRONO",
+    "sc": "0xb970Bc1BD4fCD639c37aa8eFD6713eaDc577252f",
+    "decimals": 8
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "The Unfettered Souls",
+    "ticker": "SOULS",
+    "sc": "0xefcfece12a99d1dbbf6f3264ee97f8c045e97f1f",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Veloce",
+    "ticker": "VEXT",
+    "sc": "0x27842334c55c01ddfe81bf687425f906816c5141",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Lepricon",
+    "ticker": "LEP",
+    "sc": "0x76Bba8c6D70690514e642cb68C93AF9a2ac826A4",
+    "decimals": 0
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Lily",
+    "ticker": "LIY",
+    "sc": "0x24fd25a49627ce2e4be711e76dc22234c83539fe",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "LILLIUS",
+    "ticker": "LLT",
+    "sc": "0x0DdE4811C4DD68Dc740A1D7997F33fF46CD186a9",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Forest Knight",
+    "ticker": "KNIGHT",
+    "sc": "0x4455ef8b4b4a007a93daa12de63a47eeac700d9d",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Legends of Elysium",
+    "ticker": "LOE",
+    "sc": "0x8b78927048de67b9e8c8F834359F15C3822eD871",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "WiFi Map",
+    "ticker": "WIFI",
+    "sc": "0xE238Ecb42C424E877652AD82d8A939183A04C35f",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Orion Money",
+    "ticker": "ORION",
+    "sc": "0x5E0294Af1732498C77F8dB015a2d52a76298542B",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Bloktopia",
+    "ticker": "BLOK",
+    "sc": "0x229b1b6c23ff8953d663c4cbb519717e323a0a84",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "iMe Lab",
+    "ticker": "LIME",
+    "sc": "0x7f67639Ffc8C93dD558d452b8920b28815638c44",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Wistaverse",
+    "ticker": "WISTA",
+    "sc": "0xb7042c40de76cfc607ac05e68f9c28a778f0c8a6",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Open Exchange Token",
+    "ticker": "OX",
+    "sc": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Quickswap",
+    "ticker": "QUICK",
+    "sc": "0xB5C064F955D8e7F38fE0460C556a72987494eE17",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "SNPIT",
+    "ticker": "SNPT",
+    "sc": "0x22737f5Bbb7C5b5BA407b0c1C9a9cdf66CF25D7d",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Phantom of the Kill",
+    "ticker": "OSHI",
+    "sc": "0x09cad96bc28f55e9253cfb9a84a3a1ab79061e54",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "My Lovely Coin",
+    "ticker": "MLC",
+    "sc": "0x0566c506477cd2d8df4e0123512dbc344bd9d111",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "MetaLand Shares",
+    "ticker": "MLS",
+    "sc": "0xb886b4e041bb8b841AeA5cc983AF756283a8d36D",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Peri Finance Token",
+    "ticker": "PERI",
+    "sc": "0xdc0e17eae3b9651875030244b971fa0223a1764f",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "UDAO",
+    "ticker": "UDAO",
+    "sc": "0x433cCeBC95ad458E74d81837Db0D4aa27e30E117",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Mobius",
+    "ticker": "MOT",
+    "sc": "0x2db0Db271a10661e7090b6758350E18F6798a49D",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Miracle Play",
+    "ticker": "MPT",
+    "sc": "0x87d6f8edeccbcca766d2880d19b2c3777d322c22",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "MSQUARE",
+    "ticker": "MSQ",
+    "sc": "0x6A8Ec2d9BfBDD20A7F5A4E89D640F7E7cebA4499",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "MetaSoccer Universe",
+    "ticker": "MSU",
+    "sc": "0xe8377a076adabb3f9838afb77bee96eac101ffb1",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Multi Universe Central",
+    "ticker": "MUC",
+    "sc": "0x03B92EBF0615D44D8C782C209E4405b74cb77D1d",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Trakx",
+    "ticker": "TRKX",
+    "sc": "0x61bf130d973D59c69d3227f1668d534d83119860",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Soil",
+    "ticker": "SOIL",
+    "sc": "0x43C73b90E0C2A355784dCf0Da12f477729b31e77",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Tamadoge",
+    "ticker": "TAMA",
+    "sc": "0xc61f39418cd27820b5D4E9Ba4a7197eefAEB8b05",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Dtec",
+    "ticker": "DTEC",
+    "sc": "0xd87aF7B418d64FF2cdE48d890285bA64fc6E115F",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Swash",
+    "ticker": "SWASH",
+    "sc": "0xbA3CB8329D442E6F9Eb70fafe1E214251df3D275",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "NEOPIN Token",
+    "ticker": "NPT",
+    "sc": "0x306ee01a6bA3b4a8e993fA2C1ADC7ea24462000c",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Galaxy Fight Club",
+    "ticker": "GCOIN",
+    "sc": "0x071AC29d569a47EbfFB9e57517F855Cb577DCc4C",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Nexus Dubai",
+    "ticker": "NXD",
+    "sc": "0x228b5C21ac00155cf62c57bcc704c0dA8187950b",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Infinity Skies",
+    "ticker": "ISKY",
+    "sc": "0x5DFD5edFde4d8EC9e632dCA9d09Fc7E833f74210",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Bitboard",
+    "ticker": "BITBOARD",
+    "sc": "0x4f7cc8ef14f3dc76ee2fb60028749e1b61cea162",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "o-mee token",
+    "ticker": "OME",
+    "sc": "0x8e0232183fda2932a04601eaddaf90191e2bdfcd",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Nakamoto Games",
+    "ticker": "NAKA",
+    "sc": "0x311434160d7537be358930def317afb606c0d737",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Kaizen.Finance",
+    "ticker": "KZEN",
+    "sc": "0x4550003152F12014558e5CE025707E4DD841100F",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Cros World",
+    "ticker": "CROS",
+    "sc": "0x70E05a930baB8c3Bf24b2B182aF3f857D19377ef",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "DUST Protocol",
+    "ticker": "DUST",
+    "sc": "0x4987A49C253c38B3259092E9AAC10ec0C7EF7542",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Deroute AI",
+    "ticker": "ORB",
+    "sc": "0x20C750C57C3bc5145aF4b7a33d4fB66A8E79FE05",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "PolyDoge",
+    "ticker": "POLYDOGE",
+    "sc": "0x8a953cfe442c5e8855cc6c61b1293fa648bae472",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "ITSBLOC",
+    "ticker": "ITSB",
+    "sc": "0x998013798440d44C1dD4c767bdD9580E16E46e28",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Kasta",
+    "ticker": "KASTA",
+    "sc": "0x235737dbb56e8517391473f7c964db31fa6ef280",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "NASDEX",
+    "ticker": "NSDX",
+    "sc": "0xe8d17b127ba8b9899a160d9a07b69bca8e08bfc6",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "ReelToken",
+    "ticker": "REELT",
+    "sc": "0x19ccfe396006ffe7a92ab667b0ef90ce61b66f9f",
+    "decimals": 8
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Polygon Ecosystem Token",
+    "ticker": "POL",
+    "sc": "0x0000000000000000000000000000000000001010",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "FAR",
+    "ticker": "FAR_OLD",
+    "sc": "0x5F32AbeeBD3c2fac1E7459A27e1AE9f1C16ccccA",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "X Protocol",
+    "ticker": "POT",
+    "sc": "0xbcb98d98704fce7abda63bf733af2a9e28c161c8",
+    "decimals": 8
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Deus Finance",
+    "ticker": "DEUS",
+    "sc": "0xDE5ed76E7c05eC5e4572CfC88d1ACEA165109E44",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Ideaology",
+    "ticker": "IDEA",
+    "sc": "0xa26df7f21d752bcd3a413ba496485d87d65eef8f",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "DeHorizon",
+    "ticker": "DEVT",
+    "sc": "0x17D9dd3F1f1E2E5F723edd26Ebc14d042A4125b0",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Playermon",
+    "ticker": "PYM",
+    "sc": "0x0bd49815ea8e2682220bcb41524c0dd10ba71d41",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Vulcan Forged",
+    "ticker": "PYR",
+    "sc": "0x430ef9263e76dae63c84292c3409d61c598e9682",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "SPONGE",
+    "ticker": "SPONGE",
+    "sc": "0x53dF32548214f51821CF1Fe4368109ac5DdeA1Ff",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Pine Token",
+    "ticker": "PINE",
+    "sc": "0x612D833c0c7A54cdfBe9a4328B6d658020563Ec0",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "SAVAGE",
+    "ticker": "SAVG",
+    "sc": "0x981aecc6eb4d382b96a02b75e931900705e95a31",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Animal Concerts",
+    "ticker": "ANML",
+    "sc": "0xecc4176b90613ed78185f01bd1e42c5640c4f09d",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Paparazzi Token",
+    "ticker": "PAPARAZZI",
+    "sc": "0x7b43e83a5c5d60a7b8886b4205ace88d1f4e2803",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "ChainPort",
+    "ticker": "PORTX",
+    "sc": "0x189586b5f6317538ae50c20a976597Da38984A24",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Pigcoin",
+    "ticker": "PIG",
+    "sc": "0xe9bC9AD74CCa887Aff32ba09a121B1256fC9f052",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Across Protocol",
+    "ticker": "ACX",
+    "sc": "0xF328b73B6c685831F238c30a23Fc19140CB4D8FC",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Art De Finance Token",
+    "ticker": "ADF",
+    "sc": "0x6bd10299f4f1d31b3489dc369ea958712d27c81b",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Aether Games",
+    "ticker": "AEG",
+    "sc": "0xE3f2b1B2229C0333Ad17D03F179b87500E7C5e01",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Aki Network",
+    "ticker": "AKI",
+    "sc": "0x1A7e49125a6595588c9556f07a4c006461b24545",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Akiverse",
+    "ticker": "AKV",
+    "sc": "0x659e79849ed57fa5b2a336cdd03a4d9586a0e36a",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Polytrade",
+    "ticker": "TRADE",
+    "sc": "0x692AC1e363ae34b6B489148152b12e2785a3d8d6",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Aluna (PoS)",
+    "ticker": "ALN",
+    "sc": "0xa8fcee762642f156b5d757b6fabc36e06b6d4a1a",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Captain Tsubasa",
+    "ticker": "TSUGT",
+    "sc": "0x70e29b7e036b14d496431b77e0b6eb0008be6165",
+    "decimals": 8
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "BADMAD ROBOTS",
+    "ticker": "METALDR",
+    "sc": "0x200C234721b5e549c3693CCc93cF191f90dC2aF9",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "reBaked",
+    "ticker": "BAKED",
+    "sc": "0x32515ffdc3a84cfbf9ad4db14ef8f0a535c7afd6",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Stobox",
+    "ticker": "STBU",
+    "sc": "0xcf403036bc139d30080D2Cf0F5b48066F98191bB",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Permission Coin",
+    "ticker": "ASK",
+    "sc": "0xaA3717090CDDc9B227e49d0D84A28aC0a996e6Ff",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "AttackWagon",
+    "ticker": "ATK",
+    "sc": "0xf868939ee81f04f463010bc52eab91c0839ef08c",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Abyss World Token",
+    "ticker": "AWT",
+    "sc": "0x0c705862f56cD8eC70337F5f5184feA4158a3c00",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "ArtMeta",
+    "ticker": "MART",
+    "sc": "0xDcfF29b7bd211Aaef6E4a3989e4d3F732cF5b4b6",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "BAG",
+    "ticker": "BAG",
+    "sc": "0x73b29199a8e4C146E893EB95f18dAc41738a88c6",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Standard",
+    "ticker": "STND",
+    "sc": "0x08BE454de533509e8832B257116C5506E55b0b64",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "TRIAS",
+    "ticker": "TRIAS",
+    "sc": "0x0d5ea33c2540a3071d8770f8ffee9817d0624e7d",
+    "decimals": 0
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Ideaology",
+    "ticker": "IDEA",
+    "sc": "0xa26df7f21d752bcd3a413ba496485d87d65eef8f",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "RNDR",
+    "ticker": "RNDR",
+    "sc": "0x61299774020da444af134c82fa83e3810b309991",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Polylastic",
+    "ticker": "POLX",
+    "sc": "0x187ae45f2d361cbce37c6a8622119c91148f261b",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "MATIC",
+    "ticker": "MATIC",
+    "sc": "",
+    "decimals": 0
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Burp",
+    "ticker": "BURP",
+    "sc": "0x538d47d142f6993038a667e9d6210d3735749b36",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "IXS",
+    "ticker": "WIXS",
+    "sc": "0x1ba17c639bdaecd8dc4aac37df062d17ee43a1b8",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "DINO",
+    "ticker": "DINO",
+    "sc": "",
+    "decimals": 0
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "BLOK",
+    "ticker": "BLOK",
+    "sc": "0x229b1b6c23ff8953d663c4cbb519717e323a0a84",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "FLAME",
+    "ticker": "FLAME",
+    "sc": "0x22e3f02f86bc8ea0d73718a2ae8851854e62adc5",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "naka",
+    "ticker": "NAKA",
+    "sc": "0x311434160d7537be358930def317afb606c0d737",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "quick",
+    "ticker": "QUICK",
+    "sc": "0xb5c064f955d8e7f38fe0460c556a72987494ee17",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Polytrade",
+    "ticker": "TRADE",
+    "sc": "0x692ac1e363ae34b6b489148152b12e2785a3d8d6",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "H3RO3S",
+    "ticker": "H3RO3S",
+    "sc": "0x480fd103973357266813ecfce9faababf3c4ca3a",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "bull",
+    "ticker": "BULL",
+    "sc": "0x9f95e17b2668afe01f8fbd157068b0a4405cc08d",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "UpOnly",
+    "ticker": "UPO",
+    "sc": "0x9dbfc1cbf7a1e711503a29b4b5f9130ebeccac96",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "voxel",
+    "ticker": "VOXEL",
+    "sc": "0xd0258a3fd00f38aa8090dfee343f10a9d4d30d3f",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "GensoKishi Metaverse",
+    "ticker": "MV",
+    "sc": "0xa3c322ad15218fbfaed26ba7f616249f7705d945",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "FCD",
+    "ticker": "FCD",
+    "sc": "0xf78610d0a197842bf98ca45254897edd13c5d182",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "MLS",
+    "ticker": "MLS",
+    "sc": "0xb886b4e041bb8b841aea5cc983af756283a8d36d",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "WOMBAT",
+    "ticker": "WOMBAT",
+    "sc": "0x0c9c7712c83b3c70e7c5e11100d33d9401bdf9dd",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "STEPWATCH",
+    "ticker": "STEPWATCH",
+    "sc": "0xabede05598760e399ed7eb24900b30c51788f00f",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "BEAT",
+    "ticker": "BEAT",
+    "sc": "0xb78cf9ac0f47f1d69cba861deda29814d285c834",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "gns",
+    "ticker": "GNS",
+    "sc": "0xe5417af564e4bfda1c483642db72007871397896",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "RLTM",
+    "ticker": "RLTM",
+    "sc": "0x1b396cf90504686b7ede2760eebb053d30d1f389",
+    "decimals": 0
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "TSUBASA Governance",
+    "ticker": "TSUGT",
+    "sc": "0x70e29b7e036b14d496431b77e0b6eb0008be6165",
+    "decimals": 8
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Candy Pocket",
+    "ticker": "CANDY",
+    "sc": "0x32043520205367a68b527881fa594bbc714f80ec",
+    "decimals": 8
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Polygon",
+    "ticker": "POL",
+    "sc": "0x0000000000000000000000000000000000001010",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "FIRE",
+    "ticker": "FIRE",
+    "sc": "0x838c9634de6590b96aeadc4bc6db5c28fd17e3c2",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "AEG",
+    "ticker": "AEG",
+    "sc": "0xe3f2b1b2229c0333ad17d03f179b87500e7c5e01",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Wisdomise AI",
+    "ticker": "WSDM",
+    "sc": "0x5f2f8818002dc64753daedf4a6cb2ccb757cd220",
+    "decimals": 6
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "nexg",
+    "ticker": "NEXG",
+    "sc": "0xaf0dc42725db75ae54f5e8945e71017bc7acd27d",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "RMV",
+    "ticker": "RMV",
+    "sc": "0xf0949dd87d2531d665010d6274f06a357669457a",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Cros",
+    "ticker": "CROS",
+    "sc": "0x70e05a930bab8c3bf24b2b182af3f857d19377ef",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "SUT",
+    "ticker": "SUT",
+    "sc": "0x98965474ecbec2f532f1f780ee37b0b05f77ca55",
+    "decimals": 18
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "Telcoin",
+    "ticker": "TEL",
+    "sc": "0xdf7837de1f2fa4631d716cf2502f8b230f1dcc32",
+    "decimals": 2
+  },
+  {
+    "cex": "KUCOIN",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Cros",
+    "ticker": "CROS",
+    "sc": "0x70e05a930bab8c3bf24b2b182af3f857d19377ef",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "DIMO",
+    "ticker": "DIMO",
+    "sc": "0xe261d618a959afffd53168cd07d12e37b26761db",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "TSUBASA Governance",
+    "ticker": "TSUGT",
+    "sc": "0x70e29b7e036b14d496431b77e0b6eb0008be6165",
+    "decimals": 8
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "FIRE",
+    "ticker": "FIRE",
+    "sc": "0x838c9634de6590b96aeadc4bc6db5c28fd17e3c2",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "GAX Liquidity Token Reward",
+    "ticker": "GLTR",
+    "sc": "0x3801c3b3b5c98f88a9c9005966aa96aa440b9afc",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "GCAKE",
+    "ticker": "GCAKE",
+    "sc": "0x61d5822dd7b3ed495108733e6550d4529480c8f6",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "SUI Futures Bitget",
+    "ticker": "SUIBG",
+    "sc": "0xf53343233359e700e83ba797f3b9d0d7dfd27138",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "BLOK",
+    "ticker": "BLOK",
+    "sc": "0x229b1b6c23ff8953d663c4cbb519717e323a0a84",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "REELT",
+    "ticker": "REELT",
+    "sc": "0x19ccfe396006ffe7a92ab667b0ef90ce61b66f9f",
+    "decimals": 8
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "KNOT",
+    "ticker": "KNOT",
+    "sc": "0xb763f1177e9b2fb66fbe0d50372e3e2575c043e5",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Ness LAB",
+    "ticker": "NESS",
+    "sc": "0x6eaea1ed457e06f8cf6ee7adf34e621844c3b0fc",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Veloce",
+    "ticker": "VEXT",
+    "sc": "0x27842334c55c01ddfe81bf687425f906816c5141",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "GensoKishi Metaverse",
+    "ticker": "MV",
+    "sc": "0xa3c322ad15218fbfaed26ba7f616249f7705d945",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "LZBG",
+    "ticker": "LZBG",
+    "sc": "0xd424e06c39d87f12cea0b39418c7f1affcf95f9d",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "RMV",
+    "ticker": "RMV",
+    "sc": "0xf0949dd87d2531d665010d6274f06a357669457a",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "FomoBullClub",
+    "ticker": "FMBC",
+    "sc": "0x42a117208255421f76a117785fd1f4377cbb4ec9",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Abyss World",
+    "ticker": "AWT",
+    "sc": "0x0c705862f56cd8ec70337f5f5184fea4158a3c00",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "STEPN",
+    "ticker": "GMT",
+    "sc": "0x714db550b574b3e927af3d93e26127d15721d4c2",
+    "decimals": 8
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "POLYDOGE",
+    "ticker": "POLYDOGE",
+    "sc": "0x8a953cfe442c5e8855cc6c61b1293fa648bae472",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "NXD",
+    "ticker": "NXD",
+    "sc": "0x228b5c21ac00155cf62c57bcc704c0da8187950b",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Dai",
+    "ticker": "DAI",
+    "sc": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "quick",
+    "ticker": "QUICK",
+    "sc": "0xb5c064f955d8e7f38fe0460c556a72987494ee17",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "EARN M Rewards",
+    "ticker": "EARNM",
+    "sc": "0xaeb3dd897ade187b9f9e4c491bc7a81f69f7093e",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Legends of Elysium",
+    "ticker": "LOE",
+    "sc": "0x8b78927048de67b9e8c8f834359f15c3822ed871",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "SML",
+    "ticker": "SML",
+    "sc": "0xfcb54da3f4193435184f3f647467e12b50754575",
+    "decimals": 8
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "TOWER",
+    "ticker": "TOWER",
+    "sc": "0x2bc07124d8dac638e290f401046ad584546bc47b",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "CRETA",
+    "ticker": "CRETA",
+    "sc": "0x202655af326de310491cb54f120e02ee0da92b55",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Cobak Token",
+    "ticker": "CBK",
+    "sc": "0x4ec203dd0699fac6adaf483cdd2519bc05d2c573",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "WOMBAT",
+    "ticker": "WOMBAT",
+    "sc": "0x0c9c7712c83b3c70e7c5e11100d33d9401bdf9dd",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Axelar",
+    "ticker": "AXL",
+    "sc": "0x6e4e624106cb12e168e6533f8ec7c82263358940",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Wisdomise AI",
+    "ticker": "WSDM",
+    "sc": "0x5f2f8818002dc64753daedf4a6cb2ccb757cd220",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "WUSD",
+    "ticker": "WUSD",
+    "sc": "0x7cd017ca5ddb86861fa983a34b5f495c6f898c41",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Polygon",
+    "ticker": "POL",
+    "sc": "0x0000000000000000000000000000000000001010",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "nexg",
+    "ticker": "NEXG",
+    "sc": "0xaf0dc42725db75ae54f5e8945e71017bc7acd27d",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "MetaTrace",
+    "ticker": "TRC",
+    "sc": "0x40d9fc77027a281d85de1fa660c887e645ae26c3",
+    "decimals": 2
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "ADF",
+    "ticker": "ADF",
+    "sc": "0x6bd10299f4f1d31b3489dc369ea958712d27c81b",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "naka",
+    "ticker": "NAKA",
+    "sc": "0x311434160d7537be358930def317afb606c0d737",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "CrepeToken",
+    "ticker": "CRE",
+    "sc": "0xe81432473290f4ffcfc5e823f8069db83e8a677b",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "MATICUSDCE",
+    "ticker": "MATICUSDCE",
+    "sc": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "voxel",
+    "ticker": "VOXEL",
+    "sc": "0xd0258a3fd00f38aa8090dfee343f10a9d4d30d3f",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Carrieverse",
+    "ticker": "CVTX",
+    "sc": "0x40f97ec376ac1c503e755433bf57f21e3a49f440",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "SwissCheese",
+    "ticker": "SWCH",
+    "sc": "0x3ce1327867077b551ae9a6987bf10c9fd08edce1",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "OVAL3",
+    "ticker": "OVL3",
+    "sc": "0x7c6c69bafbe40b2c76a25dcdf9854c77f086e2c6",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Kommunitas",
+    "ticker": "KOM",
+    "sc": "0xc004e2318722ea2b15499d6375905d75ee5390b8",
+    "decimals": 8
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "gns",
+    "ticker": "GNS",
+    "sc": "0xe5417af564e4bfda1c483642db72007871397896",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Dtec",
+    "ticker": "DTEC",
+    "sc": "0xd87af7b418d64ff2cde48d890285ba64fc6e115f",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "Matr1x",
+    "ticker": "MAX",
+    "sc": "0xbed0b9240bdbcc8e33f66d2ca650a5ef60a5bab0",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "AEG",
+    "ticker": "AEG",
+    "sc": "0xE3f2b1B2229C0333Ad17D03F179b87500E7C5e01",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "Aki Protocol",
+    "ticker": "AKI",
+    "sc": "0x1A7e49125a6595588c9556f07a4c006461b24545",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "bitsCrunch",
+    "ticker": "BCUT",
+    "sc": "0x3fb83A9A2c4408909c058b0BfE5B4823f54fAfE2",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "BRZ",
+    "ticker": "BRZ",
+    "sc": "0x4eD141110F6EeeAbA9A1df36d8c26f684d2475Dc",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "BRZOLD",
+    "ticker": "BRZOLD",
+    "sc": "0x491a4eB4f1FC3BfF8E1d2FC856a6A46663aD556f",
+    "decimals": 4
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "Candy Pocket",
+    "ticker": "CANDY",
+    "sc": "0x32043520205367a68b527881fA594Bbc714f80ec",
+    "decimals": 8
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "Cobak Token",
+    "ticker": "CBK",
+    "sc": "0x4EC203dD0699Fac6adAF483CDd2519BC05D2c573",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "COT",
+    "ticker": "COT",
+    "sc": "0x8d520c8e66091cfd6743fe37fbe3a09505616c4b",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "DEFY",
+    "ticker": "DEFY",
+    "sc": "0xBF9f916bBda29A7F990F5F55c7607D94D7C3A60b",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "DSRUN",
+    "ticker": "DSRUN",
+    "sc": "0xFf76c0B48363A7C7307868a81548d340049b0023",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "FAR",
+    "ticker": "FAR",
+    "sc": "0x5f32abeebd3c2fac1e7459a27e1ae9f1c16cccca",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "FIRE",
+    "ticker": "FIRE",
+    "sc": "0x838C9634dE6590B96aEadC4Bc6DB5c28Fd17E3C2",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "GCAKE",
+    "ticker": "GCAKE",
+    "sc": "0x61D5822DD7b3Ed495108733e6550d4529480C8F6",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "STEPN",
+    "ticker": "GMT",
+    "sc": "0x714DB550b574b3E927af3D93E26127D15721D4C2",
+    "decimals": 8
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "KASTA",
+    "ticker": "KASTA",
+    "sc": "0x235737dBb56e8517391473f7c964DB31fA6ef280",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "MATIC",
+    "ticker": "MATIC",
+    "sc": "",
+    "decimals": 0
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "Medieval Empires",
+    "ticker": "MEE",
+    "sc": "0xEB7eaB87837f4Dad1bb80856db9E4506Fc441f3D",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "MOJO_OLD",
+    "ticker": "MOJO",
+    "sc": "0xeD2d13A70acbD61074fC56bd0d0845e35f793e5E",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "GensoKishi Metaverse",
+    "ticker": "MV",
+    "sc": "0xA3c322Ad15218fBFAEd26bA7f616249f7705D945",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "naka",
+    "ticker": "NAKA",
+    "sc": "0x311434160D7537be358930def317AfB606C0D737",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "Ness LAB",
+    "ticker": "NESS",
+    "sc": "0x6eaEA1ED457E06F8CF6eE7Adf34e621844c3b0Fc",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "Polygon",
+    "ticker": "POL",
+    "sc": "0x0000000000000000000000000000000000001010",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "ROND",
+    "ticker": "ROND",
+    "sc": "0x204820B6e6FEae805e376D2C6837446186e57981",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "Tamadoge",
+    "ticker": "TAMA",
+    "sc": "0xc61f39418cd27820b5D4E9Ba4a7197eefAEB8b05",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "MetaTrace",
+    "ticker": "TRC",
+    "sc": "0x40d9fc77027A281d85de1fa660C887E645AE26C3",
+    "decimals": 2
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+    "decimals": 6
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "decimals": 6
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "Veloce",
+    "ticker": "VEXT",
+    "sc": "0x27842334C55c01DDFE81Bf687425F906816c5141",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "ZRO",
+    "ticker": "ZRO",
+    "sc": "0x6985884C4392D348587B19cb9eAAf157F13271cd",
+    "decimals": 18
+  },
+  {
+    "cex": "OKX",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "decimals": 6
+  },
+  {
+    "cex": "OKX",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+    "decimals": 6
+  },
+  {
+    "cex": "OKX",
+    "nama_token": "CRV (PoS)",
+    "ticker": "CRV",
+    "sc": "0x172370d5cd63279efa6d502dab29171933a610af",
+    "decimals": 18
+  },
+  {
+    "cex": "OKX",
+    "nama_token": "Dai",
+    "ticker": "DAI",
+    "sc": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
+    "decimals": 18
+  },
+  {
+    "cex": "OKX",
+    "nama_token": "STEPN",
+    "ticker": "GMT",
+    "sc": "0x714db550b574b3e927af3d93e26127d15721d4c2",
+    "decimals": 8
+  },
+  {
+    "cex": "OKX",
+    "nama_token": "Matr1x",
+    "ticker": "MAX",
+    "sc": "0xbed0b9240bdbcc8e33f66d2ca650a5ef60a5bab0",
+    "decimals": 18
+  },
+  {
+    "cex": "OKX",
+    "nama_token": "Polygon",
+    "ticker": "POL",
+    "sc": "0x0000000000000000000000000000000000001010",
+    "decimals": 18
+  },
+  {
+    "cex": "INDODAX",
+    "nama_token": "APEPE",
+    "ticker": "APEPE",
+    "sc": "0xA3f751662e282E83EC3cBc387d225Ca56dD63D3A",
+    "decimals": 18
+  },
+  {
+    "cex": "INDODAX",
+    "nama_token": "AUSD",
+    "ticker": "AUSD",
+    "sc": "",
+    "decimals": 0
+  },
+  {
+    "cex": "INDODAX",
+    "nama_token": "GID",
+    "ticker": "GID",
+    "sc": "",
+    "decimals": 0
+  },
+  {
+    "cex": "INDODAX",
+    "nama_token": "IDX",
+    "ticker": "IDX",
+    "sc": "",
+    "decimals": 0
+  },
+  {
+    "cex": "INDODAX",
+    "nama_token": "Polygon",
+    "ticker": "POL",
+    "sc": "0x0000000000000000000000000000000000001010",
+    "decimals": 18
+  },
+  {
+    "cex": "INDODAX",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+    "decimals": 6
+  },
+  {
+    "cex": "INDODAX",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+    "decimals": 6
+  },
+  {
+    "cex": "INDODAX",
+    "nama_token": "voxel",
+    "ticker": "VOXEL",
+    "sc": "0xd0258a3fd00f38aa8090dfee343f10a9d4d30d3f",
+    "decimals": 18
+  }
+]

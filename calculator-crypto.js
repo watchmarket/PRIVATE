@@ -283,18 +283,26 @@
     // Fetch rates on initialization
     fetchRates();
 
-    // Keyboard shortcut: Ctrl+K or Cmd+K to open calculator
+    // Keyboard shortcuts
     $(document).on('keydown', function(event) {
-        // Check for Ctrl+K (Windows/Linux) or Cmd+K (Mac)
+        // Ctrl+K / Cmd+K → buka kalkulator
         if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
             event.preventDefault();
             event.stopPropagation();
             UIkit.modal('#calculator-modal').show();
-            console.log('✅ Calculator opened via keyboard shortcut (Ctrl/Cmd+K)');
+            return false;
+        }
+        // Ctrl+S / Cmd+S → buka setting (skip jika sedang di input/textarea)
+        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+            const tag = (event.target || {}).tagName || '';
+            if (/^(INPUT|TEXTAREA|SELECT)$/i.test(tag)) return; // biarkan browser default saat mengetik
+            event.preventDefault();
+            event.stopPropagation();
+            try { $('#SettingConfig').trigger('click'); } catch (_) { }
             return false;
         }
     });
 
-    console.log('✅ Calculator Crypto module loaded. Press Ctrl+K (or Cmd+K) to open calculator.');
+    console.log('✅ Shortcut: Ctrl+K = Kalkulator | Ctrl+S = Setting');
 
 })();
