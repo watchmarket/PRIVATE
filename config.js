@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
-          NAME: "APP PRIVATE",
-        VERSION: "2026.02.23",
+        NAME: "APP PRIVATE",
+        VERSION: "2026.02.25",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
@@ -216,7 +216,7 @@ const DEFAULT_RPC_SUGGESTIONS = {};
 
 const CONFIG_CHAINS = {
     bsc: {
-        Kode_Chain: 56, Nama_Chain: "bsc", Nama_Pendek: "bsc", URL_Chain: "https://bscscan.com", WARNA: "#f0af18", ICON: "assets/icons/chains/bsc.png", DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_BSC.json', BaseFEEDEX: "BNBUSDT", GASLIMIT: 80000,
+        Kode_Chain: 56, Nama_Chain: "bsc", Nama_Pendek: "bsc", URL_Chain: "https://bscscan.com", WARNA: "#f0af18", ICON: "assets/icons/chains/bsc.png", DATAJSON: 'https://watchmarket.github.io/JSON/SNAPSHOT_koin_BSC.json', BaseFEEDEX: "BNBUSDT", GASLIMIT: 80000,
         LINKS: {
             explorer: {
                 token: (address) => `https://bscscan.com/token/${address}`,
@@ -250,7 +250,7 @@ const CONFIG_CHAINS = {
         URL_Chain: "https://polygonscan.com",
         ICON: "assets/icons/chains/polygon.png",
         WARNA: "#cd72f4ff",
-        DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_POLYGON.json',
+        DATAJSON: 'https://watchmarket.github.io/JSON/SNAPSHOT_koin_POLYGON.json',
         BaseFEEDEX: "MATICUSDT", // Corrected from POLUSDT
         GASLIMIT: 80000,
         DEXS: ["kyber", "sushi", "okx", "relay", "flytrade", "odos", "velora", "matcha"],   // ✅ Removed Meta-DEX: lifi, rubic, rango
@@ -280,7 +280,7 @@ const CONFIG_CHAINS = {
         }
     },
     arbitrum: {
-        Kode_Chain: 42161, Nama_Chain: "arbitrum", Nama_Pendek: "arb", URL_Chain: "https://arbiscan.io", WARNA: "#a6b0c3", ICON: "assets/icons/chains/arbitrum.png", DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_ARBITRUM.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 100000,
+        Kode_Chain: 42161, Nama_Chain: "arbitrum", Nama_Pendek: "arb", URL_Chain: "https://arbiscan.io", WARNA: "#a6b0c3", ICON: "assets/icons/chains/arbitrum.png", DATAJSON: 'https://watchmarket.github.io/JSON/SNAPSHOT_koin_ARBITRUM.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 100000,
         LINKS: {
             explorer: {
                 token: (address) => `https://arbiscan.io/token/${address}`,
@@ -307,7 +307,7 @@ const CONFIG_CHAINS = {
         },
     },
     ethereum: {
-        Kode_Chain: 1, Nama_Chain: "ethereum", Nama_Pendek: "erc", URL_Chain: "https://etherscan.io", WARNA: "#8098ee", ICON: "assets/icons/chains/ethereum.png", DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_ETHEREUM.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 250000,
+        Kode_Chain: 1, Nama_Chain: "ethereum", Nama_Pendek: "erc", URL_Chain: "https://etherscan.io", WARNA: "#8098ee", ICON: "assets/icons/chains/ethereum.png", DATAJSON: 'https://watchmarket.github.io/JSON/SNAPSHOT_koin_ETHEREUM.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 250000,
         LINKS: {
             explorer: {
                 token: (address) => `https://etherscan.io/token/${address}`,
@@ -337,7 +337,7 @@ const CONFIG_CHAINS = {
     },
 
     base: {
-        Kode_Chain: 8453, Nama_Chain: "base", Nama_Pendek: "base", URL_Chain: "https://basescan.org/", WARNA: "#1e46f9", ICON: "assets/icons/chains/base.png", DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_BASE.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 100000,
+        Kode_Chain: 8453, Nama_Chain: "base", Nama_Pendek: "base", URL_Chain: "https://basescan.org/", WARNA: "#1e46f9", ICON: "assets/icons/chains/base.png", DATAJSON: 'https://watchmarket.github.io/JSON/SNAPSHOT_koin_BASE.json', BaseFEEDEX: "ETHUSDT", GASLIMIT: 100000,
         LINKS: {
             explorer: {
                 token: (address) => `https://basescan.org/token/${address}`,
@@ -374,7 +374,7 @@ const CONFIG_CHAINS = {
         URL_Chain: "https://solscan.io/",
         WARNA: "#7508a0ff",
         ICON: "assets/icons/chains/solana.png",
-        DATAJSON: 'https://ochunix.github.io/pantauan/JSON/SNAPSHOT_koin_SOLANA.json',
+        DATAJSON: 'https://watchmarket.github.io/JSON/SNAPSHOT_koin_SOLANA.json',
         BaseFEEDEX: "SOLUSDT",
         GASLIMIT: 5000, // Solana uses compute units
         LINKS: {
