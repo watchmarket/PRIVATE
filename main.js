@@ -40,6 +40,7 @@ let filteredTokens = [];
 let originalTokens = [];
 var SavedSettingData = getFromLocalStorage('SETTING_SCANNER', {});
 let activeSingleChainKey = null; // Active chain key (single mode)
+let syncSnapshotFetched = false; // Flag: WD/DP checkbox aktif hanya setelah SNAPSHOT button ditekan
 
 // Log scan limit configuration on load
 (function logScanLimitStatus() {
@@ -4113,6 +4114,7 @@ async function deferredInit() {
         }
 
         // Reset modal state
+        syncSnapshotFetched = false; // Reset: WD/DP checkbox disabled sampai SNAPSHOT ditekan
         $('#sync-modal-chain-name').text(chainConfig.Nama_Chain || String(activeSingleChainKey).toUpperCase());
         $('#sync-snapshot-chain-label').text(chainConfig.Nama_Chain || String(activeSingleChainKey).toUpperCase());
         $('#sync-modal-tbody').empty().html('<tr><td colspan="7">Memuat Data Koin...</td></tr>');
@@ -4525,6 +4527,7 @@ async function deferredInit() {
                     });
 
                     // Re-render table with updated data
+                    syncSnapshotFetched = true; // SNAPSHOT berhasil: aktifkan WD/DP checkbox
                     if (typeof window.renderSyncTable === 'function') {
                         window.renderSyncTable(activeSingleChainKey);
                     }
@@ -5829,21 +5832,9 @@ $(document).ready(function () {
             const priceJobKeys = new Set();
             const priceJobs = [];
 
-            // ========== PERFORMANCE FIX: LIMIT ROWS TO PREVENT BROWSER FREEZE ==========
-            // Jika filtered > 1000 rows, limit untuk menghindari browser hang
-            const MAX_SYNC_ROWS = 1000; // ← REDUCED dari 3000 ke 1000 untuk mencegah "Not Responding"
+            // ========== TAMPILKAN SEMUA ROWS (chunked rendering untuk dataset besar) ==========
             const totalFiltered = filtered.length;
-            if (totalFiltered > MAX_SYNC_ROWS) {
-                console.warn(`[renderSyncTableCore] Too many rows (${totalFiltered}). Limiting to ${MAX_SYNC_ROWS} rows to prevent browser freeze.`);
-                filtered = filtered.slice(0, MAX_SYNC_ROWS);
-
-                // Show warning message to user
-                if (typeof toast !== 'undefined' && toast.warning) {
-                    toast.warning(`⚠️ Menampilkan ${MAX_SYNC_ROWS} dari ${totalFiltered} koin.\n\n✅ GUNAKAN FILTER untuk mempersempit hasil:\n• Filter by CEX (BITGET, BYBIT, dll)\n• Filter by Status (WD/DP ON/OFF)\n• Filter by Pair (USDT, BTC, dll)\n\nTerlalu banyak rows menyebabkan browser hang!`, {
-                        duration: 10000
-                    });
-                }
-            }
+            // Tidak ada hard limit — semua koin ditampilkan
             // ===========================================================================
 
             // ========== OPTIMASI: BATCH DOM RENDERING ==========
@@ -6042,8 +6033,26 @@ $(document).ready(function () {
                 // =================================================================
             });
 
-            // Insert semua rows sekaligus (1× reflow, bukan 1000× reflow)
-            modalBody.html(batchHtml);
+            // Insert rows: chunked untuk dataset besar agar browser tetap responsif
+            const CHUNK_SIZE = 300;
+            if (totalFiltered <= CHUNK_SIZE) {
+                // Dataset kecil: insert langsung
+                modalBody.html(batchHtml);
+            } else {
+                // Dataset besar: split HTML per baris lalu insert per chunk
+                modalBody.empty();
+                const rows = batchHtml.match(/<tr[\s\S]*?<\/tr>/g) || [];
+                let chunkIdx = 0;
+                const insertChunk = () => {
+                    const chunk = rows.slice(chunkIdx, chunkIdx + CHUNK_SIZE).join('');
+                    modalBody.append(chunk);
+                    chunkIdx += CHUNK_SIZE;
+                    if (chunkIdx < rows.length) {
+                        requestAnimationFrame(insertChunk);
+                    }
+                };
+                insertChunk();
+            }
 
             // Update price cells setelah DOM ter-insert
             priceCellsToUpdate.forEach(cellData => {
@@ -6080,18 +6089,20 @@ $(document).ready(function () {
             }
 
             // ========== ENABLE/DISABLE WALLET FILTER CHECKBOX BERDASARKAN DATA TABEL ==========
+            // Checkbox WD/DP hanya aktif setelah user menekan SNAPSHOT [UPDATE KOIN]
             const $walletFilter = $('#sync-wallet-filter');
             if ($walletFilter.length) {
-                $walletFilter.prop('disabled', !hasTableData);
+                const walletFilterEnabled = hasTableData && syncSnapshotFetched;
+                $walletFilter.prop('disabled', !walletFilterEnabled);
 
                 // Visual feedback: opacity untuk label
                 $walletFilter.closest('label').css({
-                    opacity: hasTableData ? '1' : '0.5',
-                    pointerEvents: hasTableData ? 'auto' : 'none',
-                    cursor: hasTableData ? 'pointer' : 'not-allowed'
+                    opacity: walletFilterEnabled ? '1' : '0.5',
+                    pointerEvents: walletFilterEnabled ? 'auto' : 'none',
+                    cursor: walletFilterEnabled ? 'pointer' : 'not-allowed'
                 });
 
-                console.log('[renderSyncTable] Wallet filter checkbox:', hasTableData ? 'ENABLED' : 'DISABLED');
+                console.log('[renderSyncTable] Wallet filter checkbox:', walletFilterEnabled ? 'ENABLED' : 'DISABLED', '- snapshotFetched:', syncSnapshotFetched);
             }
 
             // Update price filter state (enable/disable berdasarkan data tabel)
