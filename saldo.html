@@ -864,7 +864,7 @@ $(document).ready(async function () {
                 <span>${item.rate ? formatUsdtValue(item.usdtValue)+' $' : 'N/A'}</span>
             </div>`).join('');
         const notes = [];
-        if ((detail.filteredCount||0) > 0) notes.push(`${detail.filteredCount} token tidak dihitung (bukan major token/gas fee)`);
+        //if ((detail.filteredCount||0) > 0) notes.push(`${detail.filteredCount} token tidak dihitung `);
         if ((detail.hiddenCount||0) > 0)   notes.push(`${detail.hiddenCount} token disembunyikan (< $1)`);
         const note = notes.length ? `<div class="uk-text-muted uk-text-small" style="margin-top:3px;">ⓘ ${notes.join(' · ')}</div>` : '';
         return `${lines}<hr class="uk-margin-small-top uk-margin-small-bottom">
@@ -890,7 +890,17 @@ $(document).ready(async function () {
         } else if (state === 'nokey') {
             saldoEl.innerHTML = '<span class="uk-text-muted" style="font-size:11px;">NO API KEY</span>';
         } else if (state === 'error') {
-            saldoEl.innerHTML = `<span class="uk-text-danger" style="font-size:11px;">ERROR: ${escHtml(msg)}</span>`;
+            // Deteksi error timestamp / clock tidak sinkron
+            const isTimeError = /timestamp|time.*ahead|time.*behind|1000ms|recvWindow|clock|invalid timestamp/i.test(msg || '');
+            if (isTimeError) {
+                saldoEl.innerHTML = `<span class="uk-text-warning" style="font-size:11px; font-weight:600;">
+                    ⚠️ Waktu laptop tidak sinkron dengan server.<br>
+                    Silakan sinkronisasi jam laptop Anda:<br>
+                    <b>Settings → Time &amp; Language → Sync now</b>
+                </span>`;
+            } else {
+                saldoEl.innerHTML = `<span class="uk-text-danger" style="font-size:11px;">ERROR: ${escHtml(msg)}</span>`;
+            }
         }
     }
 
