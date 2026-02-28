@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
-        NAME: "APP PRIVATE",
-        VERSION: "2026.02.27",
+         NAME: "APP PRIVATE",
+        VERSION: "2026.02.28",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
@@ -428,7 +428,7 @@ const CONFIG_UI = {
         { key: 'matcha', label: 'Matcha', badgeClass: 'bg-matcha', fallbackSlug: 'matcha' },
         { key: 'flytrade', label: 'Flytrade', badgeClass: 'bg-flytrade', fallbackSlug: 'flytrade' },
         { key: 'jupiter', label: 'Jupiter', badgeClass: 'bg-jupiter', fallbackSlug: 'jupiter' },
-        { key: 'dflow', label: 'DFlow', badgeClass: 'bg-dflow', fallbackSlug: 'dflow' },
+       // { key: 'dflow', label: 'DFlow', badgeClass: 'bg-dflow', fallbackSlug: 'dflow' },
         { key: 'kamino', label: 'Kamino', badgeClass: 'bg-kamino', fallbackSlug: 'kamino' },
         { key: 'rubic', label: 'Rubic', badgeClass: 'bg-rubic', fallbackSlug: 'rubic' },
         { key: 'rango', label: 'Rango', badgeClass: 'bg-rango', fallbackSlug: 'rango' }
@@ -961,22 +961,22 @@ const CONFIG_DEXS = {
         allowFallback: false // Jupiter is the main Solana DEX aggregator
     },
 
-    dflow: {
-        label: 'DFlow',
-        badgeClass: 'bg-dflow',
-        supportsSolana: true,  // Solana-only DEX
-        proxy: false, // No CORS proxy needed
-        warna: "#00d4aa", // DFlow teal/cyan
-        builder: ({ tokenAddress, pairAddress }) =>
-            `https://dflow.net/?sendToken=${tokenAddress}&receiveToken=${pairAddress}`,
-        fetchdex: {
-            primary: {
-                tokentopair: 'dflow',    // CEX→DEX: DFlow aggregator (Solana)
-                pairtotoken: 'dflow'     // DEX→CEX: DFlow aggregator (Solana)
-            }
-        },
-        allowFallback: false // DFlow is a Solana DEX aggregator
-    },
+    // dflow: {
+    //     label: 'DFlow',
+    //     badgeClass: 'bg-dflow',
+    //     supportsSolana: true,  // Solana-only DEX
+    //     proxy: false, // No CORS proxy needed
+    //     warna: "#00d4aa", // DFlow teal/cyan
+    //     builder: ({ tokenAddress, pairAddress }) =>
+    //         `https://dflow.net/?sendToken=${tokenAddress}&receiveToken=${pairAddress}`,
+    //     fetchdex: {
+    //         primary: {
+    //             tokentopair: 'dflow',    // CEX→DEX: DFlow aggregator (Solana)
+    //             pairtotoken: 'dflow'     // DEX→CEX: DFlow aggregator (Solana)
+    //         }
+    //     },
+    //     allowFallback: false // DFlow is a Solana DEX aggregator
+    // },
 
     kamino: {
         label: 'Kamino',

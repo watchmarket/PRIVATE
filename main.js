@@ -371,28 +371,26 @@ function refreshTokensTable() {
 
         // Fetch tokens from all chain DBs, filtered by CEX
         window.CEXModeManager.getEnabledTokensPerCEX(currentCEX).then(tokens => {
-            let filtered = tokens;
+            let filtered = [];
 
-            // Apply Chain Filter if active
-            if (chainsSel.length > 0) {
-                filtered = filtered.filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()));
-            }
+            // Chain dan DEX harus dipilih agar token ditampilkan (PAIR opsional)
+            if (chainsSel.length > 0 && dexSel.length > 0) {
+                filtered = tokens
+                    .filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()))
+                    .filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())));
 
-            // Apply PAIR Filter if active
-            if (pairSel.length > 0) {
-                filtered = filtered.filter(t => {
-                    const chainCfg = (window.CONFIG_CHAINS || {})[(t.chain || '').toLowerCase()] || {};
-                    const pd = chainCfg.PAIRDEXS || {};
-                    const p = String(t.symbol_out || '').toUpperCase().trim();
-                    const mapped = pd[p] ? p : 'NON';
-                    return pairSel.includes(mapped);
-                });
+                // Apply PAIR Filter jika aktif
+                if (pairSel.length > 0) {
+                    filtered = filtered.filter(t => {
+                        const chainCfg = (window.CONFIG_CHAINS || {})[(t.chain || '').toLowerCase()] || {};
+                        const pd = chainCfg.PAIRDEXS || {};
+                        const p = String(t.symbol_out || '').toUpperCase().trim();
+                        const mapped = pd[p] ? p : 'NON';
+                        return pairSel.includes(mapped);
+                    });
+                }
             }
-
-            // Apply DEX Filter if active
-            if (dexSel.length > 0) {
-                filtered = filtered.filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())));
-            }
+            // chainsSel atau dexSel kosong → filtered tetap [] (tabel kosong)
 
             // Apply sort preference (A-Z / Z-A)
             const sortPref = fm.sort || 'A';
@@ -422,10 +420,7 @@ function refreshTokensTable() {
     let flatTokens = (typeof getFlattenedSortedMulti === 'function') ? getFlattenedSortedMulti() : flattenDataKoin(getTokensMulti());
 
     let filteredByChain = [];
-    if (!filtersActive) {
-        // First load (no saved FILTER_MULTICHAIN): show all
-        filteredByChain = flatTokens;
-    } else if (chainsSel.length > 0 && cexSel.length > 0 && dexSel.length > 0) {
+    if (chainsSel.length > 0 && cexSel.length > 0 && dexSel.length > 0) {
         // Combined filter: require both CHAIN and CEX selections
         filteredByChain = flatTokens
             .filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()))

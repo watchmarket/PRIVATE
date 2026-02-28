@@ -117,11 +117,11 @@
             dex: (f.dex || []).map(x => String(x).toLowerCase()),
             sort: f.sort || 'A'
         };
-        // Default: semua chain aktif, semua dex aktif, pair kosong (= semua)
+        // Default: tidak ada filter tersimpan → kosong (user harus pilih sendiri)
         return {
-            chains: Object.keys(window.CONFIG_CHAINS || {}),
+            chains: [],
             pair: [],
-            dex: Object.keys(window.CONFIG_DEXS || {}).map(x => String(x).toLowerCase()),
+            dex: [],
             sort: 'A'
         };
     }

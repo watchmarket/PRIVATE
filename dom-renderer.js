@@ -62,7 +62,7 @@ try { if (typeof window !== 'undefined') { window.renderMonitoringHeader = rende
 function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
   // header helpers moved to top-level: computeActiveDexList(), renderMonitoringHeader()
   // refactor: pecah rendering row menjadi helper kecil agar lebih mudah dibaca/dirawat.
-  function buildOrderbookCell(side, data, idPrefix, warnaCex, warnaChain) {
+  function buildOrderbookCell(side, data, idPrefix, warnaCex, warnaChain, bgStyle) {
     const symIn = (data.symbol_in || '').toUpperCase();
     const symOut = (data.symbol_out || '').toUpperCase();
     const cc = warnaChain || warnaCex;
@@ -75,8 +75,9 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       `${String(symOut)}_` +
       `${String(data.chain).toUpperCase()}`;
     const id = idPrefix + rawId.replace(/[^A-Z0-9_]/g, '');
+    const extraBg = bgStyle ? ` ${bgStyle}` : '';
     return `
-            <td class="td-orderbook" style="color: ${warnaCex}; text-align: center; vertical-align: middle;">
+            <td class="td-orderbook" style="color: ${warnaCex}; text-align: center; vertical-align: middle;${extraBg}">
                 <div class="orderbook-wrap">
                     <div class="orderbook-scroll">
                         <span id="${id}">
@@ -87,8 +88,9 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
             </td>`;
   }
 
-  function buildDexSlots(direction, data, dexList, idPrefix, rowIndex) {
+  function buildDexSlots(direction, data, dexList, idPrefix, rowIndex, bgStyle) {
     const isLeft = direction === 'LEFT';
+    const extraBg = bgStyle ? ` ${bgStyle}` : '';
     let html = '';
     const lowerDexs = (data.dexs || []).map(d => ({
       dex: String(d.dex || '').toLowerCase(),
@@ -141,7 +143,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                         data-sym2="${sym2}"
                         data-chain="${String(data.chain).toUpperCase()}"
                         data-row-index="${rowIndex}"
-                        style="text-align: center; vertical-align: middle;">
+                        style="text-align: center; vertical-align: middle;${extraBg}">
                     <strong class="uk-align-center" style="display:inline-block; margin:0;">${dexName.toUpperCase().substring(0, 6)} [$${modal}]</strong></br>
                         <span class="dex-status uk-text-muted"> 🔒 </span>
                     </td>`;
@@ -214,10 +216,19 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
           } else if (_isCEX) {
             const _allFlat = (typeof window.getAllChainTokensFlat === 'function') ? window.getAllChainTokensFlat() : [];
             const _hasCEXTokens = _allFlat.some(t => String(t.cex || '').toUpperCase() === _activeCEX);
+            const _cexFilt = (typeof getFilterCEX === 'function') ? getFilterCEX(_activeCEX) : {};
+            const _cexFilterEmpty = (_cexFilt.chains || []).length === 0 || (_cexFilt.dex || []).length === 0;
             if (!_hasCEXTokens) {
               emptyMsg = `<div style="padding:24px 16px; text-align:center;">
                 <div style="font-size:14px; font-weight:700; color:#e74c3c; margin-bottom:8px;">⚠️ Belum ada koin untuk EXCHANGER <b>${_activeCEX}</b></div>
                 <div style="font-size:12px; color:#666;">Tambahkan koin di mode chain dan set exchanger ke <b>${_activeCEX}</b>.</div>
+              </div>`;
+            } else if (_cexFilterEmpty) {
+              emptyMsg = `<div style="padding:40px 16px; text-align:center;">
+                <div style="font-size:28px; margin-bottom:12px;">🔧</div>
+                <div style="font-size:15px; font-weight:700; color:#2980b9; margin-bottom:8px;">Belum ada filter yang dipilih</div>
+                <div style="font-size:12px; color:#666; margin-bottom:16px;">Pilih <b>CHAIN</b> dan <b>DEX</b> pada filter scanner untuk menampilkan koin yang akan di-scan.</div>
+                <button onclick="try{$('#ScannerFilterModal').trigger('click')}catch(_){}" class="uk-button uk-button-primary uk-button-small">Buka Filter Scanner</button>
               </div>`;
             } else {
               emptyMsg = `<div style="padding:24px 16px; text-align:center;">
@@ -237,22 +248,53 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                 <button onclick="try{$('#ManajemenKoin').trigger('click')}catch(_){}" class="uk-button uk-button-primary uk-button-small"><span uk-icon="plus-circle"></span> MANAJEMEN KOIN</button>
               </div>`;
             } else if (_savedMultiF) {
-              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
-                <div style="font-size:14px; font-weight:700; color:#f39c12; margin-bottom:8px;">🔍 Tidak ada koin yang sesuai filter aktif</div>
-                <div style="font-size:12px; color:#666;">Ubah filter <b>CHAIN / EXCHANGER / DEX</b> melalui tombol <b>FILTER</b>.</div>
-              </div>`;
+              // Check if filter selections are all empty (user saved filter but didn't pick any)
+              const _mf = (typeof getFilterMulti === 'function') ? getFilterMulti() : (_savedMultiF || {});
+              const _multiFilterEmpty = (_mf.chains || []).length === 0 || (_mf.cex || []).length === 0 || (_mf.dex || []).length === 0;
+              if (_multiFilterEmpty) {
+                emptyMsg = `<div style="padding:40px 16px; text-align:center;">
+                  <div style="font-size:28px; margin-bottom:12px;">🔧</div>
+                  <div style="font-size:15px; font-weight:700; color:#2980b9; margin-bottom:8px;">Belum ada filter yang dipilih</div>
+                  <div style="font-size:12px; color:#666; margin-bottom:16px;">Pilih <b>CHAIN</b>, <b>EXCHANGER</b>, dan <b>DEX</b> pada filter scanner untuk menampilkan koin yang akan di-scan.</div>
+                  <button onclick="try{$('#ScannerFilterModal').trigger('click')}catch(_){}" class="uk-button uk-button-primary uk-button-small">Buka Filter Scanner</button>
+                </div>`;
+              } else {
+                emptyMsg = `<div style="padding:24px 16px; text-align:center;">
+                  <div style="font-size:14px; font-weight:700; color:#f39c12; margin-bottom:8px;">🔍 Tidak ada koin yang sesuai filter aktif</div>
+                  <div style="font-size:12px; color:#666;">Ubah filter <b>CHAIN / EXCHANGER / DEX</b> melalui tombol <b>FILTER</b>.</div>
+                </div>`;
+              }
             } else {
-              emptyMsg = `<div style="padding:24px 16px; text-align:center;">
-                <div style="font-size:14px; font-weight:700; color:#f39c12; margin-bottom:8px;">🔍 Belum ada koin yang ditampilkan</div>
-                <div style="font-size:12px; color:#666;">Atur filter <b>CHAIN / EXCHANGER / DEX</b> melalui tombol <b>FILTER</b> untuk mulai scanning.</div>
+              emptyMsg = `<div style="padding:40px 16px; text-align:center;">
+                <div style="font-size:28px; margin-bottom:12px;">🔧</div>
+                <div style="font-size:15px; font-weight:700; color:#2980b9; margin-bottom:8px;">Belum ada filter yang dipilih</div>
+                <div style="font-size:12px; color:#666; margin-bottom:16px;">Pilih <b>CHAIN</b>, <b>EXCHANGER</b>, dan <b>DEX</b> pada filter scanner untuk menampilkan koin yang akan di-scan.</div>
+                <button onclick="try{$('#ScannerFilterModal').trigger('click')}catch(_){}" class="uk-button uk-button-primary uk-button-small">Buka Filter Scanner</button>
               </div>`;
             }
           }
         } catch (_) { }
       }
-      $tableBody.html(`<tr><td colspan="${totalCols}" class="uk-text-center uk-padding-small">${emptyMsg}</td></tr>`);
+      if (tableBodyId === 'dataTableBody') {
+        // Hide table container, show standalone message outside table
+        $('#monitoring-scroll').hide();
+        let $ph = $('#scanner-empty-placeholder');
+        if (!$ph.length) {
+          $('#monitoring-scroll').after('<div id="scanner-empty-placeholder" style="margin-top:16px;"></div>');
+          $ph = $('#scanner-empty-placeholder');
+        }
+        $ph.html(emptyMsg).show();
+      } else {
+        $tableBody.html(`<tr><td colspan="${totalCols}" class="uk-text-center uk-padding-small">${emptyMsg}</td></tr>`);
+      }
     }
     return;
+  }
+
+  // hasRows: make sure table is visible and placeholder is hidden
+  if (tableBodyId === 'dataTableBody') {
+    $('#monitoring-scroll').show();
+    $('#scanner-empty-placeholder').hide();
   }
 
   // Manage concurrent renders per table body // REFACTORED
@@ -289,13 +331,22 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const chainConfig = CONFIG_CHAINS[chainLower] || { URL_Chain: '', WARNA: '#000', Kode_Chain: '', Nama_Chain: '' };
       const warnaChain = chainConfig.WARNA || '#000';
 
-      // Start row
+      // Deteksi WX (withdraw disabled) dan DX (deposit disabled) untuk warna sisi baris
+      // WX → sisi KIRI merah | DX → sisi KANAN merah | keduanya → kedua sisi merah
+      const hasWX = (data.withdrawToken === false || data.withdrawPair === false);
+      const hasDX = (data.depositToken === false || data.depositPair === false);
+      const hasDisabledWallet = hasWX || hasDX;
+      const redBg = 'background-color: rgba(231,76,60,0.18) !important;';
+      const leftBg  = hasWX ? redBg : '';
+      const rightBg = hasDX ? redBg : '';
+
+      // Start row — plain, warna diterapkan per sel kiri/kanan
       let rowHtml = '<tr>';
 
       const idPrefix = tableBodyId + '_';
 
       // refactor: gunakan helper kecil untuk orderbook kiri
-      rowHtml += buildOrderbookCell('LEFT', data, idPrefix, warnaCex, warnaChain);
+      rowHtml += buildOrderbookCell('LEFT', data, idPrefix, warnaCex, warnaChain, leftBg);
 
       // refactor: render slot DEX kiri via helper (pass row index for unique IDs)
       rowHtml += buildDexSlots('LEFT', data, dexList, idPrefix, index);
@@ -320,21 +371,17 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const WD_PAIR = linkifyStatus(data.withdrawPair, 'WD', withdrawPairUrl);
       const DP_PAIR = linkifyStatus(data.depositPair, 'DP', depositPairUrl);
 
-      // Check if any wallet status is disabled (false) to change background
-      // IMPORTANT: This works regardless of "WALLET CEX" checkbox status
-      const hasDisabledWallet = (
-        data.withdrawToken === false ||
-        data.depositToken === false ||
-        data.withdrawPair === false ||
-        data.depositPair === false
-      );
-      // Background kolom detail: warna chain dengan opacity (lebih pekat jika ada wallet disabled)
-      const _cHex = warnaChain.replace('#', '');
-      const _cR = parseInt(_cHex.substring(0, 2) || '0', 16) || 0;
-      const _cG = parseInt(_cHex.substring(2, 4) || '0', 16) || 0;
-      const _cB = parseInt(_cHex.substring(4, 6) || '0', 16) || 0;
-      const _cAlpha = hasDisabledWallet ? 0.22 : 0.13;
-      const detailBgStyle = `font-size:11px; background-color: rgba(${_cR},${_cG},${_cB},${_cAlpha}) !important;${hasDisabledWallet ? ' border: 2px solid #e74c3c !important;' : ''}`;
+      // Background kolom detail: merah jika ada WX/DX, warna chain jika normal
+      let detailBgStyle;
+      if (hasDisabledWallet) {
+        detailBgStyle = `font-size:11px; background-color: rgba(231,76,60,0.18) !important; border: 2px solid #e74c3c !important;`;
+      } else {
+        const _cHex = warnaChain.replace('#', '');
+        const _cR = parseInt(_cHex.substring(0, 2) || '0', 16) || 0;
+        const _cG = parseInt(_cHex.substring(2, 4) || '0', 16) || 0;
+        const _cB = parseInt(_cHex.substring(4, 6) || '0', 16) || 0;
+        detailBgStyle = `font-size:11px; background-color: rgba(${_cR},${_cG},${_cB},0.13) !important;`;
+      }
 
       const chainData = getChainData(data.chain);
       const walletObj = chainData?.CEXCHAIN?.[data.cex] || {};
@@ -421,7 +468,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       rowHtml += buildDexSlots('RIGHT', data, dexList, idPrefix, index);
 
       // refactor: gunakan helper kecil untuk orderbook kanan
-      rowHtml += buildOrderbookCell('RIGHT', data, idPrefix, warnaCex, warnaChain);
+      rowHtml += buildOrderbookCell('RIGHT', data, idPrefix, warnaCex, warnaChain, rightBg);
 
       // End row
       rowHtml += '</tr>';
@@ -1832,7 +1879,7 @@ function DisplayPNL(data) {
 
   // Highlight + UIkit
   const netClass = (pnl >= 0.02) ? 'uk-text-success' : 'uk-text-danger';
-  const bracket = `[${bruto.toFixed(2)} ~ ${feeAll.toFixed(2)}]`;
+  const bracket = `[${bruto.toFixed(2)} ~ <b>${feeAll.toFixed(2)}</b>]`;
 
   // ✅ FIXED: Pisahkan profit indication (background) dari highlight (border)
   // Background hijau muncul kapanpun PNL > 0 (profit)

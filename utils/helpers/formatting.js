@@ -30,20 +30,32 @@
             return price.toFixed(3) + '$'; // Jika >= 1, tampilkan 2 angka desimal
         }
 
-        let strPrice = price.toFixed(20).replace(/0+$/, ''); // Paksa format desimal, hapus nol di akhir
+        // toPrecision(4) rounds to 4 significant figures before string extraction,
+        // preventing float representation artifacts (e.g., 0.017999... displaying as 0.01799)
+        let strPrice = price.toPrecision(4);
         let match = strPrice.match(/0\.(0*)(\d+)/); // Ambil nol setelah koma dan angka signifikan
 
         if (match) {
             let zeroCount = match[1].length; // Hitung jumlah nol setelah koma
-            let significant = match[2].substring(0, 4); // Ambil 5 digit signifikan pertama
+            let significant = match[2].substring(0, 4); // Ambil 4 digit signifikan pertama
 
-            // Jika angka signifikan kurang dari 5 digit, tambahkan nol di akhir
+            // Jika angka signifikan kurang dari 4 digit, tambahkan nol di akhir
             significant = significant.padEnd(4, '0');
 
             if (zeroCount >= 2) {
                 return `0.{${zeroCount}}${significant}$`; // Format dengan {N} jika nol >= 2
             } else {
                 return `0.${match[1]}${significant}$`; // Format biasa jika nol < 2
+            }
+        }
+
+        // Handle scientific notation dari toPrecision untuk harga sangat kecil (e.g., 1.234e-7)
+        if (strPrice.includes('e-')) {
+            const [mantissa, expPart] = strPrice.split('e-');
+            const zeroCount = parseInt(expPart) - 1;
+            const significant = mantissa.replace('.', '').substring(0, 4).padEnd(4, '0');
+            if (zeroCount >= 2) {
+                return `0.{${zeroCount}}${significant}$`;
             }
         }
 

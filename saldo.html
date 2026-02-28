@@ -703,17 +703,24 @@ $(document).ready(async function () {
     let idrRate = parseFloat(localStorage.getItem('MULTI_USDTRate')) || 0;
 
     const priceCache = { tickers: new Map(), lastFetch: 0 };
+    let _tickerFetchPromise = null; // Guard: hanya 1 fetch Binance meski dipanggil concurrent
 
     async function ensureTickerCache() {
         if (priceCache.tickers.size && (Date.now()-priceCache.lastFetch) < 60000)
             return priceCache.tickers;
-        const map = new Map();
-        try {
-            const r = await fetch("https://data-api.binance.vision/api/v3/ticker/price");
-            if (r.ok) { (await r.json()).forEach(i => { if(i.symbol&&i.price) map.set(i.symbol.toUpperCase(), parseFloat(i.price)); }); }
-        } catch(e) { console.warn('[Ticker] Binance failed:', e.message); }
-        if (map.size > 0) { priceCache.tickers = map; priceCache.lastFetch = Date.now(); }
-        return priceCache.tickers;
+        // Jika fetch sedang berjalan, tunggu hasilnya (jangan buat request baru)
+        if (_tickerFetchPromise) return _tickerFetchPromise;
+        _tickerFetchPromise = (async () => {
+            const map = new Map();
+            try {
+                const r = await fetch("https://data-api.binance.vision/api/v3/ticker/price");
+                if (r.ok) { (await r.json()).forEach(i => { if(i.symbol&&i.price) map.set(i.symbol.toUpperCase(), parseFloat(i.price)); }); }
+            } catch(e) { console.warn('[Ticker] Binance failed:', e.message); }
+            if (map.size > 0) { priceCache.tickers = map; priceCache.lastFetch = Date.now(); }
+            _tickerFetchPromise = null;
+            return priceCache.tickers;
+        })();
+        return _tickerFetchPromise;
     }
 
     async function getUsdtRate(symbol) {
@@ -1259,16 +1266,17 @@ $(document).ready(async function () {
             let   addrDone  = 0;
             const totalAddr = addrMap.size;
 
-            for (const [address, { chains: chainIds, chainKeys }] of addrMap) {
-                const pct = 20 + (addrDone/totalAddr)*70;
-                window.BalanceCheckOverlay.updateProgress(pct, `Memproses ${address.slice(0,8)}...`);
-
+            // Proses semua alamat secara PARALEL (bukan sequential) untuk kecepatan maksimal
+            await Promise.all([...addrMap.entries()].map(async ([address, { chains: chainIds, chainKeys }]) => {
                 // Split EVM / Solana
                 const evmIds = isEvmAddress(address) ? chainIds.filter(id=>id!=='501') : [];
                 const solIds = !isEvmAddress(address) ? chainIds.filter(id=>id==='501') : [];
                 const reqIds = isEvmAddress(address) ? evmIds : solIds;
 
-                if (!reqIds.length) { addrDone++; continue; }
+                if (!reqIds.length) { addrDone++; return; }
+
+                const pct = 20 + (addrDone/totalAddr)*70;
+                window.BalanceCheckOverlay.updateProgress(pct, `Memproses ${address.slice(0,8)}...`);
 
                 try {
                     const data = await okxFetchWithRetry(address, reqIds);
@@ -1332,8 +1340,7 @@ $(document).ready(async function () {
                 }
 
                 addrDone++;
-                await sleep(300);
-            }
+            }));
 
             window.BalanceCheckOverlay.updateProgress(90, 'Merender tabel...');
 

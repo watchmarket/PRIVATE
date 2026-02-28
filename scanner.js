@@ -1282,11 +1282,11 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                         ? `    🛒 Beli di ${ce} @ $${buyPriceCEX.toFixed(6)} → ${amtIn.toFixed(6)} ${nameIn}`
                                         : `    🛒 Beli di ${dx} @ ~$${effDexPerToken.toFixed(6)} / ${nameOut}`;
                                     const buyIdrLine = isKiri
-                                        ? `    💱 Harga Beli (${ce}) dalam IDR: ${toIDR(buyPriceCEX)}`
-                                        : `    💱 Harga Beli (${dx}) dalam IDR: ${toIDR(effDexPerToken)}`;
+                                        ? `    💱 Harga Beli (${ce}): $${buyPriceCEX.toFixed(6)} USDT | ${toIDR(buyPriceCEX)}`
+                                        : `    💱 Harga Beli (${dx}): ~$${effDexPerToken.toFixed(6)} USDT | ${toIDR(effDexPerToken)}`;
                                     const sellIdrLine = isKiri
-                                        ? `    💱 Harga Jual (${dx}) dalam IDR: ${toIDR(effDexPerToken)}`
-                                        : `    💱 Harga Jual (${ce}) dalam IDR: ${toIDR(Number(DataCEX.priceSellToken || 0))}`;
+                                        ? `    💱 Harga Jual (${dx}): ~$${effDexPerToken.toFixed(6)} USDT | ${toIDR(effDexPerToken)}`
+                                        : `    💱 Harga Jual (${ce}): $${Number(DataCEX.priceSellToken || 0).toFixed(6)} USDT | ${toIDR(Number(DataCEX.priceSellToken || 0))}`;
                                     // Header block (selalu tampil di awal tooltip)
                                     const nowStr = (new Date()).toLocaleTimeString();
                                     const viaName = (function () {
