@@ -511,7 +511,13 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
     // Jeda per-DEX untuk rate limiting (dapat di-set via settings, default 0 = no delay)
     // User dapat mengatur delay berbeda untuk setiap DEX jika ada rate limit
     const jedaDexMap = (ConfigScan || {}).JedaDexs || {};
-    const getJedaDex = (dx) => parseInt(jedaDexMap[dx]) || 0;  // Default 0ms (no delay)
+    // Fallback ke CONFIG_DEXS[dx].delay jika user belum set (berlaku untuk meta-DEX seperti LIFI, Rubic, dll.)
+    const getJedaDex = (dx) => {
+        const userVal = jedaDexMap[String(dx).toLowerCase()];
+        if (userVal !== undefined && userVal !== null && userVal !== '') return parseInt(userVal) || 0;
+        const configDelay = (window.CONFIG_DEXS || {})[String(dx).toLowerCase()]?.delay;
+        return parseInt(configDelay) || 0;
+    };
 
     // Fungsi helper untuk membuat jeda (delay).
     function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }

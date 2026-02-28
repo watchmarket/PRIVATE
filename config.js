@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
-         NAME: "APP PRIVATE",
-        VERSION: "2026.02.28",
+               NAME: "APP PRIVATE",
+        VERSION: "2026.02.29",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
@@ -464,7 +464,7 @@ const CONFIG_UI = {
         timeout: {
             // ========== Official DEX APIs ==========
             // Fast APIs - optimized for quick scanning (500+ coins)
-            'kyber': 3000,           // KyberSwap: 3s (60 req/min, fast API)
+            'kyber': 4000,           // KyberSwap: 4s (60 req/min, fast API)
             'velora6': 4000,         // Velora v6.2: 4s (ParaSwap based)
             'velora5': 4000,         // Velora v5: 4s (ParaSwap v5 API fallback)
             'matcha': 3500,          // Matcha/0x: 3.5s (<250ms median, but allow buffer)
@@ -776,8 +776,8 @@ const CONFIG_DEXS = {
                 pairtotoken: 'kyber'           // DEX→CEX: Official KyberSwap API
             },
             secondary: {
-                tokentopair: 'lifi-kyber',     // CEX→DEX: LIFI filtered (rotation)
-                pairtotoken: 'swoop-kyber'     // DEX→CEX: SWOOP filtered (rotation)
+                tokentopair: 'swoop-kyber',     // CEX→DEX: SWOOP filtered (rotation)
+                pairtotoken: 'lifi-kyber'     // DEX→CEX: LIFI filtered (rotation)
             }
         },
         allowFallback: true,  // ✅ Enable rotation between primary and alternative
@@ -911,8 +911,8 @@ const CONFIG_DEXS = {
                 pairtotoken: 'hinkal-odos'     // DEX→CEX: Hinkal ODOS proxy (request ganjil)
             },
             secondary: {                       // ✅ ROTATION: bergantian dengan primary
-                tokentopair: 'lifi-odos',      // CEX→DEX: LIFI filtered (request genap)
-                pairtotoken: 'swoop-odos'      // DEX→CEX: SWOOP filtered (request genap)
+                tokentopair: 'swoop-odos',     // CEX→DEX: SWING filtered for ODOS (request genap)
+                pairtotoken: 'swing-odos'      // DEX→CEX: SWING filtered for ODOS (request genap)
             }
         },
         allowFallback: true,  // ✅ Jika yang dipilih gagal, coba yang lain
@@ -984,6 +984,7 @@ const CONFIG_DEXS = {
         proxy: true,
         warna: "#7c3aed", // Kamino purple
         isMetaDex: true,  // ✅ META-DEX: Mark as meta-aggregator (Solana only)
+        delay: 500,       // ✅ Hardcoded: 500ms jeda antar request
         isMultiDex: true, // ⭐ Multi-DEX aggregator like LIFI/DZAP
         builder: ({ tokenAddress, pairAddress }) =>
             `https://app.kamino.finance/liquidity/swap?tokenIn=${tokenAddress}&tokenOut=${pairAddress}`,
@@ -1004,6 +1005,8 @@ const CONFIG_DEXS = {
         warna: "#ea4aaa", // LIFI pink
         isMetaDex: true,  // ✅ META-DEX: Mark as meta-aggregator
         evmOnly: true,    // ✅ META-DEX: EVM chains only (Solana uses different aggregators)
+        proxy: true,      // ✅ Gunakan CORS proxy: ubah IP + fix Origin:null → kurangi 429
+        delay: 800,       // ✅ Hardcoded: 800ms jeda antar request (rate limit ~200 req/min)
         // ❌ REMOVED: isMultiDex - LIFI is now a REST API provider (single-quote)
         builder: ({ chainCode, tokenAddress, pairAddress }) => {
             return `https://jumper.exchange/?fromChain=${chainCode}&fromToken=${tokenAddress}&toChain=${chainCode}&toToken=${pairAddress}`;
@@ -1028,6 +1031,7 @@ const CONFIG_DEXS = {
         warna: "#7c3aed",  // Rubic purple
         isMetaDex: true,  // ✅ META-DEX: Mark as meta-aggregator
         evmOnly: true,    // ✅ META-DEX: EVM chains only
+        delay: 1000,      // ✅ Hardcoded: 1000ms jeda antar request
         isMultiDex: true, // Returns multiple quotes from different providers
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.rubic.exchange/?fromChain=${chainCode}&toChain=${chainCode}&from=${tokenAddress}&to=${pairAddress}`,
@@ -1048,6 +1052,7 @@ const CONFIG_DEXS = {
         warna: "#00d4aa",  // Rango teal
         isMetaDex: true,  // ✅ META-DEX: Mark as meta-aggregator
         evmOnly: true,    // ✅ META-DEX: EVM chains only
+        delay: 1000,      // ✅ Hardcoded: 1000ms jeda antar request
         isMultiDex: true, // Returns multiple quotes from different providers
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.rango.exchange/?from=${chainCode}&to=${chainCode}&fromToken=${tokenAddress}&toToken=${pairAddress}`,

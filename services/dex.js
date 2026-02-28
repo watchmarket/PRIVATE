@@ -3277,11 +3277,15 @@
           // ✅ SINGLE SOURCE OF TRUTH: Read proxy setting from config.js only
           const cfg = (root.CONFIG_DEXS && root.CONFIG_DEXS[dexType]) ? root.CONFIG_DEXS[dexType] : {};
 
-          // ✅ CRITICAL FIX: Explicit check for proxy = true
-          // If proxy is explicitly set to false, DO NOT use proxy
-          // If proxy is undefined or not set, also DO NOT use proxy (default: no proxy)
-          // Only use proxy if explicitly set to true
-          const useProxy = cfg.proxy === true; // MUST be explicitly true
+          // ✅ For filtered strategies like 'lifi-kyber', also check the strategy provider's proxy config.
+          // dexType = 'kyber' (DEX column) but the real caller is 'lifi' (from sKey prefix).
+          // Extract provider by taking the part before the first '-' in sKey.
+          const _strategyProvider = sKey.includes('-') ? sKey.split('-')[0] : '';
+          const _providerCfg = (_strategyProvider && root.CONFIG_DEXS && root.CONFIG_DEXS[_strategyProvider])
+            ? root.CONFIG_DEXS[_strategyProvider] : {};
+
+          // Use proxy if EITHER the DEX column config OR the strategy provider config has proxy: true
+          const useProxy = cfg.proxy === true || _providerCfg.proxy === true; // MUST be explicitly true
 
           const proxyPrefix = (root.CONFIG_PROXY && root.CONFIG_PROXY.PREFIX) ? String(root.CONFIG_PROXY.PREFIX) : '';
           const finalUrl = (useProxy && proxyPrefix && typeof url === 'string' && !url.startsWith(proxyPrefix)) ? (proxyPrefix + url) : url;
@@ -3289,8 +3293,10 @@
           // Debug logging for proxy configuration
           console.log(`[${dexType.toUpperCase()} PROXY]`, {
             dexType,
-            configExists: !!root.CONFIG_DEXS?.[dexType],
-            proxyValueInConfig: cfg.proxy,
+            sKey,
+            strategyProvider: _strategyProvider || '(none)',
+            cfgProxy: cfg.proxy,
+            providerCfgProxy: _providerCfg.proxy,
             useProxy,
             willUseProxy: useProxy && !!proxyPrefix && !url.startsWith(proxyPrefix),
             originalUrl: url.substring(0, 80) + '...',
