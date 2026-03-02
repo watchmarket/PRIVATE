@@ -1,6 +1,6 @@
 const CONFIG_APP = {
     APP: {
-           NAME: "APP PRIVATE",
+         NAME: "APP PRIVATE",
         VERSION: "2026.03.02",
         SCAN_LIMIT: false,
         AUTORUN: true,
@@ -28,12 +28,13 @@ const CONFIG_APP = {
         // Daftar aggregator META-DEX yang tersedia.
         // Setiap aggregator mengembalikan BANYAK quote dari berbagai DEX sekaligus.
         aggregators: {
-            lifi: { enabled: true, evmOnly: false, jedaDex: 400, label: 'LIFI' },  // EVM + Solana multi-route
+            lifi: { enabled: true, evmOnly: false, jedaDex: 600, label: 'LIFI' },  // EVM + Solana multi-route
            // dzap: { enabled: true, evmOnly: false, jedaDex: 500, label: 'DZAP' },  // EVM + Solana multi-route
            // rubic: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rubic' },  // EVM + Solana multi-quote
             rango: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rango' },  // EVM + Solana multi-quote
             kamino: { enabled: true, evmOnly: false, solanaOnly: true, jedaDex: 500, label: 'Kamino' },  // Solana-only multi-quote
             rocketx: { enabled: true, evmOnly: true, jedaDex: 600, label: 'RocketX' },  // EVM multi-quote (RELAY, ParaSwap, 1inch, Uniswap dll)
+            metax: { enabled: true, evmOnly: true, jedaDex: 800, label: 'METAX' },     // MetaMask Bridge EVM-only, SSE streaming
         },
 
         // Chain yang didukung semua META-DEX aggregators (EVM + Solana)
@@ -550,6 +551,7 @@ const CONFIG_UI = {
             'rubic': 6000,           // Rubic multi-quote: 6s
             'kamino': 5000,          // Kamino (Solana): 5s
             'rocketx': 8000,         // RocketX: 8s (multi-provider response)
+            'metax': 7000,          // MetaMask Bridge: 12s (SSE stream, collect all quotes)
 
             // ========== Default Fallback ==========
             'default': 5000          // Default: 5s (balanced)
@@ -1177,6 +1179,27 @@ const CONFIG_DEXS = {
             primary: {
                 tokentopair: 'rocketx',
                 pairtotoken: 'rocketx'
+            }
+        },
+        allowFallback: false
+    },
+
+    metax: {
+        label: 'MetaX',
+        badgeClass: 'bg-metax',
+        disabled: false,
+        proxy: false,        // SSE langsung dari browser (EventSource), tidak lewat proxy
+        warna: "#ec7506ff",    // MetaMask orange
+        isMetaDex: true,    // ✅ Meta-DEX: SSE streaming multi-quote
+        evmOnly: true,      // EVM only (ETH, BSC, Polygon, Arbitrum, Optimism, Base, Avalanche)
+        delay: 800,
+        isMultiDex: true,
+        builder: ({ chainCode, tokenAddress, pairAddress }) =>
+            `https://portfolio.metamask.io/bridge?srcChain=${chainCode}&srcToken=${tokenAddress}&destChain=${chainCode}&destToken=${pairAddress}`,
+        fetchdex: {
+            primary: {
+                tokentopair: 'metax',
+                pairtotoken: 'metax'
             }
         },
         allowFallback: false

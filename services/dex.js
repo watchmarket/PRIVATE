@@ -2980,6 +2980,149 @@
   };
 
   // =============================
+  // METAX Strategy - MetaMask Bridge SSE Streaming
+  // =============================
+  // Protokol: SSE (Server-Sent Events) via EventSource
+  // Endpoint: https://bridge.api.cx.metamask.io/getQuoteStream
+  // Event type: "quote" — setiap event = 1 quote dari 1 provider
+  // EVM only, same-chain swap (srcChainId === destChainId)
+  dexStrategies.metax = {
+    execute: ({ chainName, sc_input_in, sc_output_in, amount_in_big, des_output, SavedSettingData }) => {
+      return new Promise((resolve, reject) => {
+        // Chain ID mapping (EVM only)
+        const metaxChainMap = {
+          'ethereum': 1, 'eth': 1,
+          'bsc': 56, 'bnb': 56, 'binance': 56,
+          'polygon': 137, 'matic': 137,
+          'arbitrum': 42161, 'arb': 42161,
+          'optimism': 10, 'op': 10,
+          'base': 8453,
+          'avalanche': 43114, 'avax': 43114,
+          'zksync': 324,
+          'linea': 59144
+        };
+
+        const chain = String(chainName || '').toLowerCase();
+        const chainId = metaxChainMap[chain];
+        if (!chainId) return reject(new Error(`MetaX: Chain tidak didukung: ${chainName}`));
+
+        const walletAddr = (SavedSettingData?.walletMeta) || '0x0000000000000000000000000000000000000000';
+        const fromToken = String(sc_input_in || '').toLowerCase();
+        const toToken   = String(sc_output_in || '').toLowerCase();
+        const srcAmount = amount_in_big.toString();
+
+        const url = `https://bridge.api.cx.metamask.io/getQuoteStream` +
+          `?walletAddress=${walletAddr}&destWalletAddress=${walletAddr}` +
+          `&srcChainId=${chainId}&destChainId=${chainId}` +
+          `&srcTokenAddress=${fromToken}&destTokenAddress=${toToken}` +
+          `&srcTokenAmount=${srcAmount}` +
+          `&insufficientBal=true&resetApproval=false&gasIncluded=true&gasIncluded7702=false&slippage=0.5`;
+
+        const quotes = [];
+        let settled = false;
+        let es;
+
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          try { es.close(); } catch (_) {}
+
+          if (quotes.length === 0) return reject(new Error('MetaX: Tidak ada quote diterima'));
+
+          // Parse tiap quote jadi subResult
+          const subResults = [];
+          for (const item of quotes) {
+            try {
+              const q = item.quote || item;
+              if (!q || !q.destTokenAmount) continue;
+
+              const destDecimals = Number(q.destAsset?.decimals ?? des_output);
+              const amount_out = parseFloat(q.destTokenAmount) / Math.pow(10, destDecimals);
+              if (!Number.isFinite(amount_out) || amount_out <= 0) continue;
+
+              // Fee MetaBridge (platform fee, bukan gas)
+              let FeeSwap = 0;
+              try {
+                const mb = q.feeData?.metabridge;
+                if (mb && mb.amount) {
+                  const feeDecimals = Number(mb.asset?.decimals ?? 18);
+                  const feePriceUSD = parseFloat(mb.asset?.priceUSD ?? 0);
+                  FeeSwap = (parseFloat(mb.amount) / Math.pow(10, feeDecimals)) * feePriceUSD;
+                }
+              } catch (_) {}
+              // Fallback ke gas estimate jika fee tidak tersedia
+              if (FeeSwap <= 0) FeeSwap = (typeof getFeeSwap === 'function') ? getFeeSwap(chainName) : 0;
+
+              // Provider name dari bridgeId + step pertama
+              let providerName = String(q.bridgeId || 'METAX').toUpperCase();
+              try {
+                const swapStep = (q.steps || []).find(s => s.action === 'swap');
+                const proto = swapStep?.protocol?.displayName || swapStep?.protocol?.name;
+                if (proto) providerName = String(proto).toUpperCase();
+              } catch (_) {}
+
+              subResults.push({ amount_out, FeeSwap, dexTitle: providerName });
+            } catch (_) { continue; }
+          }
+
+          if (subResults.length === 0) return reject(new Error('MetaX: Tidak ada quote valid'));
+
+          // Top-N dari setting user
+          const maxN = (() => {
+            try {
+              const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+              if (v > 0) return v;
+            } catch (_) {}
+            return (typeof window !== 'undefined' && window.CONFIG_DEXS?.metax?.maxProviders) || 3;
+          })();
+
+          subResults.sort((a, b) => b.amount_out - a.amount_out);
+          const topN = subResults.slice(0, maxN);
+          console.log(`[METAX] Top ${topN.length} quotes dari ${quotes.length} SSE events`);
+
+          resolve({
+            amount_out: topN[0].amount_out,
+            FeeSwap: topN[0].FeeSwap,
+            dexTitle: 'METAX',
+            subResults: topN,
+            isMultiDex: true,
+            apiUrl: url
+          });
+        };
+
+        // Timeout: tutup stream setelah 10 detik dan proses semua quote yang sudah masuk
+        const timer = setTimeout(finish, 10000);
+
+        try {
+          es = new EventSource(url);
+
+          es.addEventListener('quote', (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              quotes.push(data);
+            } catch (_) {}
+          });
+
+          es.onerror = () => {
+            clearTimeout(timer);
+            finish();
+          };
+
+          // Event 'end' jika server menutup stream lebih awal
+          es.addEventListener('end', () => {
+            clearTimeout(timer);
+            finish();
+          });
+
+        } catch (e) {
+          clearTimeout(timer);
+          reject(new Error(`MetaX: EventSource gagal: ${e.message}`));
+        }
+      });
+    }
+  };
+
+  // =============================
   // RANGO Filtered Strategy Factory - Rango as REST API Provider
   // =============================
   /**
@@ -3419,6 +3562,27 @@
           if (!strategy) return rej(new Error(`Unsupported strategy: ${sKey}`));
 
           const requestParams = { chainName, sc_input, sc_output, amount_in_big, des_output, SavedSettingData, codeChain, action, des_input, sc_input_in, sc_output_in };
+
+          // ✅ SSE strategy (e.g. MetaMask Bridge) — has execute() instead of buildRequest()
+          if (typeof strategy.execute === 'function') {
+            try {
+              const parsed = await strategy.execute(requestParams);
+              res({
+                dexTitle: parsed.dexTitle,
+                sc_input, des_input, sc_output, des_output,
+                FeeSwap: parsed.FeeSwap,
+                amount_out: parsed.amount_out,
+                apiUrl: parsed.apiUrl || '',
+                tableBodyId,
+                subResults: parsed.subResults || null,
+                isMultiDex: parsed.isMultiDex || false,
+                routeTool: null
+              });
+            } catch (e) {
+              rej({ statusCode: 0, pesanDEX: `${sKey.toUpperCase()}: ${e.message}`, DEX: sKey.toUpperCase() });
+            }
+            return;
+          }
 
           // ✅ FIX: Support async buildRequest (for Matcha JWT)
           let buildResult;

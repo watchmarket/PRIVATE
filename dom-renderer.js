@@ -1513,7 +1513,7 @@ function DisplayPNL(data) {
             <a class="uk-text-danger" href="${sellLink}" target="_blank" rel="noopener" title="${tipSell}" style="text-decoration: none; display: block;">⬇ ${fmtUSD(sellPrice)}</a>
             <div class="uk-text-primary" style="font-size: 0.95em;">${feeLabel1}</div>
             <div class="uk-text-muted" style="font-size: 0.95em;">💸SW:${feeSwap.toFixed(4)}$</div>
-            <div class="uk-text-danger" style="font-size: 0.95em;">[${subBruto.toFixed(2)}~${subTotalFee.toFixed(2)}]</div>
+            <div class="uk-text-danger" style="font-size: 0.95em;">[${subBruto.toFixed(2)}~<b style="font-size: small;">${subTotalFee.toFixed(2)}</b>]</div>
             <div class="${pnlClass}" style="font-weight: bold;">💰PNL:${subPnl.toFixed(2)}</div>
           </div>
         `;
@@ -2172,7 +2172,11 @@ function InfoSinyal(DEXPLUS, TokenPair, PNL, totalFee, cex, NameToken, NamePair,
 function calculateResult(baseId, tableBodyId, amount_out, FeeSwap, sc_input, sc_output, cex, Modal, amount_in, priceBuyToken_CEX, priceSellToken_CEX, priceBuyPair_CEX, priceSellPair_CEX, Name_in, Name_out, feeWD, dextype, nameChain, codeChain, trx, vol, DataDEX) {
   const NameX = Name_in + "_" + Name_out;
   const FeeWD = parseFloat(feeWD);
-  const FeeTrade = parseFloat(0.0014 * Modal);
+  // Non-USDT pair = 2 transaksi CEX (beli TOKEN + jual PAIR ke USDT) → 2x FeeTrade
+  const _pairIsStable = (trx === 'TokentoPair')
+    ? String(Name_out || '').toUpperCase() === 'USDT'
+    : String(Name_in || '').toUpperCase() === 'USDT';
+  const FeeTrade = parseFloat(0.0014 * Modal * (_pairIsStable ? 1 : 2));
 
   FeeSwap = parseFloat(FeeSwap) || 0;
   Modal = parseFloat(Modal) || 0;

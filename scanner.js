@@ -1306,7 +1306,11 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     // Estimate: transfer gas ~50% dari swap gas (karena transfer lebih simple)
                                     const feeTransfer = !isKiri ? (feeSwap * 0.5) : 0;
 
-                                    const feeTrade = 0.0014 * modal;
+                                    // Non-USDT pair = 2 transaksi CEX (beli TOKEN + jual PAIR ke USDT) → 2x feeTrade
+                                    const _pairIsStable = isKiri
+                                        ? nameOut === 'USDT'
+                                        : nameIn === 'USDT';
+                                    const feeTrade = 0.0014 * modal * (_pairIsStable ? 1 : 2);
 
                                     // Harga efektif DEX (USDT/token)
                                     let effDexPerToken = 0;
