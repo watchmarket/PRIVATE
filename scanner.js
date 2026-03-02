@@ -1980,6 +1980,12 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                         }
 
                         // Panggil API Meta-DEX dengan per-aggregator scheduler (cegah burst ke rate-limited API)
+                        // ✅ AUTO LEVEL: Gunakan avgPrice dari orderbook untuk hitung PNL (sama seperti DEX biasa)
+                        const cexBuyPriceCalcMeta = (autoVolMeta && !autoVolMeta.error && isKiriMeta)
+                            ? autoVolMeta.avgPrice : DataCEX.priceBuyToken;
+                        const cexSellPriceCalcMeta = (autoVolMeta && !autoVolMeta.error && !isKiriMeta)
+                            ? autoVolMeta.avgPrice : DataCEX.priceSellToken;
+
                         scheduleMetaDexRequest(aggKey, jedaAgg, () => {
                             markDexRequestStart();
                             if (!isScanRunning) { markDexRequestEnd(); return; }
@@ -2001,7 +2007,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                             isKiriMeta ? token.sc_in : token.sc_out,
                                             isKiriMeta ? token.sc_out : token.sc_in,
                                             token.cex, modalMeta, amountInMeta,
-                                            DataCEX.priceBuyToken, DataCEX.priceSellToken,
+                                            cexBuyPriceCalcMeta, cexSellPriceCalcMeta,
                                             DataCEX.priceBuyPair, DataCEX.priceSellPair,
                                             isKiriMeta ? token.symbol_in : token.symbol_out,
                                             isKiriMeta ? token.symbol_out : token.symbol_in,
@@ -2016,6 +2022,12 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                             if (autoVolSettings.autoLevel && autoVolMeta && !autoVolMeta.error) {
                                                 update.autoVolResult = autoVolMeta;
                                                 update.maxModal = maxModalMeta;
+                                                // ✅ Override display price ke lastLevelPrice (sama seperti DEX biasa)
+                                                if (isKiriMeta) {
+                                                    update.cexBuyPriceDisplay = autoVolMeta.lastLevelPrice;
+                                                } else {
+                                                    update.cexSellPriceDisplay = autoVolMeta.lastLevelPrice;
+                                                }
                                             }
                                             uiUpdateQueue.push(update);
                                         }

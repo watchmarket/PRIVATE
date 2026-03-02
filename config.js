@@ -1,6 +1,7 @@
 const CONFIG_APP = {
     APP: {
-//         NAME: "APP_PANTAUAN",
+       //  NAME: "APP_PANTAUAN",
+//NAME: "WATCHMARKET-TEST",
           NAME: "APP PRIVATE",
         VERSION: "2026.03.02",
         SCAN_LIMIT: false,
