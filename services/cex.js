@@ -466,12 +466,60 @@
                 const url = `https://indodax.com/api/summaries`;
                 const response = await $.ajax({ url });
                 const list = response?.tickers || {};
-                // Fix: Remove both underscore and IDR suffix (e.g., "islm_idr" -> "ISLM")
-                const arr = Object.keys(list).map(k => ({
+                // Remove underscore and IDR suffix (e.g., "islm_idr" -> "ISLM")
+                const allCoins = Object.keys(list).map(k => k.toUpperCase().replace('_IDR', ''));
+
+                // Try to fetch real withdrawal fee via Private API (only for coins in scan list)
+                const feeMap = {};
+                let indoCreds = null;
+                if (typeof getCEXCredentials === 'function') {
+                    indoCreds = getCEXCredentials('INDODAX');
+                }
+                if (indoCreds?.ApiKey && indoCreds?.ApiSecret) {
+                    // Get only coins that exist in user's token list (reduce API calls)
+                    const allTokens = (typeof getFromLocalStorage === 'function')
+                        ? getFromLocalStorage('TOKEN_MULTICHAIN', []) : [];
+                    const neededCoins = new Set();
+                    (Array.isArray(allTokens) ? allTokens : []).forEach(t => {
+                        if (t?.symbol_in) neededCoins.add(String(t.symbol_in).toUpperCase());
+                        if (t?.symbol_out) neededCoins.add(String(t.symbol_out).toUpperCase());
+                    });
+                    // Only fetch for coins that are both in Indodax and user's token list
+                    const targetCoins = allCoins.filter(c => neededCoins.size === 0 || neededCoins.has(c));
+
+                    const indoKey = indoCreds.ApiKey;
+                    const indoSecret = indoCreds.ApiSecret;
+                    // Sequential with 250ms delay per coin to avoid rate limiting (429)
+                    for (let i = 0; i < targetCoins.length; i++) {
+                        const coin = targetCoins[i];
+                        try {
+                            const nonce = Date.now();
+                            const body = `method=withdrawFee&currency=${coin.toLowerCase()}&nonce=${nonce}`;
+                            const sign = CryptoJS.HmacSHA512(body, indoSecret).toString(CryptoJS.enc.Hex);
+                            const resp = await $.ajax({
+                                url: `https://proxykiri.awokawok.workers.dev/?https://indodax.com/tapi`,
+                                method: 'POST',
+                                headers: { 'Key': indoKey, 'Sign': sign },
+                                contentType: 'application/x-www-form-urlencoded',
+                                data: body,
+                            });
+                            if (resp?.success === 1) {
+                                feeMap[coin] = parseFloat(resp.return?.withdraw_fee || 0);
+                            }
+                        } catch (_) { /* skip coin, fallback to 0 */ }
+                        // Delay between requests to avoid rate limiting
+                        if (i < targetCoins.length - 1) {
+                            await new Promise(r => setTimeout(r, 250));
+                        }
+                    }
+                }
+
+                // depositEnable/withdrawEnable not available from Indodax API → default true
+                const arr = allCoins.map(tokenName => ({
                     cex,
-                    tokenName: k.toUpperCase().replace('_IDR', ''),
+                    tokenName,
                     chain: 'INDODAX',
-                    feeWDs: 0,
+                    feeWDs: feeMap[tokenName] ?? 0,
                     depositEnable: true,
                     withdrawEnable: true,
                     trading: true

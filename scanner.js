@@ -743,7 +743,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                     if (statusSpan) statusSpan.className = 'dex-status uk-text-danger';
                     statusSpan.classList.remove('uk-text-muted', 'uk-text-warning');
                     statusSpan.classList.add('uk-text-danger');
-                    statusSpan.textContent = swapMessage || '[ERROR]';
+                    statusSpan.innerHTML = `<span class="uk-label uk-label-danger">${swapMessage || 'ERROR'}</span>`;
                     statusSpan.title = message || '';
                 }
                 // Jika item adalah hasil sukses, panggil DisplayPNL untuk merender hasilnya.
@@ -2231,7 +2231,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                 statusSpan.classList.remove('uk-text-muted', 'uk-text-warning');
                                 statusSpan.classList.add('uk-text-danger');
                             } catch (_) { }
-                            statusSpan.textContent = swapMessage || '[ERROR]';
+                            statusSpan.innerHTML = `<span class="uk-label uk-label-danger">${swapMessage || 'ERROR'}</span>`;
                             statusSpan.title = message || '';
                         }
                     }

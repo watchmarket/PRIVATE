@@ -123,7 +123,6 @@
                     (window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[aggKey]?.jedaDex || 1000);
                 metaDex.aggregators[aggKey] = { jedaDex };
             });
-            metaDex.showBestOnly = $('#meta-dex-showBestOnly').is(':checked');
             metaDex.topRoutes = parseInt($('#meta-dex-topN').val()) || 3;
 
             // NOTE: META_DEX_SETTINGS (modal per chain) disimpan via Editor Modal DEX (bulk-modal-editor)

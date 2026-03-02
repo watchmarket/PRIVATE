@@ -917,7 +917,6 @@ function renderSettingsForm() {
         `;
 // Options: top-N routes
         const topN = savedMetaDexNow.topRoutes ?? 2;
-        const showBestOnly = savedMetaDexNow.showBestOnly ?? false;
         metaDexHtml += `
             <div style="margin-top:8px;padding:6px 8px;background:#f8f9fa;border-radius:4px;border:1px solid #e2e8f0;">
                 <div class="uk-flex uk-flex-middle" style="gap:8px;">
@@ -925,11 +924,6 @@ function renderSettingsForm() {
                     <input type="number" id="meta-dex-topN" class="uk-input uk-form-small"
                            value="${topN}" min="1" max="4"
                            style="width:50px;text-align:center;padding:2px 4px;">
-                    <span style="font-size:10px;color:#888;"> / </span>
-                    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;">
-                        <input type="checkbox" id="meta-dex-showBestOnly" ${showBestOnly ? 'checked' : ''}>
-                        <span>Quote Terbaik Saja</span>
-                    </label>
                 </div>
             </div>
         `;
@@ -1550,7 +1544,9 @@ async function deferredInit() {
                 if (dexConfig.isMetaDex && !metaDexEnabled) return;
                 // Skip Meta-DEX yang tidak ada di META_DEX_CONFIG.aggregators (inactive/commented out)
                 if (dexConfig.isMetaDex && !window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[dx]) return;
-                // Skip KAMINO jika chain aktif bukan Solana (KAMINO hanya Solana)
+                // Skip EVM-only Meta-DEX jika HANYA Solana yang dipilih
+                if (dexConfig.isMetaDex && dexConfig.evmOnly && chainsSel.length > 0 && chainsSel.every(c => c === 'solana')) return;
+                // Skip Solana-only Meta-DEX jika tidak ada Solana dipilih
                 if (dexConfig.isMetaDex && dexConfig.solanaOnly && !chainsSel.includes('solana')) return;
 
                 const key = String(dx).toLowerCase();
@@ -1993,7 +1989,9 @@ async function deferredInit() {
                     if (!metaDexEnabled) return;
                     // Skip Meta-DEX yang tidak ada di META_DEX_CONFIG.aggregators (inactive/commented out)
                     if (!window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[dx]) return;
-                    // KAMINO hanya untuk Solana — sembunyikan jika chain aktif bukan Solana
+                    // Skip EVM-only Meta-DEX jika HANYA Solana yang dipilih
+                    if (dexConfig.evmOnly && chainsSel.length > 0 && chainsSel.every(c => c === 'solana')) return;
+                    // Skip Solana-only Meta-DEX jika tidak ada Solana dipilih
                     if (dexConfig.solanaOnly && !chainsSel.includes('solana')) return;
                     const id = `modal-fc-dex-${key}`;
                     // META-DEX applies to all tokens (per-chain), use total count
@@ -2372,7 +2370,9 @@ async function deferredInit() {
                     if (!dcfg?.isMetaDex || dcfg?.disabled || dcfg?.isBackendProvider) return false;
                     // Hanya tampilkan jika ada di META_DEX_CONFIG.aggregators (active in config)
                     if (!window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[k]) return false;
-                    // KAMINO hanya untuk Solana
+                    // EVM-only: sembunyikan jika chain aktif adalah Solana
+                    if (dcfg?.evmOnly && chain === 'solana') return false;
+                    // Solana-only: sembunyikan jika chain aktif bukan Solana
                     if (dcfg?.solanaOnly && chain !== 'solana') return false;
                     return true;
                 });
@@ -4974,10 +4974,11 @@ async function deferredInit() {
             // Merge prior CEX info if exists
             const existing = savedTokens.find(s => String(s.cex).toUpperCase() === cexUpper && s.symbol_in === symbolIn && s.symbol_out === symbolOut);
             const dataCexs = {};
+            const _indodaxOn = cexUpper === 'INDODAX';
             const baseCexInfo = existing?.dataCexs?.[cexUpper] ? { ...existing.dataCexs[cexUpper] } : {
                 feeWDToken: 0, feeWDPair: 0,
-                depositToken: false, withdrawToken: false,
-                depositPair: false, withdrawPair: false
+                depositToken: _indodaxOn, withdrawToken: _indodaxOn,
+                depositPair: _indodaxOn, withdrawPair: _indodaxOn
             };
             if (isSnapshot) {
                 const feeSnapshot = parseFloat(tok.feeWDToken ?? tok.feeWD);

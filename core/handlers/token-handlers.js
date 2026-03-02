@@ -304,7 +304,8 @@
             const obj = {};
             (updatedToken.selectedCexs || []).forEach(cx => {
                 const up = String(cx).toUpperCase();
-                obj[up] = prev[up] || { feeWDToken: 0, feeWDPair: 0, depositToken: false, withdrawToken: false, depositPair: false, withdrawPair: false };
+                const _on = up === 'INDODAX';
+                obj[up] = prev[up] || { feeWDToken: 0, feeWDPair: 0, depositToken: _on, withdrawToken: _on, depositPair: _on, withdrawPair: _on };
             });
             return obj;
         };
@@ -454,7 +455,8 @@
             const dataCexs = {};
             (tokenObj.selectedCexs || []).forEach(cx => {
                 const up = String(cx).toUpperCase();
-                dataCexs[up] = prevDataCexs[up] || { feeWDToken: 0, feeWDPair: 0, depositToken: false, withdrawToken: false, depositPair: false, withdrawPair: false };
+                const _on = up === 'INDODAX';
+                dataCexs[up] = prevDataCexs[up] || { feeWDToken: 0, feeWDPair: 0, depositToken: _on, withdrawToken: _on, depositPair: _on, withdrawPair: _on };
             });
             tokenObj.dataCexs = dataCexs;
 
@@ -503,10 +505,11 @@
                 const mergedDataCexs = { ...(existingToken.dataCexs || {}) };
                 newCexs.forEach(cx => {
                     if (!mergedDataCexs[cx]) {
+                        const _on = cx === 'INDODAX';
                         mergedDataCexs[cx] = dataCexs[cx] || {
                             feeWDToken: 0, feeWDPair: 0,
-                            depositToken: false, withdrawToken: false,
-                            depositPair: false, withdrawPair: false
+                            depositToken: _on, withdrawToken: _on,
+                            depositPair: _on, withdrawPair: _on
                         };
                     }
                 });

@@ -678,14 +678,15 @@ function uploadTokenScannerCSV(event) {
                         const isActive = (val || '').toString().trim().toUpperCase() === 'TRUE';
                         if (isActive && !obj.selectedCexs.includes(cexName)) {
                             obj.selectedCexs.push(cexName);
-                            // Initialize dataCexs entry
+                            // Initialize dataCexs entry (INDODAX: default ON karena tidak ada status API)
+                            const _dpwdDefault = cexName === 'INDODAX';
                             obj.dataCexs[cexName] = {
                                 feeWDToken: 0,
                                 feeWDPair: 0,
-                                depositToken: false,
-                                withdrawToken: false,
-                                depositPair: false,
-                                withdrawPair: false
+                                depositToken: _dpwdDefault,
+                                withdrawToken: _dpwdDefault,
+                                depositPair: _dpwdDefault,
+                                withdrawPair: _dpwdDefault
                             };
                         }
                     }
@@ -723,13 +724,15 @@ function uploadTokenScannerCSV(event) {
                         // Auto-initialize dataCexs for each selected CEX with default values
                         obj.selectedCexs.forEach(cexName => {
                             if (!obj.dataCexs[cexName]) {
+                                // INDODAX: default ON karena tidak ada status API
+                                const _dpwdDefault = cexName === 'INDODAX';
                                 obj.dataCexs[cexName] = {
                                     feeWDToken: 0,
                                     feeWDPair: 0,
-                                    depositToken: false,
-                                    withdrawToken: false,
-                                    depositPair: false,
-                                    withdrawPair: false
+                                    depositToken: _dpwdDefault,
+                                    withdrawToken: _dpwdDefault,
+                                    depositPair: _dpwdDefault,
+                                    withdrawPair: _dpwdDefault
                                 };
                             }
                         });
@@ -777,25 +780,27 @@ function uploadTokenScannerCSV(event) {
                 // === POST-PROCESSING: Auto-fill missing dataCexs with default values ===
                 // Ensure all selectedCexs have dataCexs entries
                 (obj.selectedCexs || []).forEach(cexName => {
+                    // INDODAX: default ON karena tidak ada status API
+                    const _dpwdDefault = cexName === 'INDODAX';
                     if (!obj.dataCexs[cexName]) {
                         // console.log(`[IMPORT CSV] Auto-filling dataCexs for ${cexName} with defaults`);
                         obj.dataCexs[cexName] = {
-                            feeWDToken: 0,           // Default: no fee
-                            feeWDPair: 0,            // Default: no fee
-                            depositToken: false,     // Default: deposit closed
-                            withdrawToken: false,    // Default: withdraw closed
-                            depositPair: false,      // Default: deposit closed
-                            withdrawPair: false      // Default: withdraw closed
+                            feeWDToken: 0,
+                            feeWDPair: 0,
+                            depositToken: _dpwdDefault,
+                            withdrawToken: _dpwdDefault,
+                            depositPair: _dpwdDefault,
+                            withdrawPair: _dpwdDefault
                         };
                     } else {
                         // Ensure all required fields exist with defaults
                         const defaults = {
                             feeWDToken: 0,
                             feeWDPair: 0,
-                            depositToken: false,
-                            withdrawToken: false,
-                            depositPair: false,
-                            withdrawPair: false
+                            depositToken: _dpwdDefault,
+                            withdrawToken: _dpwdDefault,
+                            depositPair: _dpwdDefault,
+                            withdrawPair: _dpwdDefault
                         };
                         // Merge with defaults to fill missing fields
                         obj.dataCexs[cexName] = { ...defaults, ...obj.dataCexs[cexName] };

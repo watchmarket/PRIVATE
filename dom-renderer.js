@@ -378,8 +378,10 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
 
       // Deteksi WX (withdraw disabled) dan DX (deposit disabled) untuk warna sisi baris
       // WX → sisi KIRI merah | DX → sisi KANAN merah | keduanya → kedua sisi merah
-      const hasWX = (data.withdrawToken === false || data.withdrawPair === false);
-      const hasDX = (data.depositToken === false || data.depositPair === false);
+      // INDODAX: deposit/WD status tidak tersedia dari API → selalu anggap aktif
+      const isIndodax = String(data.cex || '').toUpperCase() === 'INDODAX';
+      const hasWX = !isIndodax && (data.withdrawToken === false || data.withdrawPair === false);
+      const hasDX = !isIndodax && (data.depositToken === false || data.depositPair === false);
       const hasDisabledWallet = hasWX || hasDX;
       const redBg = 'background-color: rgba(231,76,60,0.18) !important;';
       const leftBg  = hasWX ? redBg : '';
@@ -1427,6 +1429,25 @@ function DisplayPNL(data) {
         : (cexUrls?.tradePair || cexUrls?.tradeUrl || '#');
       const dexLink = linkDEX || '#';
 
+      // WD/DP flags + URLs for meta-DEX sub-columns (same as regular DEX)
+      let metaWdFlag, metaDpFlag;
+      try {
+        const _list = (Array.isArray(window.singleChainTokensCurrent) && window.singleChainTokensCurrent.length)
+          ? window.singleChainTokensCurrent
+          : (Array.isArray(window.currentListOrderMulti) ? window.currentListOrderMulti : []);
+        const _keyIn = (direction === 'tokentopair') ? upper(Name_in) : upper(Name_out);
+        const _keyOut = (direction === 'tokentopair') ? upper(Name_out) : upper(Name_in);
+        const _hit = (_list || []).find(t => String(t.cex).toUpperCase() === upper(cex)
+          && String(t.symbol_in).toUpperCase() === _keyIn
+          && String(t.symbol_out).toUpperCase() === _keyOut);
+        if (_hit) { metaWdFlag = _hit.withdrawToken; metaDpFlag = _hit.depositToken; }
+      } catch (_) {}
+      const metaWdUrl = (direction === 'tokentopair')
+        ? (cexUrls?.withdrawTokenUrl || cexUrls?.withdrawUrl || '#')
+        : (cexUrls?.withdrawPairUrl || cexUrls?.withdrawUrl || '#');
+      const metaDpTokenName = (direction === 'tokentopair') ? upper(Name_in) : upper(Name_out);
+      const metaDpUrl = cexUrls?.depositTokenUrl || cexUrls?.depositUrl || '#';
+
       // Build sub-columns HTML dengan format SAMA seperti single-DEX (KYBER style)
       // Limit jumlah provider sesuai maxProviders dari config
       // Ambil amount_in dari data (Modal / buyTokenCEX untuk tokentopair)
@@ -1440,7 +1461,7 @@ function DisplayPNL(data) {
           const maxM = n(data.maxModal);
           const isInsuf = baseModal < maxM * 0.999;
           return isInsuf
-            ? `[$${maxM.toFixed(0)}] <span style="color:#ff6b35">│ ${baseModal.toFixed(0)}$↓</span> ⚠️`
+            ? `[$${maxM.toFixed(0)}] <span style="color:#ff6b35">│ ${baseModal.toFixed(0)}$</span> ⚠️`
             : `[$${maxM.toFixed(0)}] ✅`;
         }
         return `[$${baseModal.toFixed(0)}]`;
@@ -1515,8 +1536,14 @@ function DisplayPNL(data) {
         const isSubProfit = subPnl > 0;
         const subBgStyle = isSubProfit ? 'background-color: rgba(188, 233, 97, 0.9);' : '';
 
-        // ✅ FIX: Display fee yang relevan per direction (format sama seperti regular DEX)
-        const feeLabel1 = direction === 'tokentopair' ? `🈳WD: ${subFeeWD.toFixed(4)}$` : `📤TX: ${subFeeTransfer.toFixed(4)}$`;
+        // ✅ FIX: Display fee dengan link WD/DP (format sama seperti regular DEX)
+        const _wdText = (metaWdFlag === false) ? '🈳 WX' : '🈳 WD';
+        const _dpText = (metaDpFlag === false) ? `🈷️ DX[${metaDpTokenName}]` : `🈷️ DP[${metaDpTokenName}]`;
+        const _wdCls = (metaWdFlag === false) ? 'uk-text-danger' : 'uk-text-primary';
+        const _dpCls = (metaDpFlag === false) ? 'uk-text-danger' : 'uk-text-primary';
+        const feeLabel1 = direction === 'tokentopair'
+          ? `<a class="${_wdCls}" href="${metaWdUrl}" target="_blank" rel="noopener" title="FEE WITHDRAW">${_wdText}: ${subFeeWD.toFixed(4)}$</a>`
+          : `<a class="${_dpCls}" href="${metaDpUrl}" target="_blank" rel="noopener">${_dpText}</a>`;
         const feeTooltip = direction === 'tokentopair'
           ? `Fee WD: $${subFeeWD.toFixed(4)}\nFee SW: $${feeSwap.toFixed(4)}`
           : `Fee SW: $${feeSwap.toFixed(4)}\nFee Transfer (Gas): $${subFeeTransfer.toFixed(4)}`;
@@ -1591,8 +1618,7 @@ function DisplayPNL(data) {
       const shouldHighlight = bestPnl > 0 && (filterPNLValue === 0 || bestPnl > filterPNLValue);
 
       if (shouldHighlight) {
-        // Hanya border, tanpa background (background sudah di sub-kolom)
-        el.style.cssText = 'text-align:center;vertical-align:middle;border:2px solid #28a745!important;';
+        el.style.cssText = 'text-align:center;vertical-align:middle;';
         el.classList.add('dex-cell-highlight');
       } else {
         el.style.cssText = 'text-align:center;vertical-align:middle;';
@@ -1968,7 +1994,7 @@ function DisplayPNL(data) {
 
   // Background color shows when PNL > 0, border shows when passing filter
   if (hasProfit) {
-    const borderStyle = shouldHighlight ? 'border:2px solid black !important;' : '';
+    const borderStyle = shouldHighlight ? '' : '';
     $mainCell.attr('style', `background-color:${hlBg}!important;font-weight:bolder!important;vertical-align:middle!important;text-align:center!important;${borderStyle}`);
   } else {
     $mainCell.attr('style', 'text-align:center;vertical-align:middle;');

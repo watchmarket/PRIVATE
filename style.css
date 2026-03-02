@@ -195,7 +195,9 @@ a:hover,
 /* Table column widths */
 .th-orderbook {
     width: auto !important;
-    min-width: 160px;
+    min-width: 140px;
+    border-left: 2px solid rgba(24, 24, 24, 0.35) !important;
+    border-right: 2px solid rgba(24, 24, 24, 0.35) !important;
 }
 
 /* DETAIL column - Fixed width untuk menampilkan semua info tanpa terpotong */
@@ -225,7 +227,9 @@ a:hover,
 }
 
 .td-orderbook {
-    min-width: 160px;
+    min-width: 140px;
+    border-left: 2px solid rgba(24, 24, 24, 0.35)!important;
+    border-right: 2px solid rgba(24, 24, 24, 0.35) !important;
 }
 
 /* Orderbook scrollable content */
