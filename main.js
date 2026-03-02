@@ -933,12 +933,11 @@ function renderSettingsForm() {
                 </div>
             </div>
         `;
-        // ----- Section 1: Enable/Delay per aggregator (global toggle) -----
+        // ----- Section 1: Delay per aggregator -----
         Object.entries(metaAggs).forEach(([aggKey, aggCfg]) => {
             const label = (aggCfg.label || aggKey).toUpperCase();
             const dexColor = (window.CONFIG_DEXS?.[aggKey]?.warna) || '#7c3aed';
             const savedAgg = savedMetaAggs[aggKey] || {};
-            const isEnabled = savedAgg.enabled !== undefined ? savedAgg.enabled : (aggCfg.enabled !== false);
             const savedDelay = savedAgg.jedaDex !== undefined ? savedAgg.jedaDex : aggCfg.jedaDex || 1000;
             const chainTag = (window.CONFIG_DEXS?.[aggKey]?.evmOnly)
                 ? '<span style="background:#0ea5e9;color:#fff;padding:1px 5px;border-radius:4px;font-size:9px;margin-left:4px;">EVM</span>'
@@ -946,7 +945,6 @@ function renderSettingsForm() {
 
             metaDexHtml += `
                 <div class="uk-flex uk-flex-middle" style="gap:6px;padding:3px 4px;border-bottom:1px solid #eee;">
-                    <input type="checkbox" id="meta-dex-enabled-${aggKey}" class="meta-dex-enabled-toggle" data-agg="${aggKey}" ${isEnabled ? 'checked' : ''}>
                     <span style="color:${dexColor};font-size:11px;font-weight:700;flex:1;">${label}${chainTag}</span>
                     <input type="number" id="meta-dex-delay-${aggKey}"
                            class="uk-input uk-form-small meta-dex-delay-input"
@@ -1579,18 +1577,29 @@ async function deferredInit() {
             // Search input now in HTML (next to WALLET CEX checkbox)
             $wrap.append($right);
             $('#modal-filter-sections').off('change.multif').on('change.multif', 'label.fc-chain input, label.fc-cex input, label.fc-dex input', function () {
-                // Single-select META-DEX: jika yang di-check adalah META-DEX, uncheck yang lain
+                // LIMIT_METADEX: batasi jumlah META-DEX yang bisa dipilih
                 const $lbl = $(this).closest('label');
                 if ($lbl.hasClass('fc-dex') && $(this).prop('checked')) {
                     const changedVal = $lbl.attr('data-val');
                     if (window.CONFIG_DEXS?.[changedVal]?.isMetaDex) {
-                        $('#modal-filter-sections').find('label.fc-dex').each(function () {
-                            const v = $(this).attr('data-val');
-                            if (v !== changedVal && window.CONFIG_DEXS?.[v]?.isMetaDex) {
-                                $(this).find('input').prop('checked', false);
-                                $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                        const limitMeta = window.CONFIG_APP?.APP?.LIMIT_METADEX || 0;
+                        if (limitMeta > 0) {
+                            const $checkedMeta = $('#modal-filter-sections').find('label.fc-dex').filter(function () {
+                                return !!window.CONFIG_DEXS?.[$(this).attr('data-val')]?.isMetaDex && $(this).find('input').prop('checked');
+                            });
+                            const toUncheck = $checkedMeta.length - limitMeta;
+                            if (toUncheck > 0) {
+                                let done = 0;
+                                $checkedMeta.each(function () {
+                                    if (done >= toUncheck) return false;
+                                    if ($(this).attr('data-val') !== changedVal) {
+                                        $(this).find('input').prop('checked', false);
+                                        $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                                        done++;
+                                    }
+                                });
                             }
-                        });
+                        }
                     }
                 }
 
@@ -2140,18 +2149,29 @@ async function deferredInit() {
             $('#modal-summary-bar').empty().append($sum);
 
             $('#modal-filter-sections').off('change.multif').on('change.multif', 'label.fc-chain input, label.fc-cex input, label.fc-pair input, label.fc-dex input', function () {
-                // Single-select META-DEX: jika yang di-check adalah META-DEX, uncheck yang lain
+                // LIMIT_METADEX: batasi jumlah META-DEX yang bisa dipilih
                 const $lbl2 = $(this).closest('label');
                 if ($lbl2.hasClass('fc-dex') && $(this).prop('checked')) {
                     const changedVal2 = $lbl2.attr('data-val');
                     if (window.CONFIG_DEXS?.[changedVal2]?.isMetaDex) {
-                        $('#modal-filter-sections').find('label.fc-dex').each(function () {
-                            const v = $(this).attr('data-val');
-                            if (v !== changedVal2 && window.CONFIG_DEXS?.[v]?.isMetaDex) {
-                                $(this).find('input').prop('checked', false);
-                                $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                        const limitMeta2 = window.CONFIG_APP?.APP?.LIMIT_METADEX || 0;
+                        if (limitMeta2 > 0) {
+                            const $checkedMeta2 = $('#modal-filter-sections').find('label.fc-dex').filter(function () {
+                                return !!window.CONFIG_DEXS?.[$(this).attr('data-val')]?.isMetaDex && $(this).find('input').prop('checked');
+                            });
+                            const toUncheck2 = $checkedMeta2.length - limitMeta2;
+                            if (toUncheck2 > 0) {
+                                let done2 = 0;
+                                $checkedMeta2.each(function () {
+                                    if (done2 >= toUncheck2) return false;
+                                    if ($(this).attr('data-val') !== changedVal2) {
+                                        $(this).find('input').prop('checked', false);
+                                        $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                                        done2++;
+                                    }
+                                });
                             }
-                        });
+                        }
                     }
                 }
 
@@ -2399,18 +2419,29 @@ async function deferredInit() {
 
             // Event handler untuk filter changes
             $('#modal-filter-sections').off('change.scf').on('change.scf', 'label.sc-cex input, label.sc-pair input, label.sc-dex input', function () {
-                // Single-select META-DEX: jika yang di-check adalah META-DEX, uncheck yang lain
+                // LIMIT_METADEX: batasi jumlah META-DEX yang bisa dipilih
                 const $lbl3 = $(this).closest('label');
                 if ($lbl3.hasClass('sc-dex') && $(this).prop('checked')) {
                     const changedVal3 = $lbl3.attr('data-val');
                     if (window.CONFIG_DEXS?.[changedVal3]?.isMetaDex) {
-                        $('#modal-filter-sections').find('label.sc-dex').each(function () {
-                            const v = $(this).attr('data-val');
-                            if (v !== changedVal3 && window.CONFIG_DEXS?.[v]?.isMetaDex) {
-                                $(this).find('input').prop('checked', false);
-                                $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                        const limitMeta3 = window.CONFIG_APP?.APP?.LIMIT_METADEX || 0;
+                        if (limitMeta3 > 0) {
+                            const $checkedMeta3 = $('#modal-filter-sections').find('label.sc-dex').filter(function () {
+                                return !!window.CONFIG_DEXS?.[$(this).attr('data-val')]?.isMetaDex && $(this).find('input').prop('checked');
+                            });
+                            const toUncheck3 = $checkedMeta3.length - limitMeta3;
+                            if (toUncheck3 > 0) {
+                                let done3 = 0;
+                                $checkedMeta3.each(function () {
+                                    if (done3 >= toUncheck3) return false;
+                                    if ($(this).attr('data-val') !== changedVal3) {
+                                        $(this).find('input').prop('checked', false);
+                                        $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                                        done3++;
+                                    }
+                                });
                             }
-                        });
+                        }
                     }
                 }
 

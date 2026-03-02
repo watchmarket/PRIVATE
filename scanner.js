@@ -1933,14 +1933,37 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                             }
                         }
 
-                        // Hitung modal dan amountIn dari META_DEX_SETTINGS per-chain
-                        const modalLeft = parseFloat(chainModalData[aggKey]?.left) || 100;
-                        const modalRight = parseFloat(chainModalData[aggKey]?.right) || 100;
-                        const modalMeta = isKiriMeta ? modalLeft : modalRight;
+                        // Hitung modal META-DEX — gunakan META_DEX_SETTINGS sebagai maxModal,
+                        // lalu terapkan Auto Level (sama seperti DEX biasa) jika diaktifkan
+                        const maxModalLeft = parseFloat(chainModalData[aggKey]?.left) || 100;
+                        const maxModalRight = parseFloat(chainModalData[aggKey]?.right) || 100;
+                        const maxModalMeta = isKiriMeta ? maxModalLeft : maxModalRight;
 
-                        const amountInMeta = isKiriMeta
-                            ? (DataCEX.priceBuyToken > 0 ? modalMeta / DataCEX.priceBuyToken : 0)
-                            : (DataCEX.priceBuyPair > 0 ? modalMeta / DataCEX.priceBuyPair : 0);
+                        let modalMeta = maxModalMeta;
+                        let amountInMeta = 0;
+                        let autoVolMeta = null; // accessible in .then() closure
+
+                        if (autoVolSettings.autoLevel && DataCEX.orderbook) {
+                            const sideMeta = isKiriMeta ? 'asks' : 'bids';
+                            autoVolMeta = (typeof calculateAutoVolume === 'function')
+                                ? calculateAutoVolume(DataCEX.orderbook, maxModalMeta, autoVolSettings.levels, sideMeta)
+                                : null;
+                            if (autoVolMeta && !autoVolMeta.error && autoVolMeta.totalCoins > 0) {
+                                modalMeta = autoVolMeta.actualModal;
+                                amountInMeta = isKiriMeta
+                                    ? autoVolMeta.totalCoins
+                                    : (DataCEX.priceBuyPair > 0 ? modalMeta / DataCEX.priceBuyPair : 0);
+                            } else {
+                                amountInMeta = isKiriMeta
+                                    ? (DataCEX.priceBuyToken > 0 ? modalMeta / DataCEX.priceBuyToken : 0)
+                                    : (DataCEX.priceBuyPair > 0 ? modalMeta / DataCEX.priceBuyPair : 0);
+                            }
+                        } else {
+                            amountInMeta = isKiriMeta
+                                ? (DataCEX.priceBuyToken > 0 ? modalMeta / DataCEX.priceBuyToken : 0)
+                                : (DataCEX.priceBuyPair > 0 ? modalMeta / DataCEX.priceBuyPair : 0);
+                        }
+
                         if (amountInMeta <= 0) return;
 
                         // Contract addresses
@@ -1987,7 +2010,15 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                             (window.CONFIG_CHAINS || {})[currentChain]?.Kode_Chain || '',
                                             metaDir, 0, dexRes
                                         );
-                                        if (update) uiUpdateQueue.push(update);
+                                        if (update) {
+                                            // Mirror regular DEX auto-level fields untuk tampilan ✅/⚠️
+                                            update.autoLevelEnabled = autoVolSettings.autoLevel;
+                                            if (autoVolSettings.autoLevel && autoVolMeta && !autoVolMeta.error) {
+                                                update.autoVolResult = autoVolMeta;
+                                                update.maxModal = maxModalMeta;
+                                            }
+                                            uiUpdateQueue.push(update);
+                                        }
                                     } catch (e) {
                                         uiUpdateQueue.push({ type: 'error', id: metaCellId, message: `META-DEX ${aggKey.toUpperCase()}: ${e.message}`, swapMessage: '' });
                                     } finally {

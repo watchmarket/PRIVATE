@@ -2336,11 +2336,16 @@ body.dark-mode .db-table-title .uk-badge {
     color: #1a1a1a !important;
 }
 
-/* DZAP cell dengan sub-kolom horizontal */
+/* META-DEX cell dengan sub-kolom horizontal (LIFI, RANGO, METAX, dll) */
 .td-dex-multi {
-    min-width: 260px !important;
-    width: 260px !important;
+    min-width: 230px !important;
+    width: auto !important;     /* biarkan konten menentukan lebar */
     padding: 4px !important;
+}
+
+/* Setiap sub-kolom META-DEX — lebar minimal sama dengan DEX biasa (115px) */
+.multi-sub {
+    min-width: 110px;
 }
 
 .dzap-header {
@@ -2413,8 +2418,12 @@ body.dark-mode .sub-dex-name {
 /* Responsive adjustments */
 @media (max-width: 1400px) {
     .td-dex-multi {
-        min-width: 220px !important;
-        width: 220px !important;
+        min-width: 180px !important;
+        width: auto !important;
+    }
+
+    .multi-sub {
+        min-width: 90px;
     }
 
     .dzap-sub {

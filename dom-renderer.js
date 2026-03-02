@@ -1402,8 +1402,12 @@ function DisplayPNL(data) {
       // Base calculation values
       const baseModal = n(Modal);
       const baseFeeWD = n(FeeWD);
-      const baseFeeTrade = n(0.0014 * baseModal);
       const direction = String(trx || '').toLowerCase();
+      // Non-USDT pair = 2 transaksi CEX → 2x feeTrade
+      const _pairIsStableMulti = direction === 'tokentopair'
+        ? String(Name_out || '').toUpperCase() === 'USDT'
+        : String(Name_in || '').toUpperCase() === 'USDT';
+      const baseFeeTrade = n(0.0014 * baseModal * (_pairIsStableMulti ? 1 : 2));
 
       // CEX prices for calculation
       const buyPairCEX = n(priceBuyPair_CEX);
@@ -1429,6 +1433,18 @@ function DisplayPNL(data) {
       const amtIn = direction === 'tokentopair'
         ? (buyTokenCEX > 0 ? baseModal / buyTokenCEX : 0)  // Jumlah token yang dibeli
         : baseModal;  // Jumlah pair yang digunakan
+
+      // Auto Level modal indicator (mirror regular DEX behavior)
+      const modalLabel = (() => {
+        if (data.autoLevelEnabled && data.maxModal) {
+          const maxM = n(data.maxModal);
+          const isInsuf = baseModal < maxM * 0.999;
+          return isInsuf
+            ? `[$${maxM.toFixed(0)}] <span style="color:#ff6b35">│ ${baseModal.toFixed(0)}$↓</span> ⚠️`
+            : `[$${maxM.toFixed(0)}] ✅`;
+        }
+        return `[$${baseModal.toFixed(0)}]`;
+      })();
 
       const subColsHtml = subResults.slice(0, maxProviders).map((subRes, idx) => {
         const amtOut = n(subRes.amount_out || subRes.amountOut);
@@ -1497,37 +1513,35 @@ function DisplayPNL(data) {
 
         // Highlight hanya sub-kolom yang profit (PNL > 0)
         const isSubProfit = subPnl > 0;
-        const subBgStyle = isSubProfit ? 'background-color: rgba(188, 233, 97, 0.9); border-radius: 4px;' : '';
+        const subBgStyle = isSubProfit ? 'background-color: rgba(188, 233, 97, 0.9);' : '';
 
-        // ✅ FIX: Display fee yang relevan per direction
-        const feeLabel1 = direction === 'tokentopair' ? `🈳WD:${subFeeWD.toFixed(4)}$` : `📤TX:${subFeeTransfer.toFixed(4)}$`;
+        // ✅ FIX: Display fee yang relevan per direction (format sama seperti regular DEX)
+        const feeLabel1 = direction === 'tokentopair' ? `🈳WD: ${subFeeWD.toFixed(4)}$` : `📤TX: ${subFeeTransfer.toFixed(4)}$`;
         const feeTooltip = direction === 'tokentopair'
           ? `Fee WD: $${subFeeWD.toFixed(4)}\nFee SW: $${feeSwap.toFixed(4)}`
           : `Fee SW: $${feeSwap.toFixed(4)}\nFee Transfer (Gas): $${subFeeTransfer.toFixed(4)}`;
 
+        // Struktur HTML sama persis seperti regular DEX cell (monitor-line, strong header, uk-text-primary wrapper)
         return `
-          <div class="multi-sub" style="flex: 1; padding: 1px 2px; ${borderRight} text-align: center; line-height: 1.2; white-space: nowrap; ${subBgStyle}"
+          <div class="multi-sub" style="flex: 1 1 110px; padding: 2px 3px; ${borderRight} text-align: center; vertical-align: middle; ${subBgStyle}"
                title="${providerName}\nAmount Out: ${amtOut.toFixed(6)}\n${feeTooltip}\nBruto: $${subBruto.toFixed(2)}\nTotal Fee: $${subTotalFee.toFixed(2)}\nPNL: $${subPnl.toFixed(2)}">
-            <div style="font-size: 1em; font-weight: bold; color: ${dexColor};">${displayName}</div>
-            <a class="uk-text-success" href="${buyLink}" target="_blank" rel="noopener" title="${tipBuy}" style="text-decoration: none; display: block;">⬆ ${fmtUSD(buyPrice)}</a>
-            <a class="uk-text-danger" href="${sellLink}" target="_blank" rel="noopener" title="${tipSell}" style="text-decoration: none; display: block;">⬇ ${fmtUSD(sellPrice)}</a>
-            <div class="uk-text-primary" style="font-size: 0.95em;">${feeLabel1}</div>
-            <div class="uk-text-muted" style="font-size: 0.95em;">💸SW:${feeSwap.toFixed(4)}$</div>
-            <div class="uk-text-danger" style="font-size: 0.95em;">[${subBruto.toFixed(2)}~<b style="font-size: small;">${subTotalFee.toFixed(2)}</b>]</div>
-            <div class="${pnlClass}" style="font-weight: bold;">💰PNL:${subPnl.toFixed(2)}</div>
+            <strong style="display:inline-block; margin:0; color: ${dexColor};">${displayName} ${modalLabel}</strong><br>
+            <span class="uk-text-primary">
+              <a class="monitor-line uk-text-success dex-price-link" href="${buyLink}" target="_blank" rel="noopener" title="${tipBuy}">⬆ ${fmtUSD(buyPrice)}</a>
+              <a class="monitor-line uk-text-danger dex-price-link" href="${sellLink}" target="_blank" rel="noopener" title="${tipSell}">⬇ ${fmtUSD(sellPrice)}</a>
+              <span class="monitor-line">${feeLabel1}</span>
+              <span class="monitor-line uk-text-dark">💸 SW: ${feeSwap.toFixed(4)}$</span>
+              <span class="monitor-line uk-text-danger" title="BRUTO ~ TOTAL FEE">[${subBruto.toFixed(2)} ~ <b style="font-size: larger;">${subTotalFee.toFixed(2)}</b>]</span>
+              <span class="monitor-line ${pnlClass}" title="PROFIT / LOSS" style="font-weight: bold;">💰 PNL: ${subPnl.toFixed(2)}</span>
+            </span>
           </div>
         `;
       }).join('');
 
-      // Build cell HTML dengan sub-kolom format lengkap (maxProviders: LIFI=2, DZAP=3)
+      // Build cell HTML — langsung sub-kolom tanpa header META-DEX (sama seperti DEX biasa)
       const cellHtml = `
-        <div style="text-align: center; line-height: 1.2;">
-          <div style="font-size: 1.05em; font-weight: bold; color: ${dexColor}; border-bottom: 2px solid ${dexColor}; padding-bottom: 2px; margin-bottom: 3px;">
-            ${dexLabel} [$${baseModal.toFixed(0)}] (Top ${maxProviders})
-          </div>
-          <div style="display: flex; justify-content: space-between; gap: 1px;">
-            ${subColsHtml}
-          </div>
+        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 1px;">
+          ${subColsHtml}
         </div>
       `;
 

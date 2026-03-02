@@ -120,6 +120,9 @@
                 // ✅ MUTUALLY EXCLUSIVE: Uncheck AUTO VOL when AUTO LEVEL is checked
                 if (isChecked) {
                     $('#checkVOL').prop('checked', false);
+                    if (typeof saveCheckboxPreference === 'function') {
+                        saveCheckboxPreference('autoVol', false);
+                    }
                 }
 
                 // ✅ AUTO-SAVE: Save to per-chain filter storage
@@ -172,6 +175,9 @@
                 if (isChecked) {
                     $('#autoVolToggle').prop('checked', false);
                     $('#autoVolLevelInput').hide();
+                    if (typeof saveCheckboxPreference === 'function') {
+                        saveCheckboxPreference('autoLevel', false);
+                    }
                 }
 
                 // ✅ AUTO-SAVE: Save to per-chain filter storage

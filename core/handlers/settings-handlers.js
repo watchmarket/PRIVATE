@@ -113,18 +113,15 @@
 
         console.log('[Settings Save] Valid JedaDexs to save:', Object.keys(JedaDexs));
 
-        // ✅ META-DEX: Collect per-aggregator settings (enabled toggle + jeda + topN)
+        // ✅ META-DEX: Collect per-aggregator settings (jeda + topN; enabled dikontrol dari filter scanner)
         let metaDex = {};
         if (window.CONFIG_APP?.APP?.META_DEX === true) {
             metaDex.aggregators = {};
             const aggKeys = Object.keys(window.CONFIG_APP?.META_DEX_CONFIG?.aggregators || {});
             aggKeys.forEach(aggKey => {
-                const isEnabled = $(`#meta-dex-enabled-${aggKey}`).length
-                    ? $(`#meta-dex-enabled-${aggKey}`).is(':checked')
-                    : (window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[aggKey]?.enabled !== false);
                 const jedaDex = parseInt($(`#meta-dex-delay-${aggKey}`).val()) ||
                     (window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[aggKey]?.jedaDex || 1000);
-                metaDex.aggregators[aggKey] = { enabled: isEnabled, jedaDex };
+                metaDex.aggregators[aggKey] = { jedaDex };
             });
             metaDex.showBestOnly = $('#meta-dex-showBestOnly').is(':checked');
             metaDex.topRoutes = parseInt($('#meta-dex-topN').val()) || 3;

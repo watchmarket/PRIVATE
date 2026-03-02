@@ -10,6 +10,7 @@ const CONFIG_APP = {
         // Berbeda dari DEX regular (single-quote). Berjalan TERPISAH dari scan DEX regular.
         // Jika true → Settings menampilkan panel: Modal DEX, Filter Scanner, Card Signal, Jeda DEX.
         META_DEX: true,
+        LIMIT_METADEX:2,
         DEBUG_LOG: false,   // ✅ PERF: Set true untuk aktifkan debug logging (default: false untuk performance)
     },
     // ========================================================================
@@ -28,13 +29,12 @@ const CONFIG_APP = {
         // Daftar aggregator META-DEX yang tersedia.
         // Setiap aggregator mengembalikan BANYAK quote dari berbagai DEX sekaligus.
         aggregators: {
-            lifi: { enabled: true, evmOnly: false, jedaDex: 600, label: 'LIFI' },  // EVM + Solana multi-route
-           // dzap: { enabled: true, evmOnly: false, jedaDex: 500, label: 'DZAP' },  // EVM + Solana multi-route
-           // rubic: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rubic' },  // EVM + Solana multi-quote
-            rango: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rango' },  // EVM + Solana multi-quote
-            kamino: { enabled: true, evmOnly: false, solanaOnly: true, jedaDex: 500, label: 'Kamino' },  // Solana-only multi-quote
-            rocketx: { enabled: true, evmOnly: true, jedaDex: 600, label: 'RocketX' },  // EVM multi-quote (RELAY, ParaSwap, 1inch, Uniswap dll)
-            metax: { enabled: true, evmOnly: true, jedaDex: 800, label: 'METAX' },     // MetaMask Bridge EVM-only, SSE streaming
+            lifi: { enabled: true, evmOnly: false, jedaDex: 600, label: 'JUMPER' },       // EVM + Solana multi-route
+           // dzap: { enabled: true, evmOnly: false, jedaDex: 500, label: 'DZAP' },       // EVM + Solana multi-route
+           // rubic: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rubic' },     // EVM + Solana multi-quote
+            //rango: { enabled: true, evmOnly: false, jedaDex: 500, label: 'RANGO' },       // EVM + Solana multi-quote
+            //rocketx: { enabled: true, evmOnly: false, jedaDex: 600, label: 'ROCKET' },    // EVM + Solana multi-quote
+            metax: { enabled: true, evmOnly: false, jedaDex: 800, label: 'METAX' },       // EVM + Solana, SSE streaming
         },
 
         // Chain yang didukung semua META-DEX aggregators (EVM + Solana)
@@ -476,7 +476,6 @@ const CONFIG_UI = {
         { key: 'flytrade', label: 'Flytrade', badgeClass: 'bg-flytrade', fallbackSlug: 'flytrade' },
         { key: 'jupiter', label: 'Jupiter', badgeClass: 'bg-jupiter', fallbackSlug: 'jupiter' },
         // { key: 'dflow', label: 'DFlow', badgeClass: 'bg-dflow', fallbackSlug: 'dflow' },
-        { key: 'kamino', label: 'Kamino', badgeClass: 'bg-kamino', fallbackSlug: 'kamino' },
         { key: 'rubic', label: 'Rubic', badgeClass: 'bg-rubic', fallbackSlug: 'rubic' },
         { key: 'rango', label: 'Rango', badgeClass: 'bg-rango', fallbackSlug: 'rango' }
     ],
@@ -549,7 +548,6 @@ const CONFIG_UI = {
             'dzap': 6000,            // DZAP multi-quote: 6s
             'rango': 6000,           // Rango multi-quote: 6s
             'rubic': 6000,           // Rubic multi-quote: 6s
-            'kamino': 5000,          // Kamino (Solana): 5s
             'rocketx': 8000,         // RocketX: 8s (multi-provider response)
             'metax': 7000,          // MetaMask Bridge: 12s (SSE stream, collect all quotes)
 
@@ -1027,26 +1025,6 @@ const CONFIG_DEXS = {
     //     allowFallback: false // DFlow is a Solana DEX aggregator
     // },
 
-    kamino: {
-        label: 'Kamino',
-        badgeClass: 'bg-kamino',
-        proxy: true,
-        warna: "#7c3aed", // Kamino purple
-        isMetaDex: true,   // ✅ META-DEX: Mark as meta-aggregator (Solana only)
-        solanaOnly: true,  // ✅ KAMINO hanya untuk chain Solana
-        delay: 500,        // ✅ Hardcoded: 500ms jeda antar request
-        isMultiDex: true, // ⭐ Multi-DEX aggregator like LIFI/DZAP
-        builder: ({ tokenAddress, pairAddress }) =>
-            `https://app.kamino.finance/liquidity/swap?tokenIn=${tokenAddress}&tokenOut=${pairAddress}`,
-        fetchdex: {
-            primary: {
-                tokentopair: 'kamino',    // CEX→DEX: Kamino aggregator (Solana only)
-                pairtotoken: 'kamino'     // DEX→CEX: Kamino aggregator (Solana only)
-            }
-        },
-        allowFallback: false // Kamino is Solana-specific multi-DEX aggregator
-    },
-
     // ============ BACKEND PROVIDERS (strategi-string saja, tidak tampil di UI) ============
     // SWOOP dan SWING tidak punya entri CONFIG_DEXS tersendiri — mereka adalah nama strategi
     // yang dipakai di fetchdex secondary/alternative DEX Regular:
@@ -1080,14 +1058,15 @@ const CONFIG_DEXS = {
     //   - 'lifi' (standalone)  → Meta-DEX, multi-route, kolom sendiri
     //   - 'lifi-odos', 'lifi-velora' (filtered) → backend transport untuk DEX Regular
     lifi: {
-        label: 'LIFI',
+        label: 'JUMPER',
         badgeClass: 'bg-lifi',
         disabled: false,
         isMetaDex: true,   // ✅ Meta-DEX: standalone LIFI menampilkan multi-route
-        evmOnly: true,
+        evmOnly: false,    // ✅ EVM + Solana
         warna: "#f764bcff",
         proxy: true,
         delay: 800,        // 800ms jeda (rate limit ~200 req/min)
+        maxProviders: 3,   // Maks sub-kolom yang ditampilkan (override user setting jika tidak diset)
         builder: ({ chainCode, tokenAddress, pairAddress }) => {
             return `https://jumper.exchange/?fromChain=${chainCode}&fromToken=${tokenAddress}&toChain=${chainCode}&toToken=${pairAddress}`;
         },
@@ -1110,6 +1089,7 @@ const CONFIG_DEXS = {
         proxy: true,
         delay: 800,        // WARNING: rentan 429 rate limit
         isMultiDex: true,
+        maxProviders: 3,   // Maks sub-kolom yang ditampilkan
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.dzap.io/swap?fromChain=${chainCode}&toChain=${chainCode}&fromToken=${tokenAddress}&toToken=${pairAddress}`,
         fetchdex: {
@@ -1122,7 +1102,7 @@ const CONFIG_DEXS = {
     },
 
     rubic: {
-        label: 'Rubic',
+        label: 'RUBIC',
         badgeClass: 'bg-rubic',
         disabled: false,
         proxy: true,
@@ -1131,6 +1111,7 @@ const CONFIG_DEXS = {
         evmOnly: false,   // ✅ Support Solana
         delay: 1000,
         isMultiDex: true,
+        maxProviders: 3,   // Maks sub-kolom yang ditampilkan
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.rubic.exchange/?fromChain=${chainCode}&toChain=${chainCode}&from=${tokenAddress}&to=${pairAddress}`,
         fetchdex: {
@@ -1143,7 +1124,7 @@ const CONFIG_DEXS = {
     },
 
     rango: {
-        label: 'Rango',
+        label: 'RANGO',
         badgeClass: 'bg-rango',
         disabled: false,
         proxy: true,
@@ -1152,6 +1133,7 @@ const CONFIG_DEXS = {
         evmOnly: false,   // ✅ Support Solana
         delay: 1000,
         isMultiDex: true,
+        maxProviders: 3,   // Maks sub-kolom yang ditampilkan
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.rango.exchange/?from=${chainCode}&to=${chainCode}&fromToken=${tokenAddress}&toToken=${pairAddress}`,
         fetchdex: {
@@ -1164,15 +1146,16 @@ const CONFIG_DEXS = {
     },
 
     rocketx: {
-        label: 'RocketX',
+        label: 'ROCKETXa',
         badgeClass: 'bg-rocketx',
         disabled: false,
         proxy: false,        // Proxy untuk hindari CORS; API key di header
         warna: "#ffd52bff",   // RocketX red-orange
         isMetaDex: true,    // ✅ Meta-DEX: multi-quote DEX aggregator
-        evmOnly: true,      // EVM only (BSC, ETH, Polygon, dll)
+        evmOnly: false,     // ✅ EVM + Solana
         delay: 600,
         isMultiDex: true,
+        maxProviders: 3,   // Maks sub-kolom yang ditampilkan
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.rocketx.exchange/swap?fromChain=${chainCode}&toChain=${chainCode}&fromToken=${tokenAddress}&toToken=${pairAddress}`,
         fetchdex: {
@@ -1185,17 +1168,18 @@ const CONFIG_DEXS = {
     },
 
     metax: {
-        label: 'MetaX',
+        label: 'METAX',
         badgeClass: 'bg-metax',
         disabled: false,
         proxy: false,        // SSE langsung dari browser (EventSource), tidak lewat proxy
         warna: "#ec7506ff",    // MetaMask orange
         isMetaDex: true,    // ✅ Meta-DEX: SSE streaming multi-quote
-        evmOnly: true,      // EVM only (ETH, BSC, Polygon, Arbitrum, Optimism, Base, Avalanche)
+        evmOnly: false,     // ✅ EVM + Solana
         delay: 800,
         isMultiDex: true,
+        maxProviders: 3,   // Maks sub-kolom yang ditampilkan
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
-            `https://portfolio.metamask.io/bridge?srcChain=${chainCode}&srcToken=${tokenAddress}&destChain=${chainCode}&destToken=${pairAddress}`,
+            `https://app.dzap.io/trade?referral=d0d7E9b4&fromChain=${chainCode}&fromToken=${tokenAddress}&toChain=${chainCode}&toToken=${pairAddress}`,
         fetchdex: {
             primary: {
                 tokentopair: 'metax',
