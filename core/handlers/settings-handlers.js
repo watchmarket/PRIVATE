@@ -89,7 +89,8 @@
 
         // ✅ Collect DEX delay values (ONLY from generated inputs, NO HARDCODE!)
         let JedaDexs = {};
-        const invalidKeys = ['fly', '0x', 'dzap', 'paraswap', '1inch']; // Legacy keys to reject
+        // ℹ️ 'dzap' sudah jadi Meta-DEX aggregator — dihapus dari invalidKeys (bukan regular DEX)
+        const invalidKeys = ['fly', '0x', 'paraswap', '1inch']; // Legacy keys to reject
 
         $('.dex-delay-input').each(function () {
             const dexKey = $(this).data('dex');
@@ -111,6 +112,26 @@
         });
 
         console.log('[Settings Save] Valid JedaDexs to save:', Object.keys(JedaDexs));
+
+        // ✅ META-DEX: Collect per-aggregator settings (enabled toggle + jeda + topN)
+        let metaDex = {};
+        if (window.CONFIG_APP?.APP?.META_DEX === true) {
+            metaDex.aggregators = {};
+            const aggKeys = Object.keys(window.CONFIG_APP?.META_DEX_CONFIG?.aggregators || {});
+            aggKeys.forEach(aggKey => {
+                const isEnabled = $(`#meta-dex-enabled-${aggKey}`).length
+                    ? $(`#meta-dex-enabled-${aggKey}`).is(':checked')
+                    : (window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[aggKey]?.enabled !== false);
+                const jedaDex = parseInt($(`#meta-dex-delay-${aggKey}`).val()) ||
+                    (window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[aggKey]?.jedaDex || 1000);
+                metaDex.aggregators[aggKey] = { enabled: isEnabled, jedaDex };
+            });
+            metaDex.showBestOnly = $('#meta-dex-showBestOnly').is(':checked');
+            metaDex.topRoutes = parseInt($('#meta-dex-topN').val()) || 3;
+
+            // NOTE: META_DEX_SETTINGS (modal per chain) disimpan via Editor Modal DEX (bulk-modal-editor)
+            console.log('[Settings Save] metaDex settings:', metaDex);
+        }
 
         // ✅ COLLECT ENABLED CHAINS
         let enabledChains = [];
@@ -301,8 +322,9 @@
             matchaApiKeys,
             scanPerKoin: parseInt(scanPerKoin, 10),
             JedaDexs,
+            metaDex,      // ✅ META-DEX per-aggregator settings
             userRPCs,
-            userWallets  // ✅ Add wallet addresses
+            userWallets
         };
 
         console.log('[SETTINGS] Data to save:', settingData);

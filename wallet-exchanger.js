@@ -624,8 +624,13 @@
                 statusBadge = `<span class="uk-badge" style="background-color: #6c757d; color: white;">Belum ada data</span>`;
             }
 
+            // CEX mode atau hanya 1 CEX → full width (1 kolom)
+            const cardWidthClass = (isCEXMode || availableCexes.length === 1)
+                ? 'uk-width-1-1'
+                : 'uk-width-1-1 uk-width-1-2@m';
+
             const cardHtml = `
-                <div class="wallet-cex-grid-item uk-width-1-1 uk-width-1-2@m">
+                <div class="wallet-cex-grid-item ${cardWidthClass}">
                     <div class="wallet-cex-card ${isSelected ? 'selected' : ''}" data-cex="${cexName}">
                         <div class="wallet-cex-header" data-cex="${cexName}">
                             <div class="wallet-cex-name" style="color: ${cexColor}">
@@ -675,22 +680,13 @@
         const CONFIG_CHAINS = root.CONFIG_CHAINS || {};
         const isMultiMode = mode && mode.type === 'multi';
 
-        // Group coins by chain untuk mode multi
+        // Group coins by chain — selalu (bukan hanya multiMode) agar chain header berwarna selalu tampil
         let coinsByChain = {};
-        if (isMultiMode) {
-            coins.forEach(coin => {
-                const chainKey = getCanonicalChainKey(coin.chain) || String(coin.chain || '').toLowerCase();
-                if (!coinsByChain[chainKey]) {
-                    coinsByChain[chainKey] = [];
-                }
-                coinsByChain[chainKey].push(coin);
-            });
-        } else {
-            // Single mode: tidak perlu grouping
-            const chainKey = getCanonicalChainKey(coins[0]?.chain) || 'unknown';
-            // console.log(`[Wallet Table SINGLE MODE] Original chain: ${coins[0]?.chain} | Canonical chainKey: ${chainKey}`);
-            coinsByChain[chainKey] = coins;
-        }
+        coins.forEach(coin => {
+            const chainKey = getCanonicalChainKey(coin.chain) || String(coin.chain || '').toLowerCase();
+            if (!coinsByChain[chainKey]) coinsByChain[chainKey] = [];
+            coinsByChain[chainKey].push(coin);
+        });
 
         // Sort chains alphabetically
         const sortedChains = Object.keys(coinsByChain).sort();
@@ -713,14 +709,12 @@
                 // console.warn(`[Wallet Table] No config found for chainKey: ${chainKey}. Available keys:`, Object.keys(CONFIG_CHAINS));
             }
 
-            // Header chain untuk mode multi
-            if (isMultiMode) {
-                tableHtml += `
-                    <div class="wallet-chain-header" style="background: ${chainColor}; color: white; padding: 4px 8px; font-weight: bold; font-size: 12px; margin-top: ${chainIdx > 0 ? '8px' : '0'};">
-                        ${chainName} (${chainCoins.length} koin bermasalah)
-                    </div>
-                `;
-            }
+            // Header chain selalu tampil dengan warna chain (bukan hanya multiMode)
+            tableHtml += `
+                <div class="wallet-chain-header" style="background: ${chainColor}; color: white; padding: 6px 10px; font-weight: bold; font-size: 12px; margin-top: ${chainIdx > 0 ? '10px' : '0'}; border-radius: ${chainIdx > 0 ? '4px 4px 0 0' : '0'};">
+                    ${chainName} (${chainCoins.length} koin bermasalah)
+                </div>
+            `;
 
             tableHtml += `
                 <table class="wallet-cex-table uk-table uk-table-divider uk-table-hover uk-table-small">

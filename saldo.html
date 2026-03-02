@@ -393,7 +393,7 @@
                     <!-- Action Buttons -->
                     <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
                         <a class="icon-link" href="index.html" target="_blank" title="Buka Aplikasi Utama">
-                            <img src="assets/icons/tab-new.png" alt="Main App">
+                            <img src="assets/icons/tab-new.png" style="width:20px;height:20px;">
                         </a>
                         <button class="icon-link" id="openModalKalkulator" title="Kalkulator Crypto" style="background:#ffffff;border-color:#bcbdbc;">
                             <img src="assets/icons/calculator.png" alt="Kalkulator" style="width:20px;height:20px;">
@@ -407,12 +407,14 @@
                         <button class="icon-link" id="UpdateHistoryPNL" title="Update History PNL" style="background:#28a745;border-color:#28a745;">
                             <span uk-icon="icon: plus-circle; ratio: 1.1" style="color:white;"></span>
                         </button>
-                        <button class="icon-link" id="ResetModal" title="Reset Modal" style="background:#faa05a;border-color:#faa05a;">
-                            <span uk-icon="icon: refresh; ratio: 1.1" style="color:white;"></span>
-                        </button>
+                       
                         
-                        <button class="icon-link" id="SearchHistoryPNL" title="Riwayat PNL" style="background:#ffffff;border-color:#e91111;">
-                            <span uk-icon="icon: history; ratio: 1.1" style="color:red;"></span>
+                        <button class="icon-link" id="SearchHistoryPNL" title="Riwayat PNL" style="background:#ee4b63;border-color:#06ba1b;">
+                            <span uk-icon="icon: info; ratio: 1.1" style="color:white"></span>
+                        </button>
+
+                         <button class="icon-link" id="ResetModal" title="Reset Modal" style="background:#faa05a;border-color:#232322;">
+                            <span uk-icon="icon: refresh; ratio: 1.1" style="color:white;"></span>
                         </button>
                     </div>
 
@@ -1512,9 +1514,13 @@ $(document).ready(async function () {
             const saldoCEX   = parseFloat(localStorage.getItem('MULTI_TotalSaldoCEX'))||0;
             const saldoChain = parseFloat(localStorage.getItem('MULTI_TotalSaldoChain'))||0;
             const akhir      = saldoCEX + saldoChain;
+            // Simpan snapshot PNL periode sebelum reset
+            const modalAwalLama = parseFloat(localStorage.getItem('MULTI_MODALAWAL'))||0;
+            const pnlSebelumReset = akhir - modalAwalLama;
+            addTableHistory(formattedTime, modalAwalLama, akhir, pnlSebelumReset, 'reset');
+            // Baru reset modal awal ke saldo saat ini
             localStorage.setItem('MULTI_MODALAWAL', akhir.toFixed(2));
             $('#MODALAWAL').val(akhir.toFixed(2));
-            addTableHistory(formattedTime, akhir, akhir, 0, 'reset');
             localStorage.setItem('MULTI_lastUpdatePNL', formattedTime);
             window.BalanceCheckOverlay.updateProgress(100,'Selesai!');
             setTimeout(() => { window.BalanceCheckOverlay.hide(); location.reload(); }, 1500);

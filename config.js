@@ -1,22 +1,68 @@
 const CONFIG_APP = {
     APP: {
-               NAME: "APP PRIVATE",
-        VERSION: "2026.02.29",
+           NAME: "APP PRIVATE",
+        VERSION: "2026.03.02",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
         VOL_CHECK: true,
-        META_DEX: false,     // Set true untuk menghidupkan fitur META-DEX aggregator (LIFI, DZAP, Rubic, Rango)
+        // META-DEX: fitur DEX TAMBAHAN yang menampilkan BANYAK quote sekaligus per token.
+        // Berbeda dari DEX regular (single-quote). Berjalan TERPISAH dari scan DEX regular.
+        // Jika true → Settings menampilkan panel: Modal DEX, Filter Scanner, Card Signal, Jeda DEX.
+        META_DEX: true,
         DEBUG_LOG: false,   // ✅ PERF: Set true untuk aktifkan debug logging (default: false untuk performance)
     },
-    // ✅ META-DEX Configuration - Control meta-aggregator availability
-    // Meta-aggregators: LIFI, DZAP, Rubic, Rango (EVM chains only)
+    // ========================================================================
+    // META-DEX CONFIGURATION
+    // ========================================================================
+    // Meta-DEX adalah fitur DEX TAMBAHAN yang menampilkan BANYAK quote sekaligus
+    // (berbeda dengan DEX regular seperti ODOS, Velora yang hanya 1 quote per scan).
+    //
+    // ⚠️  BUKAN secondary/alternative di fetchdex!
+    //     secondary/alternative = rotasi backend internal untuk DEX regular.
+    //     META-DEX              = DEX tambahan terpisah, muncul sebagai row/kolom sendiri.
+    //
+    // Hanya aktif jika APP.META_DEX === true.
+    // ========================================================================
     META_DEX_CONFIG: {
-        enabled: true,  // Master toggle (synced with APP.META_DEX)
-        aggregators: ['lifi', 'dzap', 'rubic', 'rango'],  // Available meta-aggregators
-        supportedChains: ['bsc', 'ethereum', 'polygon', 'arbitrum', 'base'],  // EVM only - Solana uses different aggregators
-    }
-    // ✅ Global fallback removed - each DEX now has explicit primary/alternative configuration
+        // Daftar aggregator META-DEX yang tersedia.
+        // Setiap aggregator mengembalikan BANYAK quote dari berbagai DEX sekaligus.
+        aggregators: {
+            lifi: { enabled: true, evmOnly: false, jedaDex: 400, label: 'LIFI' },  // EVM + Solana multi-route
+           // dzap: { enabled: true, evmOnly: false, jedaDex: 500, label: 'DZAP' },  // EVM + Solana multi-route
+           // rubic: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rubic' },  // EVM + Solana multi-quote
+            rango: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rango' },  // EVM + Solana multi-quote
+            kamino: { enabled: true, evmOnly: false, solanaOnly: true, jedaDex: 500, label: 'Kamino' },  // Solana-only multi-quote
+            rocketx: { enabled: true, evmOnly: true, jedaDex: 600, label: 'RocketX' },  // EVM multi-quote (RELAY, ParaSwap, 1inch, Uniswap dll)
+        },
+
+        // Chain yang didukung semua META-DEX aggregators (EVM + Solana)
+        supportedChains: ['bsc', 'ethereum', 'polygon', 'arbitrum', 'base', 'solana'],
+
+        // ── Settings UI yang muncul di panel Settings ketika META_DEX = true ─────
+        settings: {
+            // Modal DEX: konfigurasi tampilan aggregator di modal pemilihan DEX
+            modalDex: {
+                showInModal: true,         // tampilkan META-DEX dalam modal DEX selection
+                groupLabel: 'META-DEX',    // nama group di modal
+            },
+            // Filter Scanner: filter khusus untuk hasil scan META-DEX
+            filterScanner: {
+                minQuotes: 1,              // minimum jumlah sub-quote yang harus dikembalikan
+                showBestOnly: false,       // false = tampilkan semua quote; true = hanya terbaik
+            },
+            // Card Signal DEX: tampilan card/signal untuk hasil META-DEX
+            cardSignal: {
+                showSubResults: true,      // tampilkan sub-quote di dalam card META-DEX
+                highlightBest: true,       // highlight sub-quote terbaik
+                badgeStyle: 'multi',       // 'multi' = badge menampilkan jumlah quote
+            },
+            // Jeda DEX: delay default antar request META-DEX (dapat di-override per aggregator)
+            jedaDex: {
+                default: 1000,            // delay default (ms) jika tidak diset per aggregator
+            },
+        },
+    },
     // ✅ DEX API Keys moved to secrets.js for centralized management
 };
 
@@ -124,7 +170,7 @@ const CONFIG_CEX = {
     },
     INDODAX: {
         ICON: "assets/icons/cex/indodax.png",
-        WARNA: "#1285b5",
+        WARNA: "#2eb5f2",
         LINKS: {
             tradeToken: ({ token }) => `https://indodax.com/trade/${String(token || '').toUpperCase()}IDR`,
             tradePair: ({ pair }) => `https://indodax.com/trade/${String(pair || '').toUpperCase()}IDR`,
@@ -428,7 +474,7 @@ const CONFIG_UI = {
         { key: 'matcha', label: 'Matcha', badgeClass: 'bg-matcha', fallbackSlug: 'matcha' },
         { key: 'flytrade', label: 'Flytrade', badgeClass: 'bg-flytrade', fallbackSlug: 'flytrade' },
         { key: 'jupiter', label: 'Jupiter', badgeClass: 'bg-jupiter', fallbackSlug: 'jupiter' },
-       // { key: 'dflow', label: 'DFlow', badgeClass: 'bg-dflow', fallbackSlug: 'dflow' },
+        // { key: 'dflow', label: 'DFlow', badgeClass: 'bg-dflow', fallbackSlug: 'dflow' },
         { key: 'kamino', label: 'Kamino', badgeClass: 'bg-kamino', fallbackSlug: 'kamino' },
         { key: 'rubic', label: 'Rubic', badgeClass: 'bg-rubic', fallbackSlug: 'rubic' },
         { key: 'rango', label: 'Rango', badgeClass: 'bg-rango', fallbackSlug: 'rango' }
@@ -503,6 +549,7 @@ const CONFIG_UI = {
             'rango': 6000,           // Rango multi-quote: 6s
             'rubic': 6000,           // Rubic multi-quote: 6s
             'kamino': 5000,          // Kamino (Solana): 5s
+            'rocketx': 8000,         // RocketX: 8s (multi-provider response)
 
             // ========== Default Fallback ==========
             'default': 5000          // Default: 5s (balanced)
@@ -777,7 +824,7 @@ const CONFIG_DEXS = {
             },
             secondary: {
                 tokentopair: 'swoop-kyber',     // CEX→DEX: SWOOP filtered (rotation)
-                pairtotoken: 'lifi-kyber'     // DEX→CEX: LIFI filtered (rotation)
+                pairtotoken: 'swoop-kyber'     // DEX→CEX: LIFI filtered (rotation)
             }
         },
         allowFallback: true,  // ✅ Enable rotation between primary and alternative
@@ -911,7 +958,7 @@ const CONFIG_DEXS = {
                 pairtotoken: 'hinkal-odos'     // DEX→CEX: Hinkal ODOS proxy (request ganjil)
             },
             secondary: {                       // ✅ ROTATION: bergantian dengan primary
-                tokentopair: 'swoop-odos',     // CEX→DEX: SWING filtered for ODOS (request genap)
+                tokentopair: 'lifi-odos',     // CEX→DEX: SWING filtered for ODOS (request genap)
                 pairtotoken: 'swing-odos'      // DEX→CEX: SWING filtered for ODOS (request genap)
             }
         },
@@ -937,7 +984,7 @@ const CONFIG_DEXS = {
             },
             alternative: {
                 tokentopair: 'swing-velora',   // CEX→DEX: SWING filtered (rotation)
-                pairtotoken: 'swoop-velora'         // DEX→CEX: Velora v5 (ParaSwap v5 API fallback)
+                pairtotoken: 'lifi-velora'         // DEX→CEX: Velora v5 (ParaSwap v5 API fallback)
             }
         },
         allowFallback: true,  // ✅ Enable rotation between primary and alternative
@@ -983,8 +1030,9 @@ const CONFIG_DEXS = {
         badgeClass: 'bg-kamino',
         proxy: true,
         warna: "#7c3aed", // Kamino purple
-        isMetaDex: true,  // ✅ META-DEX: Mark as meta-aggregator (Solana only)
-        delay: 500,       // ✅ Hardcoded: 500ms jeda antar request
+        isMetaDex: true,   // ✅ META-DEX: Mark as meta-aggregator (Solana only)
+        solanaOnly: true,  // ✅ KAMINO hanya untuk chain Solana
+        delay: 500,        // ✅ Hardcoded: 500ms jeda antar request
         isMultiDex: true, // ⭐ Multi-DEX aggregator like LIFI/DZAP
         builder: ({ tokenAddress, pairAddress }) =>
             `https://app.kamino.finance/liquidity/swap?tokenIn=${tokenAddress}&tokenOut=${pairAddress}`,
@@ -997,42 +1045,90 @@ const CONFIG_DEXS = {
         allowFallback: false // Kamino is Solana-specific multi-DEX aggregator
     },
 
-    // ============ REST API PROVIDERS (Single-Quote) ============
+    // ============ BACKEND PROVIDERS (strategi-string saja, tidak tampil di UI) ============
+    // SWOOP dan SWING tidak punya entri CONFIG_DEXS tersendiri — mereka adalah nama strategi
+    // yang dipakai di fetchdex secondary/alternative DEX Regular:
+    //   swoop-kyber, swoop-matcha, swing-odos, swing-velora, dst.
+    // Hasil tetap ditampilkan di kolom DEX asal (ODOS, Velora, dll.) — bukan kolom sendiri.
+    swoop: {
+        label: 'SWOOP',
+        badgeClass: 'bg-swoop',
+        disabled: false,
+        isBackendProvider: true,   // ⚡ Strategi-string internal — tidak tampil sebagai DEX column
+        warna: "#ff6b35",
+        proxy: true,
+        delay: 1000,
+    },
+    swing: {
+        label: 'SWING',
+        badgeClass: 'bg-swing',
+        disabled: false,
+        isBackendProvider: true,   // ⚡ Strategi-string internal — tidak tampil sebagai DEX column
+        warna: "#4a90d9",
+        proxy: true,
+        delay: 800,
+    },
+
+    // ============ META-DEX AGGREGATORS (Multi-Quote) ============
+    // Meta-DEX adalah DEX TAMBAHAN terpisah yang mengembalikan BANYAK quote sekaligus.
+    // Berbeda dari DEX Regular (1 quote). Hanya aktif jika APP.META_DEX === true.
+    // Muncul sebagai row/kolom SENDIRI di hasil scanning.
+    //
+    // Dual-role LIFI:
+    //   - 'lifi' (standalone)  → Meta-DEX, multi-route, kolom sendiri
+    //   - 'lifi-odos', 'lifi-velora' (filtered) → backend transport untuk DEX Regular
     lifi: {
         label: 'LIFI',
         badgeClass: 'bg-lifi',
-        disabled: false, // ✅ ENABLED - LIFI as REST API provider
-        warna: "#ea4aaa", // LIFI pink
-        isMetaDex: true,  // ✅ META-DEX: Mark as meta-aggregator
-        evmOnly: true,    // ✅ META-DEX: EVM chains only (Solana uses different aggregators)
-        proxy: true,      // ✅ Gunakan CORS proxy: ubah IP + fix Origin:null → kurangi 429
-        delay: 800,       // ✅ Hardcoded: 800ms jeda antar request (rate limit ~200 req/min)
-        // ❌ REMOVED: isMultiDex - LIFI is now a REST API provider (single-quote)
+        disabled: false,
+        isMetaDex: true,   // ✅ Meta-DEX: standalone LIFI menampilkan multi-route
+        evmOnly: true,
+        warna: "#f764bcff",
+        proxy: true,
+        delay: 800,        // 800ms jeda (rate limit ~200 req/min)
         builder: ({ chainCode, tokenAddress, pairAddress }) => {
             return `https://jumper.exchange/?fromChain=${chainCode}&fromToken=${tokenAddress}&toChain=${chainCode}&toToken=${pairAddress}`;
         },
         fetchdex: {
             primary: {
-                tokentopair: 'lifi',      // CEX→DEX: LIFI REST API provider
-                pairtotoken: 'lifi'       // DEX→CEX: LIFI REST API provider
+                tokentopair: 'lifi',
+                pairtotoken: 'lifi'
             }
         },
         allowFallback: false,
     },
 
-    // ============ META-AGGREGATORS (Multi-Quote) ============
-    // Rubic and Rango return multiple quotes from different DEX providers
-    // These are only available on EVM chains when META_DEX is enabled
+    dzap: {
+        label: 'DZAP',
+        badgeClass: 'bg-dzap',
+        disabled: false,
+        isMetaDex: true,   // ✅ Meta-DEX: DZAP menampilkan multi-route
+        evmOnly: true,
+        warna: "#d9dc36ff",
+        proxy: true,
+        delay: 800,        // WARNING: rentan 429 rate limit
+        isMultiDex: true,
+        builder: ({ chainCode, tokenAddress, pairAddress }) =>
+            `https://app.dzap.io/swap?fromChain=${chainCode}&toChain=${chainCode}&fromToken=${tokenAddress}&toToken=${pairAddress}`,
+        fetchdex: {
+            primary: {
+                tokentopair: 'dzap',
+                pairtotoken: 'dzap'
+            }
+        },
+        allowFallback: false,
+    },
+
     rubic: {
         label: 'Rubic',
         badgeClass: 'bg-rubic',
         disabled: false,
-        proxy: true,  // Enable CORS proxy to avoid 429 errors
-        warna: "#7c3aed",  // Rubic purple
-        isMetaDex: true,  // ✅ META-DEX: Mark as meta-aggregator
-        evmOnly: true,    // ✅ META-DEX: EVM chains only
-        delay: 1000,      // ✅ Hardcoded: 1000ms jeda antar request
-        isMultiDex: true, // Returns multiple quotes from different providers
+        proxy: true,
+        warna: "#24cc59ff",
+        isMetaDex: true,   // ✅ Meta-DEX: multi-quote EVM + Solana
+        evmOnly: false,   // ✅ Support Solana
+        delay: 1000,
+        isMultiDex: true,
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.rubic.exchange/?fromChain=${chainCode}&toChain=${chainCode}&from=${tokenAddress}&to=${pairAddress}`,
         fetchdex: {
@@ -1048,18 +1144,39 @@ const CONFIG_DEXS = {
         label: 'Rango',
         badgeClass: 'bg-rango',
         disabled: false,
-        proxy: true,  // Enable CORS proxy
-        warna: "#00d4aa",  // Rango teal
-        isMetaDex: true,  // ✅ META-DEX: Mark as meta-aggregator
-        evmOnly: true,    // ✅ META-DEX: EVM chains only
-        delay: 1000,      // ✅ Hardcoded: 1000ms jeda antar request
-        isMultiDex: true, // Returns multiple quotes from different providers
+        proxy: true,
+        warna: "#17aedcff",
+        isMetaDex: true,   // ✅ Meta-DEX: multi-quote EVM + Solana
+        evmOnly: false,   // ✅ Support Solana
+        delay: 1000,
+        isMultiDex: true,
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.rango.exchange/?from=${chainCode}&to=${chainCode}&fromToken=${tokenAddress}&toToken=${pairAddress}`,
         fetchdex: {
             primary: {
                 tokentopair: 'rango',
                 pairtotoken: 'rango'
+            }
+        },
+        allowFallback: false
+    },
+
+    rocketx: {
+        label: 'RocketX',
+        badgeClass: 'bg-rocketx',
+        disabled: false,
+        proxy: false,        // Proxy untuk hindari CORS; API key di header
+        warna: "#ffd52bff",   // RocketX red-orange
+        isMetaDex: true,    // ✅ Meta-DEX: multi-quote DEX aggregator
+        evmOnly: true,      // EVM only (BSC, ETH, Polygon, dll)
+        delay: 600,
+        isMultiDex: true,
+        builder: ({ chainCode, tokenAddress, pairAddress }) =>
+            `https://app.rocketx.exchange/swap?fromChain=${chainCode}&toChain=${chainCode}&fromToken=${tokenAddress}&toToken=${pairAddress}`,
+        fetchdex: {
+            primary: {
+                tokentopair: 'rocketx',
+                pairtotoken: 'rocketx'
             }
         },
         allowFallback: false

@@ -48,8 +48,9 @@
         <!-- Kanan: Toolbar icon -->
         <div class="uk-width-auto@s uk-width-1-1">
           <div class="uk-flex uk-flex-middle uk-flex-wrap uk-flex-right@s toolbar-scroll">
-            <a href="index.html?chain=all" id="multichain_scanner" style="--icon-color: #10b981; --icon-shadow: rgba(16,185,129,0.25);"><img class="icon" title="SCANNER MULTICHAIN"
-                width="24" src="assets/icons/robot.png" /></a>
+            <a href="index.html?chain=all" id="multichain_scanner"
+              style="--icon-color: #10b981; --icon-shadow: rgba(16,185,129,0.25);"><img class="icon"
+                title="SCANNER MULTICHAIN" width="24" src="assets/icons/robot.png" /></a>
 
             <span id="chain-links-container"></span>
 
@@ -188,8 +189,6 @@
                 <span id="autoRunCountdown" class="uk-text-meta uk-margin-small-right"
                   style="min-width:64px; display:inline-block;"></span>
 
-
-
                 <a href="#" id="ScannerFilterModal" title="SCANNER FILTER" style="margin-left: 8px;">
                   <img class="icon" src="assets/icons/instagram.png" width="24px" />
                 </a>
@@ -197,18 +196,24 @@
                   style="margin-left: 8px;">
                   <img class="icon" src="assets/icons/money.png" width="24px" />
                 </a>
-                <a href="#" target="_blank" id="ManajemenKoin" data-feature="manage" style="margin-left: 12px;">
+                <a href="#" target="_blank" id="ManajemenKoin" data-feature="manage" style="margin-left: 8px;">
                   <img title="MANAJEMEN KOIN" class="icon" src="assets/icons/coin-manage.png" width="24px" />
                 </a>
-                <img class="icon" id="UpdateWalletCEX" data-feature="wallet" title="CHECK EXCHANGER" width="24px"
-                  src="assets/icons/filter.png" style="margin-left: 8px; cursor: pointer;" />
+                <a href="#" id="scannerImportBtn" title="IMPORT KOIN CSV" class="scanner-cex-btn"
+                  style="margin-left:8px; font-size:16px; text-decoration:none; width:24px; height:24px; border-radius:30%; background:#0bf53a; border:1px solid #0bf53a; align-items:center; justify-content:center;">🔽</a>
+                <a href="#" id="scannerExportBtn" title="EXPORT KOIN CSV" class="scanner-cex-btn"
+                  style="margin-left:8px; font-size:16px; text-decoration:none; width:24px; height:24px; border-radius:30%; background:#34bdfc; border:1px solid #34bdfc; align-items:center; justify-content:center;">🔼</a>
 
+                <img class="icon" id="UpdateWalletCEX" data-feature="wallet" title="CHECK EXCHANGER" width="24px"
+                  src="assets/icons/filter.png" style="margin-left: 8px; cursor: pointer; margin-right:8px; " />
+
+                <input type="file" id="scannerUploadJSON" accept=".csv,text/csv" style="display:none;"
+                  onchange="uploadTokenScannerCSV(event)">
+                <input id="searchInput" class="uk-input uk-form-small" type="text" placeholder="🔍 Cari koin..."
+                  style="width:150px; padding:4px 8px; font-size:12px;">
               </div>
             </div>
-            <div class="scanner-control-inline">
-              <input id="searchInput" class="uk-input uk-form-small" type="text" placeholder="🔍 Cari koin..."
-                style="width:150px; padding:4px 8px; font-size:12px;">
-            </div>
+
 
           </form>
         </div>
@@ -280,13 +285,18 @@
               <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
                 <span uk-icon="cloud-download"></span> PENGATURAN RPC
               </h5>
-              <div id="rpc-settings-group">
-                <!-- JS will populate RPC toggles -->
-              </div>
               <div class="uk-text-meta uk-text-small uk-text-danger uk-margin-small-top">
                 Ganti RPC jika Lambat. ambil di <a href="https://chainlist.org/" target="_blank">chainlist.org</a>
               </div>
+              <div id="rpc-settings-group">
+                <!-- JS will populate RPC toggles -->
+              </div>
+
+
+
             </div>
+
+
           </div>
 
           <!-- ========================================= -->
@@ -338,7 +348,7 @@
                 <label class="uk-form-label uk-text-small uk-text-danger uk-text-bolder">
                   MATCHA API KEYS (Required) ⚠️
                 </label>
-                <textarea class="uk-textarea uk-form-small" id="matchaApiKeys" name="matchaApiKeys" rows="6"
+                <textarea class="uk-textarea uk-form-small" id="matchaApiKeys" name="matchaApiKeys" rows="4"
                   placeholder="key1,key2,key3 atau pisahkan dengan enter&#10; daftar di: https://dashboard.0x.org"
                   aria-label="Matcha API Keys"> </textarea>
                 <div class="uk-text-meta uk-text-small uk-text-warning">
@@ -364,6 +374,7 @@
                   <!-- JS akan populate -->
                 </div>
               </div>
+
             </div>
           </div>
 
@@ -373,6 +384,10 @@
           <!-- COLUMN 3 - CEX API KEYS (Wider) -->
           <!-- ========================================= -->
           <div class="uk-width-expand@m">
+             <!-- META-DEX Settings (shown only when META_DEX=true) -->
+            <div id="meta-dex-settings-group" style="display:none; margin-bottom: 6px;">
+              <!-- JS akan populate -->
+            </div>
             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
               <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
                 <span uk-icon="lock"></span> API KEY EXCHANGER
@@ -386,6 +401,8 @@
                 <!-- CEX API key inputs with checkboxes will be dynamically generated from CONFIG_CEX -->
               </div>
             </div>
+
+           
           </div>
 
         </div> <!-- end grid -->
@@ -823,7 +840,7 @@
 
   <!-- Modal: Bulk Modal Editor (Single Chain Only) -->
   <div id="bulk-modal-editor" uk-modal>
-    <div class="uk-modal-dialog uk-margin-auto-vertical" style="max-width:780px;">
+    <div class="uk-modal-dialog uk-margin-auto-vertical">
 
       <!-- HEADER -->
       <div class="uk-modal-header uk-flex uk-flex-between uk-flex-middle" style="padding:8px 12px;">
@@ -848,55 +865,62 @@
           </p>
         </div>
 
-        <div class="uk-grid-small" uk-grid style="margin-left:-6px;">
-          <!-- Left Column: Filter CEX -->
-          <div class="uk-width-1-3@m" style="padding-left:6px;">
-            <div class="uk-card uk-card-default uk-card-body" style="padding:8px;">
-              <h6 class="uk-heading-bullet uk-margin-remove" style="font-size:11px; margin-bottom:4px !important;">
-                Filter CEX</h6>
-              <div id="bulk-filter-cex" class="uk-flex uk-flex-column" style="gap:1px; font-size:10px;">
+        <!-- 3-column grid: Filter CEX | DEX Inputs | META-DEX Inputs -->
+        <div class="bulk-modal-grid">
+
+          <!-- Column 1: Filter CEX + Profil -->
+          <div class="bulk-col-filter">
+            <div class="uk-card uk-card-default uk-card-body bulk-inner-card">
+              <h6 class="uk-heading-bullet uk-margin-remove bulk-section-title">Filter CEX</h6>
+              <div id="bulk-filter-cex" class="uk-flex uk-flex-column" style="gap:2px;">
                 <!-- CEX checkboxes will be populated here -->
               </div>
 
-              <h6 class="uk-heading-bullet" style="font-size:11px; margin:8px 0 4px 0;">Profil Modal</h6>
+              <h6 class="uk-heading-bullet bulk-section-title" style="margin-top:10px;">Profil Modal</h6>
+              <label class="bulk-field-label">Pilih Profil:</label>
+              <select id="profile-select" class="uk-select uk-form-small" style="margin-bottom:6px;">
+                <option value="">-- Pilih Profil --</option>
+              </select>
 
-              <!-- Profile Selection -->
-              <div style="margin-bottom:4px;">
-                <label style="font-size:10px; display:block; margin-bottom:2px;">Pilih Profil:</label>
-                <select id="profile-select" class="uk-select" style="height:24px; font-size:10px; padding:2px 6px;">
-                  <option value="">-- Pilih Profil --</option>
-                </select>
-              </div>
-
-              <!-- Profile Actions -->
-              <div class="uk-flex uk-flex-column" style="gap:3px;">
-                <button type="button" class="uk-button uk-button-primary" id="profile-save-btn"
-                  style="padding:3px 8px; font-size:10px; height:auto;">
-                  <span uk-icon="icon:check;ratio:0.6"></span> Simpan
+              <div class="uk-flex uk-flex-column" style="gap:4px;">
+                <button type="button" class="uk-button uk-button-primary uk-button-small" id="profile-save-btn">
+                  <span uk-icon="icon:check;ratio:0.7"></span> SIMPAN
                 </button>
-                <button type="button" class="uk-button uk-button-danger" id="profile-delete-btn"
-                  style="padding:3px 8px; font-size:10px; height:auto;">
-                  <span uk-icon="icon:trash;ratio:0.6"></span> Hapus
+                <button type="button" class="uk-button uk-button-danger uk-button-small" id="profile-delete-btn">
+                  <span uk-icon="icon:trash;ratio:0.7"></span> HAPUS
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Right Column: DEX Modal Inputs -->
-          <div class="uk-width-2-3@m" style="padding-left:6px;">
-            <div class="uk-card uk-card-default uk-card-body" style="padding:8px;">
-              <div class="uk-flex uk-flex-between uk-flex-middle" style="margin-bottom:6px;">
-                <h6 class="uk-margin-remove" style="font-size:11px;">Modal DEX (KIRI | KANAN)</h6>
-                <label style="font-size:10px;">
+          <!-- Column 2: Regular DEX Inputs -->
+          <div class="bulk-col-dex">
+            <div class="uk-card uk-card-default uk-card-body bulk-inner-card">
+              <div class="uk-flex uk-flex-between uk-flex-middle" style="margin-bottom:8px;">
+                <h6 class="uk-margin-remove bulk-section-title">Modal DEX (KIRI | KANAN)</h6>
+                <label class="bulk-field-label" style="white-space:nowrap;">
                   <input type="checkbox" class="uk-checkbox" id="bulk-apply-all-dex" checked> Terapkan ke Semua DEX
                 </label>
               </div>
-
-              <div id="bulk-dex-inputs" style="font-size:10px;">
-                <!-- DEX inputs will be populated here dynamically -->
+              <div id="bulk-dex-inputs" class="bulk-dex-scroll">
+                <!-- Regular DEX inputs populated dynamically -->
               </div>
             </div>
           </div>
+
+          <!-- Column 3: META-DEX Inputs (hidden until META_DEX=true) -->
+          <div class="bulk-col-meta" id="bulk-meta-dex-column" style="display:none;">
+            <div class="uk-card uk-card-default uk-card-body bulk-inner-card" style="border-left:3px solid #7c3aed;">
+              <div class="bulk-meta-dex-header">
+                <h6 class="uk-margin-remove bulk-section-title" style="color:#2e0379;">&#x26A1; META-DEX</h6>
+                <span class="bulk-field-label" style="color:#888;">(modal per chain)</span>
+              </div>
+              <div id="bulk-meta-dex-inputs" class="bulk-dex-scroll">
+                <!-- META-DEX inputs populated dynamically -->
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -1162,8 +1186,8 @@
       <button class="uk-modal-close-default" type="button" uk-close></button>
 
       <h3 class="uk-heading-divider uk-text-center uk-text-primary uk-margin-small-bottom">
-       <img class="icon" id="openCalculatorModal" title="KALKULATOR CRYPTO (Ctrl+K)" width="24px"
-              src="assets/icons/calculator.png" style="cursor: pointer;" /> KALKULATOR CRYPTO
+        <img class="icon" id="openCalculatorModal" title="KALKULATOR CRYPTO (Ctrl+K)" width="24px"
+          src="assets/icons/calculator.png" style="cursor: pointer;" /> KALKULATOR CRYPTO
       </h3>
       <p class="uk-text-center uk-text-small uk-text-primary uk-margin-remove-top">
         Konversi Harga Crypto Secara Realtime

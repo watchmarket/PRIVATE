@@ -1169,37 +1169,43 @@
         throw new Error("DZAP quote rates not found in response");
       }
 
-      // Parse semua DEX dari quoteRates dan find BEST
-      let bestResult = null;
+      // Parse semua DEX dari quoteRates dan build subResults top-N
+      const allProviders = [];
       for (const [dexId, quoteInfo] of Object.entries(quoteRates)) {
         try {
           if (!quoteInfo || !quoteInfo.destAmount) continue;
-
           const amount_out = parseFloat(quoteInfo.destAmount) / Math.pow(10, des_output);
+          if (!Number.isFinite(amount_out) || amount_out <= 0) continue;
           const feeUsd = parseFloat(quoteInfo.fee?.gasFee?.[0]?.amountUSD || 0);
           const FeeSwap = (Number.isFinite(feeUsd) && feeUsd > 0) ? feeUsd : getFeeSwap(chainName);
-
-          // Select BEST provider (highest amount_out)
-          if (!bestResult || amount_out > bestResult.amount_out) {
-            bestResult = {
-              amount_out: amount_out,
-              FeeSwap: FeeSwap,
-              dexTitle: 'DZAP'
-            };
-          }
-        } catch (e) {
-          continue;
-        }
+          allProviders.push({ amount_out, FeeSwap, dexTitle: String(dexId).toUpperCase() });
+        } catch (e) { continue; }
       }
 
-      if (!bestResult) {
+      if (allProviders.length === 0) {
         throw new Error("No valid DZAP quotes found");
       }
 
-      console.log(`[DZAP] Returning best provider: ${bestResult.amount_out.toFixed(6)} (from ${Object.keys(quoteRates).length} providers)`);
+      // Urutkan best first, ambil top-N
+      allProviders.sort((a, b) => b.amount_out - a.amount_out);
+      const maxProviders = (() => {
+        try {
+          const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+          if (v > 0) return v;
+        } catch (_) {}
+        return (typeof window !== 'undefined' && window.CONFIG_DEXS?.dzap?.maxProviders) || 3;
+      })();
+      const topN = allProviders.slice(0, maxProviders);
 
-      // ✅ Return standard single-DEX format (NO subResults, NO isMultiDex)
-      return bestResult;
+      console.log(`[DZAP] Returning top ${topN.length} providers (from ${allProviders.length} available)`);
+
+      return {
+        amount_out: topN[0].amount_out,
+        FeeSwap: topN[0].FeeSwap,
+        dexTitle: 'DZAP',
+        subResults: topN,
+        isMultiDex: true
+      };
     }
   };
 
@@ -1226,26 +1232,13 @@
         ? (SavedSettingData?.walletSolana || defaultSolAddr)
         : (SavedSettingData?.walletMeta || defaultEvmAddr);
 
-      // ✅ HARDCODED: Filter for EVM chains - DEX only (no bridges)
+      // No exchanges filter → LIFI uses all available DEX aggregators per chain automatically
+      // allowSwitchChain: false already prevents cross-chain bridges
       const options = {
         slippage: 0.03,
         order: 'RECOMMENDED',
         allowSwitchChain: false
       };
-
-      // ✅ EVM CHAINS: Strict whitelist - only allow specific DEX aggregators
-      if (!isSolana) {
-        options.exchanges = {
-          allow: [
-            'paraswap',       // Paraswap aggregator
-            '0x',             // Matcha/0x
-            'odos',           // Odos optimizer
-            'sushiswap',      // Sushiswap DEX
-            'kyberswap',      // KyberSwap
-            'okx'             // OKX aggregator (okx, bukan okxdex)
-          ]
-        };
-      }
 
       const body = {
         fromChainId: lifiChainId,
@@ -1269,30 +1262,53 @@
       };
     },
     parseResponse: (response, { des_output, chainName }) => {
-      // ✅ CHANGED: Parse LIFI response - return BEST route only (single-quote)
       const routes = response?.routes;
 
       if (!routes || !Array.isArray(routes) || routes.length === 0) {
         throw new Error("LIFI routes not found in response");
       }
 
-      // Get BEST route (first route is already sorted by LIFI as RECOMMENDED)
-      const bestRoute = routes[0];
-      if (!bestRoute || !bestRoute.toAmount) {
+      // Build top-N subResults dari semua routes yang valid
+      const maxProviders = (() => {
+        try {
+          const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+          if (v > 0) return v;
+        } catch (_) {}
+        return (typeof window !== 'undefined' && window.CONFIG_DEXS?.lifi?.maxProviders) || 3;
+      })();
+      const subResults = [];
+
+      for (const route of routes) {
+        if (!route || !route.toAmount) continue;
+        const amount_out = parseFloat(route.toAmount) / Math.pow(10, des_output);
+        if (!Number.isFinite(amount_out) || amount_out <= 0) continue;
+        const gasCostUsd = parseFloat(route.gasCostUSD || 0);
+        const FeeSwap = (Number.isFinite(gasCostUsd) && gasCostUsd > 0) ? gasCostUsd : getFeeSwap(chainName);
+        // Ambil nama DEX/tool dari step pertama route
+        let dexTitle = 'LIFI';
+        try {
+          const toolName = route.steps?.[0]?.toolDetails?.name;
+          if (toolName) dexTitle = String(toolName).toUpperCase();
+        } catch (_) { }
+        subResults.push({ amount_out, FeeSwap, dexTitle });
+        if (subResults.length >= maxProviders) break;
+      }
+
+      if (subResults.length === 0) {
         throw new Error("LIFI best route not found");
       }
 
-      const amount_out = parseFloat(bestRoute.toAmount) / Math.pow(10, des_output);
-      const gasCostUsd = parseFloat(bestRoute.gasCostUSD || 0);
-      const FeeSwap = (Number.isFinite(gasCostUsd) && gasCostUsd > 0) ? gasCostUsd : getFeeSwap(chainName);
+      // Urutkan by amount_out descending (best first)
+      subResults.sort((a, b) => b.amount_out - a.amount_out);
 
-      console.log(`[LIFI] Returning best route: ${amount_out.toFixed(6)} (from ${routes.length} available routes)`);
+      console.log(`[LIFI] Returning top ${subResults.length} routes (from ${routes.length} available)`);
 
-      // ✅ Return standard single-DEX format (NO subResults, NO isMultiDex)
       return {
-        amount_out: amount_out,
-        FeeSwap: FeeSwap,
-        dexTitle: 'LIFI'
+        amount_out: subResults[0].amount_out,
+        FeeSwap: subResults[0].FeeSwap,
+        dexTitle: 'LIFI',
+        subResults: subResults,
+        isMultiDex: true
       };
     }
   };
@@ -1542,11 +1558,12 @@
   }
 
   // Create filtered LIFI strategies for supported DEX providers
-  // Note: LIFI does NOT support Velora (ParaSwap) and Matcha (0x) - removed lifi-velora and lifi-matcha
+  // Note: Velora berbasis ParaSwap → gunakan allowExchanges:'paraswap' via LIFI
   dexStrategies['lifi-okx'] = createFilteredLifiStrategy('okx', 'OKX');
   dexStrategies['lifi-sushi'] = createFilteredLifiStrategy('sushiswap', 'SUSHI');
   dexStrategies['lifi-kyber'] = createFilteredLifiStrategy('kyberswap', 'KYBER');
   dexStrategies['lifi-flytrade'] = createFilteredLifiStrategy('fly', 'FLYTRADE');    // ✅ FIXED: LIFI slug is 'fly' not 'flytrade'
+  dexStrategies['lifi-velora'] = createFilteredLifiStrategy('paraswap', 'VELORA');   // Velora = ParaSwap protocol via LIFI
 
   // ✅ Relay uses special factory (tool-based, not exchange-based)
   dexStrategies['lifi-relay'] = createFilteredLifiRelayStrategy();
@@ -2101,19 +2118,9 @@
       // ✅ Get API key from secrets.js (using official Rango test key)
       const apiKey = (typeof getRandomApiKeyRango === 'function') ? getRandomApiKeyRango() : 'c6381a79-2817-4602-83bf-6a641a409e32';
 
-      // ✅ Use api-edge.rango.exchange (faster endpoint) with API key as query parameter
-      let apiUrl = `https://api-edge.rango.exchange/routing/bests?apiKey=${apiKey}`;
-
-      // ✅ CRITICAL: ALWAYS apply CORS proxy for browser requests (same as Rubic)
-      try {
-        const proxyPrefix = (window.CONFIG_PROXY && window.CONFIG_PROXY.PREFIX) || '';
-
-        if (proxyPrefix && !apiUrl.startsWith(proxyPrefix)) {
-          apiUrl = proxyPrefix + apiUrl;
-        }
-      } catch (e) {
-        console.warn('[Rango] Failed to apply proxy:', e.message);
-      }
+      // ✅ Use api.rango.exchange (standard endpoint) — api-edge is Cloudflare-protected (403)
+      // No CORS proxy needed — api.rango.exchange supports CORS natively (same as LIFI/DZAP)
+      const apiUrl = `https://api.rango.exchange/routing/bests?apiKey=${apiKey}`;
 
       // ✅ Return format same as LIFI/Rubic (NOT ajaxConfig wrapper!)
       return {
@@ -2223,8 +2230,13 @@
       }
 
       // Sort by amount_out (descending) dan ambil top N sesuai config
-      // ⚠️ LIMIT: Rango tampilkan 3 routes (sesuai maxProviders di config.js)
-      const maxProviders = (typeof window !== 'undefined' && window.CONFIG_DEXS?.rango?.maxProviders) || 3;
+      const maxProviders = (() => {
+        try {
+          const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+          if (v > 0) return v;
+        } catch (_) {}
+        return (typeof window !== 'undefined' && window.CONFIG_DEXS?.rango?.maxProviders) || 3;
+      })();
       subResults.sort((a, b) => b.amount_out - a.amount_out);
       const topN = subResults.slice(0, maxProviders);
 
@@ -2533,8 +2545,15 @@
         }
       } catch (_) { }
 
-      // Take top 3 quotes for display (like LIFI/DZAP)
-      const top3 = quotes.slice(0, 3).map(quote => {
+      // Take top N quotes for display (like LIFI/DZAP)
+      const maxN = (() => {
+        try {
+          const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+          if (v > 0) return v;
+        } catch (_) {}
+        return 3;
+      })();
+      const top3 = quotes.slice(0, maxN).map(quote => {
         const amountOut = parseFloat(quote.amountsExactIn?.amountOut || 0) / Math.pow(10, des_output);
         const amountOutGuaranteed = parseFloat(quote.amountsExactIn?.amountOutGuaranteed || 0) / Math.pow(10, des_output);
 
@@ -2678,15 +2697,11 @@
       // Endpoint: /api/routes/quoteAll returns all routes (for multi-DEX display)
       // Note: /quoteBest uses "params" wrapper, but /quoteAll uses direct body
 
-      // ✅ Apply CORS proxy to avoid 429/500 errors
+      // CORS proxy required — api-v2.rubic.exchange does not send CORS headers for browser requests
       let apiUrl = 'https://api-v2.rubic.exchange/api/routes/quoteAll';
-
-      // Get random proxy from CONFIG_PROXY (defined in config.js)
       try {
         const proxyPrefix = (window.CONFIG_PROXY && window.CONFIG_PROXY.PREFIX) || '';
-        if (proxyPrefix && !apiUrl.startsWith('http://') && !apiUrl.startsWith(proxyPrefix)) {
-          apiUrl = proxyPrefix + apiUrl;
-        }
+        if (proxyPrefix) apiUrl = proxyPrefix + apiUrl;
       } catch (e) {
         console.warn('[Rubic] Failed to apply proxy:', e.message);
       }
@@ -2698,7 +2713,7 @@
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        data: JSON.stringify(requestBody) // ✅ Use 'data' with JSON.stringify, not 'body'
+        data: JSON.stringify(requestBody)
       };
     },
     parseResponse: (response, { des_input, des_output, chainName }) => {
@@ -2753,8 +2768,15 @@
         }
       } catch (_) { }
 
-      // Take top 3 routes for display (like LIFI/DZAP/Kamino)
-      const top3 = routes.slice(0, 3).map((route, idx) => {
+      // Take top N routes for display (like LIFI/DZAP/Kamino)
+      const maxN = (() => {
+        try {
+          const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+          if (v > 0) return v;
+        } catch (_) {}
+        return 3;
+      })();
+      const top3 = routes.slice(0, maxN).map((route, idx) => {
         // Parse amount out (already in token units from API)
         const amountOut = parseFloat(route.estimate?.destinationTokenAmount || 0);
         const amountOutMin = parseFloat(route.estimate?.destinationTokenMinAmount || 0);
@@ -2829,9 +2851,129 @@
         };
       });
 
-      // Return multi-DEX format (like LIFI/DZAP/Kamino)
+      // Return multi-DEX format — top-level amount_out wajib ada agar calculateResult tidak early-return
       return {
+        amount_out: top3[0].amount_out,
+        FeeSwap: top3[0].FeeSwap,
+        dexTitle: 'RUBIC',
         subResults: top3,
+        isMultiDex: true
+      };
+    }
+  };
+
+  // =============================
+  // ROCKETX Strategy - Multi-Chain DEX Aggregator
+  // Returns multiple DEX quotes in one GET call (like LIFI/RANGO)
+  // API: GET https://api.rocketx.exchange/v1/quotation?...
+  // Auth: x-api-key header
+  // Filters: only exchange_type === 'DEX' (skip CEX routes)
+  // =============================
+  dexStrategies.rocketx = {
+    buildRequest: ({ chainName, sc_input_in, sc_output_in, amount_in_big, des_input }) => {
+      // RocketX chain name mapping (lowercase network IDs)
+      const rxChainMap = {
+        'ethereum': 'ethereum',
+        'bsc': 'bsc',
+        'polygon': 'polygon',
+        'arbitrum': 'arbitrum',
+        'optimism': 'optimism',
+        'base': 'base',
+        'avalanche': 'avalanche',
+        'fantom': 'fantom'
+      };
+      const chain = String(chainName || '').toLowerCase();
+      const rxChain = rxChainMap[chain] || chain;
+
+      // Convert amount from wei (amount_in_big) to token units
+      let amountInTokens;
+      try {
+        amountInTokens = parseFloat(amount_in_big) / Math.pow(10, des_input);
+        if (!Number.isFinite(amountInTokens) || amountInTokens <= 0) throw new Error('Invalid amount');
+      } catch (e) {
+        throw new Error(`RocketX: Amount conversion failed: ${e.message}`);
+      }
+
+      // Native token address normalization → zero address
+      const nativeAddresses = [
+        '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+        '0x0000000000000000000000000000000000000000',
+        '0x', ''
+      ];
+      let fromToken = String(sc_input_in || '').toLowerCase();
+      let toToken = String(sc_output_in || '').toLowerCase();
+      if (nativeAddresses.includes(fromToken)) fromToken = '0x0000000000000000000000000000000000000000';
+      if (nativeAddresses.includes(toToken)) toToken = '0x0000000000000000000000000000000000000000';
+
+      const apiKey = (typeof getRandomApiKeyRocketX === 'function')
+        ? getRandomApiKeyRocketX()
+        : 'znYxDQz2P46Dsbdj5slpe9i5ofpv4hkOaUuyV6xU';
+
+      const apiUrl = `https://api.rocketx.exchange/v1/quotation?fromToken=${fromToken}&fromNetwork=${rxChain}&toToken=${toToken}&toNetwork=${rxChain}&amount=${amountInTokens}&slippage=1&walletLess=false`;
+
+      return {
+        url: apiUrl,
+        method: 'GET',
+        headers: {
+          'x-api-key': apiKey,
+          'Accept': 'application/json'
+        }
+      };
+    },
+
+    parseResponse: (response, { chainName }) => {
+      if (!response || !Array.isArray(response.quotes)) {
+        throw new Error('RocketX: Invalid response - no quotes array');
+      }
+      const allQuotes = response.quotes;
+      if (allQuotes.length === 0) throw new Error('RocketX: No quotes available');
+
+      // Filter DEX-only quotes (skip CEX routes: CHANGELLY, CHANGENOW, SIMPLESWAP dll)
+      const dexQuotes = allQuotes.filter(q => q.exchangeInfo?.exchange_type === 'DEX');
+      if (dexQuotes.length === 0) throw new Error('RocketX: No DEX quotes (all routes are CEX)');
+
+      // Parse each DEX quote into subResults
+      const subResults = [];
+      for (const q of dexQuotes) {
+        try {
+          const amount_out = parseFloat(q.toAmount);
+          if (!Number.isFinite(amount_out) || amount_out <= 0) continue;
+
+          // Fee = platform fee (0.5%) + gas fee
+          const platformFeeUsd = parseFloat(q.platformFeeUsd || 0);
+          const gasFeeUsd = parseFloat(q.gasFeeUsd || 0);
+          const FeeSwap = (platformFeeUsd + gasFeeUsd) > 0
+            ? (platformFeeUsd + gasFeeUsd)
+            : getFeeSwap(chainName);
+
+          const providerName = String(
+            q.exchangeInfo?.title || q.exchangeInfo?.keyword || 'ROCKETX'
+          ).toUpperCase();
+
+          subResults.push({ amount_out, FeeSwap, dexTitle: providerName });
+        } catch (_) { continue; }
+      }
+
+      if (subResults.length === 0) throw new Error('RocketX: No valid DEX quotes parsed');
+
+      // Top-N from user setting (Max Route)
+      const maxN = (() => {
+        try {
+          const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+          if (v > 0) return v;
+        } catch (_) {}
+        return (typeof window !== 'undefined' && window.CONFIG_DEXS?.rocketx?.maxProviders) || 3;
+      })();
+
+      subResults.sort((a, b) => b.amount_out - a.amount_out);
+      const topN = subResults.slice(0, maxN);
+      console.log(`[ROCKETX] Top ${topN.length} DEX quotes (${dexQuotes.length} DEX / ${allQuotes.length} total)`);
+
+      return {
+        amount_out: topN[0].amount_out,
+        FeeSwap: topN[0].FeeSwap,
+        dexTitle: 'ROCKETX',
+        subResults: topN,
         isMultiDex: true
       };
     }
@@ -3168,19 +3310,33 @@
         }
       } catch (_) { }
 
-      // ========== CHECK IF META-DEX IS DISABLED ==========
-      // Check if this is a meta-aggregator and META_DEX is disabled
-      // Note: Filtered strategies (e.g., lifi-odos, dzap-velora) are NOT blocked - only direct meta-aggregator calls
+      // ========== CHECK BACKEND PROVIDER & META-DEX ==========
+      // Backend Provider (isBackendProvider=true): hanya dipakai via strategi filtered (lifi-odos, dll.)
+      //   Direct call diblokir — gunakan filtered strategy saja.
+      // Meta-DEX (isMetaDex=true): DEX tambahan multi-quote, diblokir jika META_DEX=false.
+      // Note: Filtered strategies (e.g., lifi-odos, swing-velora) TIDAK diblokir.
       try {
         const dexConfig = (root.CONFIG_DEXS && root.CONFIG_DEXS[String(dexType).toLowerCase()]) || null;
+        const isBackendProvider = dexConfig && dexConfig.isBackendProvider === true;
         const isMetaDex = dexConfig && dexConfig.isMetaDex === true;
         const metaDexEnabled = root.CONFIG_APP && root.CONFIG_APP.APP && root.CONFIG_APP.APP.META_DEX;
 
-        if (isMetaDex && !metaDexEnabled) {
-          console.warn(`[META-DEX DISABLED] ${String(dexType).toUpperCase()} is a meta-aggregator but META_DEX is disabled`);
+        if (isBackendProvider) {
+          console.warn(`[BACKEND PROVIDER] ${String(dexType).toUpperCase()} adalah backend provider internal. Gunakan strategi filtered (contoh: lifi-odos)`);
           reject({
             statusCode: 0,
-            pesanDEX: `Meta-aggregators are currently disabled (set META_DEX=true to enable)`,
+            pesanDEX: `${String(dexType).toUpperCase()} adalah backend provider — gunakan strategi filtered (contoh: lifi-odos)`,
+            isBackendProvider: true,
+            isDisabled: true
+          });
+          return;
+        }
+
+        if (isMetaDex && !metaDexEnabled) {
+          console.warn(`[META-DEX DISABLED] ${String(dexType).toUpperCase()} adalah Meta-DEX aggregator tetapi META_DEX dinonaktifkan`);
+          reject({
+            statusCode: 0,
+            pesanDEX: `Meta-DEX aggregators dinonaktifkan (set META_DEX=true di config untuk mengaktifkan)`,
             isMetaDex: true,
             isDisabled: true
           });

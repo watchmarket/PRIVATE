@@ -212,6 +212,16 @@
         if ($inp.length) $inp.trigger('click');
     });
 
+    $(document).on('click', '#scannerExportBtn', function (e) {
+        e.preventDefault();
+        try { downloadTokenScannerCSV(); } catch (err) { console.error(err); }
+    });
+
+    $(document).on('click', '#scannerImportBtn', function (e) {
+        e.preventDefault();
+        $('#scannerUploadJSON').trigger('click');
+    });
+
     /**
      * Token form submission handler
      * Handles both add and edit operations

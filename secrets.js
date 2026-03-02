@@ -375,13 +375,30 @@ function getRandomApiKeyLIFI() {
 }
 
 // =============================
+// RocketX API Keys (Multi-Chain DEX Aggregator)
+// =============================
+const apiKeysRocketX = [
+    'znYxDQz2P46Dsbdj5slpe9i5ofpv4hkOaUuyV6xU',  // ✅ Default API key
+    'cec7e234-bf17-4f8d-bfac-83d999bd3a08'   ,
+    '4c0ac9d4-90d0-4ba2-8a54-616f1fa8da79'       ,
+    '694fa473-ff52-4b0d-abb9-b5d88a4c9972'
+];
+
+let rocketxKeyIndex = 0;
+function getRandomApiKeyRocketX() {
+    const key = apiKeysRocketX[rocketxKeyIndex];
+    rocketxKeyIndex = (rocketxKeyIndex + 1) % apiKeysRocketX.length;
+    return key;
+}
+
 // Rango API Keys (Multi-Chain DEX Aggregator)
 // =============================
 // Using Rango's official test API key for development
 // Source: https://docs.rango.exchange/api-integration/api-key-and-rate-limits
 // Note: This test key has low rate limits - request production key for live usage
 const apiKeysRango = [
-    'c6381a79-2817-4602-83bf-6a641a409e32'  // ✅ Official Rango test API key
+    'c6381a79-2817-4602-83bf-6a641a409e32',  // ✅ Official Rango test API key
+    '55978f60-150d-4e21-8289-5bbfd8f5df88'   // ✅ Production API key
 ];
 
 let rangoKeyIndex = 0;
@@ -502,6 +519,8 @@ try {
     if (typeof window !== 'undefined') {
         window.apiKeysLIFI = window.apiKeysLIFI || apiKeysLIFI;
         window.getRandomApiKeyLIFI = window.getRandomApiKeyLIFI || getRandomApiKeyLIFI;
+        window.apiKeysRocketX = window.apiKeysRocketX || apiKeysRocketX;
+        window.getRandomApiKeyRocketX = window.getRandomApiKeyRocketX || getRandomApiKeyRocketX;
         window.apiKeysRango = window.apiKeysRango || apiKeysRango;
         window.getRandomApiKeyRango = window.getRandomApiKeyRango || getRandomApiKeyRango;
         window.rotateUserApiKey0x = window.rotateUserApiKey0x || rotateUserApiKey0x;  // ✅ User key rotation

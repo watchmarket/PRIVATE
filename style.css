@@ -431,7 +431,7 @@ input[type="radio"],
 
 .scanner-control-inline input.uk-input {
     height: 28px;
-    padding: 4px 8px;
+    /* padding: 4px 8px; */
     font-size: 13px;
 }
 
@@ -1026,10 +1026,18 @@ input[type="radio"],
 }
 
 /* ==========================================================================
-   Bulk Modal Editor (Profil Editor Modal) - Compact Styles
+   Bulk Modal Editor (Profil Editor Modal) - 3-Column Grid Layout
    ========================================================================== */
+
+/* Modal dialog: sized to fit columns comfortably */
 #bulk-modal-editor .uk-modal-dialog {
-    max-width: 820px;
+    width: min(820px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+}
+
+/* When 3 columns visible: expand to fit */
+#bulk-modal-editor.has-meta-dex-active .uk-modal-dialog {
+    width: min(960px, calc(100vw - 24px));
 }
 
 #bulk-modal-editor .uk-modal-header {
@@ -1037,7 +1045,8 @@ input[type="radio"],
 }
 
 #bulk-modal-editor .uk-modal-title {
-    font-size: 16px;
+    font-size: 15px;
+    font-weight: 700;
 }
 
 #bulk-modal-editor .uk-text-meta {
@@ -1045,11 +1054,11 @@ input[type="radio"],
 }
 
 #bulk-modal-editor .uk-modal-body {
-    padding: 10px 16px;
+    padding: 10px 14px;
 }
 
 #bulk-modal-editor .uk-alert {
-    padding: 8px 12px;
+    padding: 7px 12px;
     margin-bottom: 10px;
 }
 
@@ -1057,125 +1066,172 @@ input[type="radio"],
     font-size: 12px;
 }
 
+/* ─── 3-column CSS Grid ─────────────────────────────────────────────────── */
+/* Default (no META-DEX): 2 columns - filter + dex */
+.bulk-modal-grid {
+    display: grid;
+    grid-template-columns: 155px minmax(280px, 380px);
+    gap: 10px;
+    align-items: start;
+}
+
+/* When META-DEX column is visible: add class via JS → 3 equal-ish columns */
+.bulk-modal-grid.has-meta-dex {
+    grid-template-columns: 200px minmax(350px, 420px) 300px;
+}
+
+.bulk-col-filter {
+    min-width: 0;
+}
+
+.bulk-col-dex {
+    min-width: 0;
+}
+
+.bulk-col-meta {
+    min-width: 0;
+}
+
+/* ─── Inner card ─────────────────────────────────────────────────────────── */
+.bulk-inner-card {
+    padding: 10px 12px !important;
+    box-sizing: border-box;
+}
+
+/* ─── DEX list — no internal scroll, content flows naturally ─────────────── */
+.bulk-dex-scroll {
+    overflow: visible;
+    padding-right: 2px;
+}
+
+/* ─── Typography helpers ─────────────────────────────────────────────────── */
+.bulk-section-title {
+    font-size: 11px !important;
+    font-weight: 700;
+    margin-bottom: 6px !important;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.bulk-field-label {
+    font-size: 10px;
+    display: block;
+    margin-bottom: 3px;
+    color: #64748b;
+}
+
+.bulk-meta-dex-header {
+    margin-bottom: 8px;
+}
+
+/* ─── CEX Filter labels ──────────────────────────────────────────────────── */
+#bulk-modal-editor #bulk-filter-cex {
+    font-size: 11px;
+}
+
+#bulk-modal-editor #bulk-filter-cex label {
+    font-size: 11px;
+    padding: 2px 0;
+    line-height: 1.4;
+}
+
+/* ─── DEX card rows — compact padding ───────────────────────────────────── */
 #bulk-modal-editor .uk-card-body {
-    padding: 10px !important;
+    padding: 10px 12px !important;
 }
 
-#bulk-modal-editor .uk-heading-bullet {
+/* DEX cards inside bulk-dex-inputs: super compact */
+#bulk-dex-inputs .uk-card {
+    margin-bottom: 3px !important;
+}
+
+#bulk-dex-inputs .uk-card .uk-card-body {
+    padding: 4px 8px !important;
+}
+
+#bulk-dex-inputs .uk-card:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* ─── Inputs ─────────────────────────────────────────────────────────────── */
+#bulk-modal-editor .uk-input,
+#bulk-modal-editor .uk-select {
+    height: 26px;
     font-size: 12px;
-    margin-bottom: 6px !important;
-}
-
-#bulk-modal-editor h6 {
-    font-size: 12px;
-    margin-bottom: 6px !important;
-}
-
-#bulk-modal-editor .uk-form-label {
-    font-size: 11px;
-    margin-bottom: 2px;
-}
-
-#bulk-modal-editor .uk-select,
-#bulk-modal-editor .uk-input {
-    height: 28px;
-    font-size: 12px;
-    padding: 2px 8px;
-}
-
-#bulk-modal-editor .uk-button-small {
-    padding: 4px 10px;
-    font-size: 11px;
+    padding: 2px 6px;
 }
 
 #bulk-modal-editor .uk-checkbox {
     width: 14px;
     height: 14px;
+    flex-shrink: 0;
 }
 
-#bulk-modal-editor #bulk-filter-cex {
-    max-height: none;
-    font-size: 10px;
+/* Narrow number inputs for KIRI/KANAN */
+#bulk-dex-inputs .uk-input[type="number"],
+#bulk-meta-dex-inputs .uk-input[type="number"] {
+    width: 65px !important;
+    text-align: center;
 }
 
-#bulk-modal-editor #bulk-filter-cex label {
-    font-size: 10px;
-    padding: 1px 0;
-    line-height: 1.3;
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
+#bulk-modal-editor .uk-button {
+    padding: 3px 8px !important;
+    font-size: 11px !important;
+    height: auto !important;
+    min-height: 22px !important;
+    line-height: 1.4 !important;
 }
 
-#bulk-modal-editor #bulk-dex-inputs {
-    max-height: none;
-    overflow: visible;
+#bulk-modal-editor .uk-button-small {
+    padding: 3px 8px;
+    font-size: 11px;
 }
 
-#bulk-modal-editor .dex-row {
-    padding: 3px 6px;
-    margin-bottom: 2px;
-    background: #f8fafc;
-    border-radius: 4px;
-    border: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-#bulk-modal-editor .dex-row label {
-    font-size: 10px;
-    min-width: 70px;
-}
-
-#bulk-modal-editor .dex-row .uk-input {
-    width: 55px;
-    height: 22px;
-    font-size: 10px;
-    padding: 1px 4px;
+#bulk-modal-editor .uk-button [uk-icon] {
+    width: 11px !important;
+    height: 11px !important;
 }
 
 #bulk-modal-editor .uk-modal-footer {
-    padding: 6px 12px;
+    padding: 8px 14px;
 }
 
-#bulk-modal-editor .uk-grid-small {
-    margin-left: -6px;
+#bulk-modal-editor .uk-modal-footer .uk-button {
+    padding: 5px 12px !important;
+    font-size: 12px !important;
 }
 
-#bulk-modal-editor .uk-grid-small>* {
-    padding-left: 6px;
-}
-
-/* Compact margin utilities for bulk modal */
+/* ─── Margin utilities ───────────────────────────────────────────────────── */
 #bulk-modal-editor .uk-margin-small {
-    margin-bottom: 4px !important;
+    margin-bottom: 5px !important;
 }
 
 #bulk-modal-editor .uk-margin-small-top {
     margin-top: 6px !important;
 }
 
-/* Extra compact for KIRI/KANAN labels */
-#bulk-modal-editor .modal-label {
-    font-size: 9px;
-    margin: 0 2px;
+#bulk-modal-editor h6 {
+    font-size: 12px;
+    margin-bottom: 5px !important;
 }
 
-/* Force smaller buttons in bulk modal */
-#bulk-modal-editor .uk-button {
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-    height: auto !important;
-    min-height: 20px !important;
-    line-height: 1.3 !important;
+/* ─── Profile select full width ──────────────────────────────────────────── */
+#bulk-modal-editor #profile-select {
+    width: 100%;
 }
 
-#bulk-modal-editor .uk-button [uk-icon] {
-    width: 10px !important;
-    height: 10px !important;
+/* ─── Dark mode additions ────────────────────────────────────────────────── */
+.dark-mode .bulk-dex-scroll::-webkit-scrollbar-thumb {
+    background: #475569;
 }
 
-#bulk-modal-editor .uk-modal-footer .uk-button {
-    padding: 4px 8px !important;
-    font-size: 12px !important;
+.dark-mode .bulk-section-title {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .bulk-field-label {
+    color: #94a3b8;
 }
 
 /* ==========================================================================
@@ -2845,6 +2901,17 @@ body.cex-mode-active {
     background-image: none !important;
     /* Override gradients */
     transition: background-color 0.4s ease;
+}
+
+/* Scanner Export/Import icons — tersembunyi by default, tampil hanya di CEX mode */
+.scanner-cex-btn {
+    display: none !important;
+}
+
+body.cex-mode-active .scanner-cex-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Header customization in CEX mode */

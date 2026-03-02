@@ -13,7 +13,8 @@ function showMainSection(sectionIdToShow) {
         '#scanner-config',
         '#sinyal-container',
         '#filter-card',
-        '#monitoring-scroll'
+        '#monitoring-scroll',
+        '#scanner-empty-placeholder'  // dynamically created placeholder; hide when leaving scanner
     ];
 
     const $form = $("#FormScanner");
@@ -252,7 +253,13 @@ function RenderCardSignal() {
         const left = document.createElement('div');
         left.className = 'uk-flex uk-flex-middle';
         left.style.gap = '8px';
-        left.innerHTML = `<span class="uk-text-bold" style="color:#fff!important; font-size:14px;">${String(dex).toUpperCase()}</span>`;
+
+        // ✅ META-DEX badge: Mark aggregators that are isMetaDex
+        const isMetaDexCard = !!(window.CONFIG_DEXS && window.CONFIG_DEXS[dexLower] && window.CONFIG_DEXS[dexLower].isMetaDex);
+        const metaBadge = isMetaDexCard
+            ? '<span style="background:rgba(255,255,255,0.25);color:#fff;padding:0 4px;border-radius:3px;font-size:9px;font-weight:bold;margin-left:4px;">META</span>'
+            : '';
+        left.innerHTML = `<span class="uk-text-bold" style="color:#fff!important; font-size:14px;">${String(dex).toUpperCase()}${metaBadge}</span>`;
 
         const toggle = document.createElement('a');
         toggle.className = 'uk-icon-link uk-text-bolder';
@@ -620,14 +627,45 @@ function buildCexCheckboxForKoin(token) {
     const container = $('#cex-checkbox-koin');
     container.empty();
     const selected = (token.selectedCexs || []).map(s => String(s).toUpperCase());
-    // CEX columns - only enabled ones
+
+    // CEX mode: kunci ke CEX yang aktif — user tidak bisa mengubah exchanger token
+    const m = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
+    const isCexMode = m.type === 'cex';
+    const activeCex = isCexMode ? String(m.cex || '').toUpperCase() : null;
+
     getEnabledCEXs().forEach(cexKey => {
         const upper = String(cexKey).toUpperCase();
-        const isChecked = selected.includes(upper);
+        const isChecked = isCexMode ? (upper === activeCex) : selected.includes(upper);
         const color = (CONFIG_CEX[upper] && CONFIG_CEX[upper].WARNA) || '#000';
         const id = `cex-${upper}`;
-        container.append(`<label class="uk-display-block uk-margin-xsmall"><input type="checkbox" class="uk-checkbox" id="${id}" value="${upper}" ${isChecked ? 'checked' : ''}> <span style="color:${color}; font-weight:bold;">${upper}</span></label>`);
+
+        if (isCexMode) {
+            // Gunakan pointer-events:none (bukan disabled) agar form_off/form_on tidak mengubahnya
+            const opacity = upper === activeCex ? '1' : '0.35';
+            const badge = upper === activeCex
+                ? `<small style="color:#888;margin-left:5px;font-size:10px;">(mode aktif)</small>`
+                : '';
+            container.append(
+                `<label class="uk-display-block uk-margin-xsmall" style="pointer-events:none;opacity:${opacity};">` +
+                `<input type="checkbox" class="uk-checkbox" id="${id}" value="${upper}" ${isChecked ? 'checked' : ''}>` +
+                ` <span style="color:${color};font-weight:bold;">${upper}</span>${badge}</label>`
+            );
+        } else {
+            container.append(
+                `<label class="uk-display-block uk-margin-xsmall">` +
+                `<input type="checkbox" class="uk-checkbox" id="${id}" value="${upper}" ${isChecked ? 'checked' : ''}>` +
+                ` <span style="color:${color};font-weight:bold;">${upper}</span></label>`
+            );
+        }
     });
+
+    if (isCexMode && activeCex) {
+        const cexColor = (CONFIG_CEX[activeCex] && CONFIG_CEX[activeCex].WARNA) || '#555';
+        container.append(
+            `<div style="font-size:11px;color:#888;margin-top:6px;padding:3px 7px;background:#f8f8f8;border-left:3px solid ${cexColor};border-radius:2px;">` +
+            `Mode CEX — exchanger dikunci ke <b style="color:${cexColor};">${activeCex}</b></div>`
+        );
+    }
 }
 
 /** Build DEX selection checkboxes and capital inputs for edit modal. */
@@ -659,6 +697,8 @@ function buildDexCheckboxForKoin(token = {}) {
     });
 
     // Removed 4-DEX selection cap: no checkbox limit handler
+    // ✅ NOTE: MetaDEX aggregators tidak ditampilkan di sini karena modal-nya GLOBAL
+    //        (bukan per-token). Setting modal MetaDEX ada di panel Pengaturan Scanner.
 }
 
 /** Disable all form inputs globally. */

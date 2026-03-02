@@ -148,7 +148,41 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                         <span class="dex-status uk-text-muted"> 🔒 </span>
                     </td>`;
       } else {
-        html += '<td class="td-dex dex-slot-empty">-</td>';
+        // ✅ META-DEX: tidak disimpan di token.dexs[], tapi tetap buat cell ber-ID
+        // agar scanner bisa update hasilnya (sebelumnya cell tanpa ID → hasil scan dibuang)
+        const dexConfigElse = (typeof window !== 'undefined' && window.CONFIG_DEXS) ? window.CONFIG_DEXS[dexKeyLower] : null;
+        if (dexConfigElse && dexConfigElse.isMetaDex) {
+          let metaCanonical = dexKeyLower;
+          try { if (window.DEX && typeof window.DEX.normalize === 'function') metaCanonical = window.DEX.normalize(metaCanonical); } catch (_) { }
+          const sym1m = isLeft ? String(data.symbol_in || '').toUpperCase() : String(data.symbol_out || '').toUpperCase();
+          const sym2m = isLeft ? String(data.symbol_out || '').toUpperCase() : String(data.symbol_in || '').toUpperCase();
+          const tokenIdm = String(data.id || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+          const baseIdRawm = `${String(data.cex).toUpperCase()}_${metaCanonical.toUpperCase()}_${sym1m}_${sym2m}_${String(data.chain).toUpperCase()}_${tokenIdm}`;
+          const baseIdm = baseIdRawm.replace(/[^A-Z0-9_]/g, '');
+          const fullCellIdm = `${idPrefix}${baseIdm}`;
+          // Baca modal dari META_DEX_SETTINGS (per-chain) untuk tampilan awal
+          let modalMeta = 100;
+          try {
+            const gms = (typeof getFromLocalStorage === 'function') ? (getFromLocalStorage('META_DEX_SETTINGS') || {}) : {};
+            const ck = String(data.chain || '').toLowerCase();
+            modalMeta = isLeft ? (gms[ck]?.[dexKeyLower]?.left || 100) : (gms[ck]?.[dexKeyLower]?.right || 100);
+          } catch (_) { }
+          const dexNamem = (dexConfigElse.label) ? String(dexConfigElse.label) : String(dexKey).toUpperCase();
+          html += `
+                    <td class="td-dex" id="${fullCellIdm}"
+                        data-cex="${String(data.cex).toUpperCase()}"
+                        data-dex="${metaCanonical}"
+                        data-sym1="${sym1m}"
+                        data-sym2="${sym2m}"
+                        data-chain="${String(data.chain).toUpperCase()}"
+                        data-row-index="${rowIndex}"
+                        style="text-align: center; vertical-align: middle;${extraBg}">
+                    <strong class="uk-align-center" style="display:inline-block; margin:0;">${dexNamem.toUpperCase().substring(0, 6)} [$${modalMeta}]</strong></br>
+                        <span class="dex-status uk-text-muted"> 🔒 </span>
+                    </td>`;
+        } else {
+          html += '<td class="td-dex dex-slot-empty">-</td>';
+        }
       }
     });
     return html;
@@ -276,14 +310,20 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
         } catch (_) { }
       }
       if (tableBodyId === 'dataTableBody') {
-        // Hide table container, show standalone message outside table
-        $('#monitoring-scroll').hide();
-        let $ph = $('#scanner-empty-placeholder');
-        if (!$ph.length) {
-          $('#monitoring-scroll').after('<div id="scanner-empty-placeholder" style="margin-top:16px;"></div>');
-          $ph = $('#scanner-empty-placeholder');
+        // Only manipulate scanner elements when scanner is the active section.
+        // Guards against race-condition where scan results arrive after user navigated to
+        // Manajemen Koin / Setting / other sections.
+        const _nonScannerActive = $('#token-management:visible, #form-setting-app:visible, #database-viewer-section:visible, #update-wallet-section:visible, #iframe-container:visible').length > 0;
+        if (!_nonScannerActive) {
+          // Hide table container, show standalone message outside table
+          $('#monitoring-scroll').hide();
+          let $ph = $('#scanner-empty-placeholder');
+          if (!$ph.length) {
+            $('#monitoring-scroll').after('<div id="scanner-empty-placeholder" style="margin-top:16px;"></div>');
+            $ph = $('#scanner-empty-placeholder');
+          }
+          $ph.html(emptyMsg).show();
         }
-        $ph.html(emptyMsg).show();
       } else {
         $tableBody.html(`<tr><td colspan="${totalCols}" class="uk-text-center uk-padding-small">${emptyMsg}</td></tr>`);
       }
@@ -291,10 +331,15 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
     return;
   }
 
-  // hasRows: make sure table is visible and placeholder is hidden
+  // hasRows: make sure table is visible and placeholder is hidden.
+  // Only do this when scanner is the active section to avoid re-surfacing
+  // the table after the user navigated to Manajemen Koin / Setting / etc.
   if (tableBodyId === 'dataTableBody') {
-    $('#monitoring-scroll').show();
-    $('#scanner-empty-placeholder').hide();
+    const _nonScannerActive = $('#token-management:visible, #form-setting-app:visible, #database-viewer-section:visible, #update-wallet-section:visible, #iframe-container:visible').length > 0;
+    if (!_nonScannerActive) {
+      $('#monitoring-scroll').show();
+      $('#scanner-empty-placeholder').hide();
+    }
   }
 
   // Manage concurrent renders per table body // REFACTORED
@@ -460,8 +505,8 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                 <span class="detail-line uk-text-bolder">${WD_TOKEN}~ ${DP_TOKEN} | ${WD_PAIR}~ ${DP_PAIR}</span>
                 <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_in || '').toUpperCase()}</span> ${linkSCtoken} : ${linkStokToken}</span>
                 <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_out || '').toUpperCase()}</span> ${linkSCpair} : ${linkStokPair}</span>
-                <span class="detail-line"> ${linkDLX} ${linkDEFIL} ${linkOKDEX}  ${linkDZAP}</span>
-                <span class="detail-line"> ${linkRango} ${linkJumper} ${linkRBX}</span>
+                <span class="detail-line"> ${linkDLX} ${linkDEFIL} ${linkOKDEX} </span>
+                <span class="detail-line"> ${linkRango} ${linkJumper} ${linkRBX} ${linkDZAP}</span>
             </td>`;
 
       // refactor: render slot DEX kanan via helper
@@ -1344,9 +1389,15 @@ function DisplayPNL(data) {
       const dexColor = dexConfig?.warna || '#ff6b35';
       const dexLabel = dexConfig?.label || String(dextype).toUpperCase();
 
-      // ⚠️ READ maxProviders from config (default: 3, LIFI: 2)
-      const maxProviders = dexConfig?.maxProviders || 3;
-      console.log(`[Multi-DEX Render] ${dexLabel}: Display max ${maxProviders} providers`);
+      // ⚠️ READ maxProviders from user setting (SETTING_SCANNER.metaDex.topRoutes), fallback to config or 3
+      const maxProviders = (() => {
+        try {
+          const saved = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('SETTING_SCANNER') : null;
+          const v = parseInt(saved?.metaDex?.topRoutes);
+          if (v > 0) return v;
+        } catch (_) {}
+        return dexConfig?.maxProviders || 3;
+      })();
 
       // Base calculation values
       const baseModal = n(Modal);
@@ -1879,7 +1930,7 @@ function DisplayPNL(data) {
 
   // Highlight + UIkit
   const netClass = (pnl >= 0.02) ? 'uk-text-success' : 'uk-text-danger';
-  const bracket = `[${bruto.toFixed(2)} ~ <b>${feeAll.toFixed(2)}</b>]`;
+  const bracket = `[${bruto.toFixed(2)} ~ <b style="font-size: larger;">${feeAll.toFixed(2)}</b>]`;
 
   // ✅ FIXED: Pisahkan profit indication (background) dari highlight (border)
   // Background hijau muncul kapanpun PNL > 0 (profit)

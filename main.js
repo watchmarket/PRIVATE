@@ -375,9 +375,13 @@ function refreshTokensTable() {
 
             // Chain dan DEX harus dipilih agar token ditampilkan (PAIR opsional)
             if (chainsSel.length > 0 && dexSel.length > 0) {
+                // META-DEX tidak disimpan per-token, skip filter per-token untuk META-DEX
+                const regularDexSel = dexSel.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
                 filtered = tokens
-                    .filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()))
-                    .filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())));
+                    .filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()));
+                if (regularDexSel.length > 0) {
+                    filtered = filtered.filter(t => (t.dexs || []).some(d => regularDexSel.includes(String(d.dex || '').toLowerCase())));
+                }
 
                 // Apply PAIR Filter jika aktif
                 if (pairSel.length > 0) {
@@ -422,10 +426,14 @@ function refreshTokensTable() {
     let filteredByChain = [];
     if (chainsSel.length > 0 && cexSel.length > 0 && dexSel.length > 0) {
         // Combined filter: require both CHAIN and CEX selections
+        // META-DEX tidak disimpan per-token, skip filter per-token untuk META-DEX
+        const regularDexSel = dexSel.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
         filteredByChain = flatTokens
             .filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()))
-            .filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
-            .filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())));
+            .filter(t => cexSel.includes(String(t.cex || '').toUpperCase()));
+        if (regularDexSel.length > 0) {
+            filteredByChain = filteredByChain.filter(t => (t.dexs || []).some(d => regularDexSel.includes(String(d.dex || '').toLowerCase())));
+        }
     } else {
         // One or both groups empty → show none
         filteredByChain = [];
@@ -488,7 +496,11 @@ function loadAndDisplaySingleChainTokens() {
                 const mapped = pairDefs[p] ? p : 'NON';
                 return selPair.includes(mapped);
             });
-            flatTokens = flatTokens.filter(t => (t.dexs || []).some(d => selDex.includes(String(d.dex || '').toLowerCase())));
+            // META-DEX tidak disimpan per-token, skip filter per-token untuk META-DEX
+            const regularSelDex = selDex.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
+            if (regularSelDex.length > 0) {
+                flatTokens = flatTokens.filter(t => (t.dexs || []).some(d => regularSelDex.includes(String(d.dex || '').toLowerCase())));
+            }
         } else {
             flatTokens = [];
         }
@@ -804,12 +816,13 @@ function renderSettingsForm() {
         if (s && typeof s === 'object' && s.JedaDexs) {
             // Force remove legacy/deleted DEX keys that no longer exist
             // ✅ FIXED: 'fly' is NOT a DEX name (it's internal LIFI slug), must be removed from settings
-            const forceRemoveDexs = ['0x', 'dzap', 'fly', '1inch'];
+            // ℹ️ 'dzap' sudah kembali sebagai Meta-DEX aggregator — jangan di-remove
+            const forceRemoveDexs = ['0x', 'fly', '1inch'];
 
-            // Get list of active DEX (not disabled, not Meta-DEX)
+            // Get list of active DEX (not disabled, not Meta-DEX, not backend provider)
             const activeDexKeys = Object.keys(CONFIG_DEXS || {}).filter(key => {
                 const dexConfig = CONFIG_DEXS[key];
-                return !dexConfig.disabled && !dexConfig.isMetaDex;
+                return !dexConfig.disabled && !dexConfig.isMetaDex && !dexConfig.isBackendProvider;
             });
 
             let hasChanges = false;
@@ -831,16 +844,17 @@ function renderSettingsForm() {
     }
 
     // ✅ Generate DEX delay inputs - 100% dari CONFIG_DEXS (NO HARDCODE!)
-    // Filter: disabled=false AND isMetaDex=false
-    // Exclude: lifi, rubic, rango, kamino (Meta-DEX)
+    // Filter: disabled=false AND isMetaDex=false AND isBackendProvider=false
+    // Exclude: rubic, rango, kamino (Meta-DEX) dan lifi (Backend Provider)
     // ⚠️ NOTE: 'fly' bukan DEX name! Hanya ada 'flytrade' di CONFIG_DEXS
     const activeDexList = Object.keys(CONFIG_DEXS || {})
         .filter(dexKey => {
             const dexConfig = CONFIG_DEXS[dexKey];
-            const isActive = !dexConfig.disabled && !dexConfig.isMetaDex;
+            const isActive = !dexConfig.disabled && !dexConfig.isMetaDex && !dexConfig.isBackendProvider;
 
             // ✅ EXTRA VALIDATION: Block legacy/invalid keys
-            const invalidKeys = ['fly', '0x', 'dzap', 'paraswap', '1inch'];
+            // ℹ️ 'dzap' sudah kembali sebagai Meta-DEX aggregator — jangan diblokir di sini
+            const invalidKeys = ['fly', '0x', 'paraswap', '1inch'];
             if (invalidKeys.includes(dexKey.toLowerCase())) {
                 console.warn(`[Settings] Skipping invalid DEX key: ${dexKey}`);
                 return false;
@@ -887,6 +901,67 @@ function renderSettingsForm() {
         `;
     });
     $('#dex-delay-group').html(dexDelayHtml);
+
+    // ✅ META-DEX SETTINGS: Per-chain modal + per-aggregator enable/delay
+    if (window.CONFIG_APP?.APP?.META_DEX === true) {
+        const metaDexCfg = window.CONFIG_APP?.META_DEX_CONFIG || {};
+        const metaAggs = metaDexCfg.aggregators || {};
+        const savedMetaDexNow = (getFromLocalStorage('SETTING_SCANNER') || {}).metaDex || {};
+        const savedMetaAggs = savedMetaDexNow.aggregators || {};
+
+        let metaDexHtml = `
+        
+            <h6 class="uk-h6 uk-text-primary uk-text-bolder uk-margin-small-bottom" style="margin-top:12px;">
+                &#x26A1; META-DEX SETTINGS
+            </h6>
+        `;
+// Options: top-N routes
+        const topN = savedMetaDexNow.topRoutes ?? 2;
+        const showBestOnly = savedMetaDexNow.showBestOnly ?? false;
+        metaDexHtml += `
+            <div style="margin-top:8px;padding:6px 8px;background:#f8f9fa;border-radius:4px;border:1px solid #e2e8f0;">
+                <div class="uk-flex uk-flex-middle" style="gap:8px;">
+                    <span style="font-size:11px;font-weight:600;">Max Route:</span>
+                    <input type="number" id="meta-dex-topN" class="uk-input uk-form-small"
+                           value="${topN}" min="1" max="4"
+                           style="width:50px;text-align:center;padding:2px 4px;">
+                    <span style="font-size:10px;color:#888;"> / </span>
+                    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;">
+                        <input type="checkbox" id="meta-dex-showBestOnly" ${showBestOnly ? 'checked' : ''}>
+                        <span>Quote Terbaik Saja</span>
+                    </label>
+                </div>
+            </div>
+        `;
+        // ----- Section 1: Enable/Delay per aggregator (global toggle) -----
+        Object.entries(metaAggs).forEach(([aggKey, aggCfg]) => {
+            const label = (aggCfg.label || aggKey).toUpperCase();
+            const dexColor = (window.CONFIG_DEXS?.[aggKey]?.warna) || '#7c3aed';
+            const savedAgg = savedMetaAggs[aggKey] || {};
+            const isEnabled = savedAgg.enabled !== undefined ? savedAgg.enabled : (aggCfg.enabled !== false);
+            const savedDelay = savedAgg.jedaDex !== undefined ? savedAgg.jedaDex : aggCfg.jedaDex || 1000;
+            const chainTag = (window.CONFIG_DEXS?.[aggKey]?.evmOnly)
+                ? '<span style="background:#0ea5e9;color:#fff;padding:1px 5px;border-radius:4px;font-size:9px;margin-left:4px;">EVM</span>'
+                : '<span style="background:#6b21a8;color:#fff;padding:1px 5px;border-radius:4px;font-size:9px;margin-left:4px;">ALL</span>';
+
+            metaDexHtml += `
+                <div class="uk-flex uk-flex-middle" style="gap:6px;padding:3px 4px;border-bottom:1px solid #eee;">
+                    <input type="checkbox" id="meta-dex-enabled-${aggKey}" class="meta-dex-enabled-toggle" data-agg="${aggKey}" ${isEnabled ? 'checked' : ''}>
+                    <span style="color:${dexColor};font-size:11px;font-weight:700;flex:1;">${label}${chainTag}</span>
+                    <input type="number" id="meta-dex-delay-${aggKey}"
+                           class="uk-input uk-form-small meta-dex-delay-input"
+                           data-agg="${aggKey}" value="${savedDelay}"
+                           style="width:60px;text-align:center;padding:2px 4px;" min="0">
+                    <span style="font-size:10px;color:#888;">ms</span>
+                </div>
+            `;
+        });
+
+        
+
+        $('#meta-dex-settings-group').html(metaDexHtml).show();
+        console.log('[Settings] META-DEX settings rendered');
+    }
 
     // Load existing settings
     const appSettings = getFromLocalStorage('SETTING_SCANNER') || {};
@@ -1086,14 +1161,14 @@ function bootApp() {
             // Legacy/invalid DEX keys yang harus di-remove (tidak ada di CONFIG_DEXS)
             // ✅ 'fly' = internal LIFI slug (bukan DEX standalone)
             // ✅ '0x' = diganti jadi 'matcha'
-            // ✅ 'dzap' = removed (jadi provider internal saja)
             // ✅ '1inch' = removed (diganti jadi 'relay')
-            const forceRemoveDexs = ['fly', '0x', 'dzap', 'paraswap', '1inch'];
+            // ℹ️ 'dzap' sudah kembali sebagai Meta-DEX aggregator (jangan di-remove)
+            const forceRemoveDexs = ['fly', '0x', 'paraswap', '1inch'];
 
-            // Get list of active DEX from CONFIG_DEXS (disabled=false AND isMetaDex=false)
+            // Get list of active DEX from CONFIG_DEXS (disabled=false AND isMetaDex=false AND isBackendProvider=false)
             const activeDexKeys = Object.keys(CONFIG_DEXS || {}).filter(key => {
                 const cfg = CONFIG_DEXS[key];
-                return !cfg.disabled && !cfg.isMetaDex;
+                return !cfg.disabled && !cfg.isMetaDex && !cfg.isBackendProvider;
             });
 
             console.log('[Cleanup] Active DEX from CONFIG_DEXS:', activeDexKeys);
@@ -1347,10 +1422,13 @@ async function deferredInit() {
             if (!saved) {
                 total = flat.length;
             } else if (chainsSel.length > 0 && cexSel.length > 0 && dexSel.length > 0) {
-                total = flat.filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()))
-                    .filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
-                    .filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())))
-                    .length;
+                const regularDexSel = dexSel.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
+                let totalFlat = flat.filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()))
+                    .filter(t => cexSel.includes(String(t.cex || '').toUpperCase()));
+                if (regularDexSel.length > 0) {
+                    totalFlat = totalFlat.filter(t => (t.dexs || []).some(d => regularDexSel.includes(String(d.dex || '').toLowerCase())));
+                }
+                total = totalFlat.length;
             } else {
                 total = 0;
             }
@@ -1364,14 +1442,17 @@ async function deferredInit() {
             const pairDefs = (CONFIG_CHAINS[chain] || {}).PAIRDEXS || {};
 
             if (cexSel.length && pairSel.length && dexSel.length) {
-                total = flat.filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
+                const regularDexSelSc = dexSel.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
+                let totalFlat = flat.filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
                     .filter(t => {
                         const p = String(t.symbol_out || '').toUpperCase();
                         const key = pairDefs[p] ? p : 'NON';
                         return pairSel.includes(key);
-                    })
-                    .filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())))
-                    .length;
+                    });
+                if (regularDexSelSc.length > 0) {
+                    totalFlat = totalFlat.filter(t => (t.dexs || []).some(d => regularDexSelSc.includes(String(d.dex || '').toLowerCase())));
+                }
+                total = totalFlat.length;
             } else {
                 total = 0;
             }
@@ -1457,15 +1538,22 @@ async function deferredInit() {
                 $secCex.append(chipHtml('fc-cex', id, cx, CONFIG_CEX[cx].WARNA, cnt, checked, cx, false));
             });
             const $secDex = $('<div class="uk-flex uk-flex-middle" style="gap:8px;flex-wrap:wrap;"><span class="uk-text-bolder uk-text-danger">DEX:</span></div>');
-            // ✅ Filter: Hanya tampilkan DEX asli (not disabled, not Meta-DEX)
+            // ✅ Filter: Hanya tampilkan DEX asli (not disabled, not Meta-DEX, not Backend Provider)
             // Meta-DEX hanya muncul jika CONFIG_APP.APP.META_DEX === true
+            // Backend Provider (lifi) tidak pernah muncul sebagai DEX column
             const metaDexEnabled = (CONFIG_APP && CONFIG_APP.APP && CONFIG_APP.APP.META_DEX === true);
             Object.keys(CONFIG_DEXS || {}).forEach(dx => {
                 const dexConfig = CONFIG_DEXS[dx];
                 // Skip jika disabled
                 if (dexConfig.disabled) return;
+                // Skip Backend Provider (internal only, tidak tampil di UI)
+                if (dexConfig.isBackendProvider) return;
                 // Skip Meta-DEX jika META_DEX disabled
                 if (dexConfig.isMetaDex && !metaDexEnabled) return;
+                // Skip Meta-DEX yang tidak ada di META_DEX_CONFIG.aggregators (inactive/commented out)
+                if (dexConfig.isMetaDex && !window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[dx]) return;
+                // Skip KAMINO jika chain aktif bukan Solana (KAMINO hanya Solana)
+                if (dexConfig.isMetaDex && dexConfig.solanaOnly && !chainsSel.includes('solana')) return;
 
                 const key = String(dx).toLowerCase();
                 const id = `fc-dex-${key}`; const cnt = byDex[key] || 0; if (cnt === 0) return; const checked = dexSel.includes(key);
@@ -1491,6 +1579,21 @@ async function deferredInit() {
             // Search input now in HTML (next to WALLET CEX checkbox)
             $wrap.append($right);
             $('#modal-filter-sections').off('change.multif').on('change.multif', 'label.fc-chain input, label.fc-cex input, label.fc-dex input', function () {
+                // Single-select META-DEX: jika yang di-check adalah META-DEX, uncheck yang lain
+                const $lbl = $(this).closest('label');
+                if ($lbl.hasClass('fc-dex') && $(this).prop('checked')) {
+                    const changedVal = $lbl.attr('data-val');
+                    if (window.CONFIG_DEXS?.[changedVal]?.isMetaDex) {
+                        $('#modal-filter-sections').find('label.fc-dex').each(function () {
+                            const v = $(this).attr('data-val');
+                            if (v !== changedVal && window.CONFIG_DEXS?.[v]?.isMetaDex) {
+                                $(this).find('input').prop('checked', false);
+                                $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                            }
+                        });
+                    }
+                }
+
                 const prev = getFilterMulti();
                 const prevChains = (prev.chains || []).map(s => String(s).toLowerCase());
                 const prevCex = (prev.cex || []).map(s => String(s).toUpperCase());
@@ -1585,9 +1688,12 @@ async function deferredInit() {
                 $wrap.append($secCex).append($('<div class=\"uk-text-muted\">|</div>')).append($secPair).append($('<div class=\"uk-text-muted\">|</div>')).append($secDex);
             let totalSingle = 0;
             if ((cexSel && cexSel.length) && (pairSel && pairSel.length) && (dexSel && dexSel.length)) {
-                const filtered = flat.filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
-                    .filter(t => { const p = String(t.symbol_out || '').toUpperCase(); const key = pairDefs[p] ? p : 'NON'; return pairSel.includes(key); })
-                    .filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())));
+                const regularDexSelInline = dexSel.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
+                let filtered = flat.filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
+                    .filter(t => { const p = String(t.symbol_out || '').toUpperCase(); const key = pairDefs[p] ? p : 'NON'; return pairSel.includes(key); });
+                if (regularDexSelInline.length > 0) {
+                    filtered = filtered.filter(t => (t.dexs || []).some(d => regularDexSelInline.includes(String(d.dex || '').toLowerCase())));
+                }
                 totalSingle = filtered.length;
             } else {
                 totalSingle = 0;
@@ -1854,27 +1960,65 @@ async function deferredInit() {
             const isCEXMode = window.CEXModeManager && window.CEXModeManager.isCEXMode();
 
             // Build DEX section (shared between CEX and multichain)
+            // ======== SECTION DEX (bukan MetaDEX) ========
             const $dexSection = $('<div style="margin-bottom:15px;"></div>');
             $dexSection.append($('<div style="font-weight:700; color:#333; margin-bottom:8px; font-size:12px; border-bottom:2px solid #e5e5e5; padding-bottom:4px;">DEX</div>'));
             const $dexGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
             const metaDexEnabled = (CONFIG_APP && CONFIG_APP.APP && CONFIG_APP.APP.META_DEX === true);
+
+            // ======== SECTION META-DEX (terpisah) ========
+            const $metaDexSection = $('<div style="margin-bottom:15px;"></div>');
+            $metaDexSection.append($('<div style="font-weight:700; color:#7c3aed; margin-bottom:8px; font-size:12px; border-bottom:2px solid #e5e5e5; padding-bottom:4px;">&#x26A1; META-DEX AGGREGATORS  </div>'));
+            const $metaDexGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
+
             Object.keys(CONFIG_DEXS || {}).forEach(dx => {
                 const dexConfig = CONFIG_DEXS[dx];
                 if (dexConfig.disabled) return;
-                if (dexConfig.isMetaDex && !metaDexEnabled) return;
+                if (dexConfig.isBackendProvider) return;
 
                 const key = String(dx).toLowerCase();
-                const id = `modal-fc-dex-${key}`; const cnt = byDex[key] || 0; if (cnt === 0) return; const checked = dexSel.includes(key);
                 const col = (dexConfig.warna || dexConfig.WARNA) || '#333';
-                $dexGrid.append($(`
-                    <label class="fc-dex" data-val="${key}" data-color="${col}" for="${id}" style="display:flex; align-items:center; gap:3px; padding:3px 8px; border-radius:3px; cursor:pointer; border:2px solid ${checked ? col : 'transparent'}; background:${checked ? '#f8f8f8' : 'white'};">
-                        <input type="checkbox" id="${id}" ${checked ? 'checked' : ''} style="width:11px; height:11px; margin:0;">
-                        <span style="font-weight:600; font-size:10px; color:${col};">${dx.toUpperCase()}</span>
-                        <span style="font-size:9px; opacity:0.7; color:#555;">[${cnt}]</span>
-                    </label>
-                `));
+
+                if (dexConfig.isMetaDex) {
+                    // ===== MetaDEX chip =====
+                    if (!metaDexEnabled) return;
+                    // Skip Meta-DEX yang tidak ada di META_DEX_CONFIG.aggregators (inactive/commented out)
+                    if (!window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[dx]) return;
+                    // KAMINO hanya untuk Solana — sembunyikan jika chain aktif bukan Solana
+                    if (dexConfig.solanaOnly && !chainsSel.includes('solana')) return;
+                    const id = `modal-fc-dex-${key}`;
+                    // META-DEX applies to all tokens (per-chain), use total count
+                    const cnt = flatForDex.length;
+                    const checked = dexSel.includes(key);
+                    $metaDexGrid.append($(`
+                        <label class="fc-dex" data-val="${key}" data-color="${col}" for="${id}"
+                               style="display:flex; align-items:center; gap:3px; padding:3px 8px; border-radius:3px; cursor:pointer;
+                                      border:2px solid ${checked ? col : '#c4b5fd'}; background:${checked ? '#f5f3ff' : 'white'};">
+                            <input type="checkbox" id="${id}" ${checked ? 'checked' : ''} style="width:11px; height:11px; margin:0;">
+                            <span style="font-weight:600; font-size:10px; color:${col};">${dx.toUpperCase()}</span>
+                            <span style="background:${col};color:#fff;padding:0 3px;border-radius:3px;font-size:8px;">META</span>
+                            <span style="font-size:9px; opacity:0.7; color:#555;">[${cnt}]</span>
+                        </label>
+                    `));
+                } else {
+                    // ===== DEX biasa chip =====
+                    const id = `modal-fc-dex-${key}`;
+                    const cnt = byDex[key] || 0;
+                    if (cnt === 0) return;
+                    const checked = dexSel.includes(key);
+                    $dexGrid.append($(`
+                        <label class="fc-dex" data-val="${key}" data-color="${col}" for="${id}"
+                               style="display:flex; align-items:center; gap:3px; padding:3px 8px; border-radius:3px; cursor:pointer;
+                                      border:2px solid ${checked ? col : 'transparent'}; background:${checked ? '#f8f8f8' : 'white'};">
+                            <input type="checkbox" id="${id}" ${checked ? 'checked' : ''} style="width:11px; height:11px; margin:0;">
+                            <span style="font-weight:600; font-size:10px; color:${col};">${dx.toUpperCase()}</span>
+                            <span style="font-size:9px; opacity:0.7; color:#555;">[${cnt}]</span>
+                        </label>
+                    `));
+                }
             });
             $dexSection.append($dexGrid);
+            $metaDexSection.append($metaDexGrid);
 
             if (isCEXMode) {
                 console.log('[FILTER] CEX Mode active - hiding Exchanger section');
@@ -1883,7 +2027,6 @@ async function deferredInit() {
                 const pairSel = (fmNow.pair || []).map(x => String(x).toUpperCase());
                 const flatForPair = flat.filter(t => (chainsSel.length === 0 || chainsSel.includes(String(t.chain || '').toLowerCase())));
 
-                // Aggregate PAIRDEXS from all selected chains (or all if none selected)
                 const activeChainsForPair = chainsSel.length > 0 ? chainsSel : Object.keys(CONFIG_CHAINS || {});
                 const allPairDefs = {};
                 activeChainsForPair.forEach(ck => {
@@ -1892,7 +2035,6 @@ async function deferredInit() {
                 });
                 if (!allPairDefs['NON']) allPairDefs['NON'] = true;
 
-                // Count tokens per pair
                 const byPair = {};
                 flatForPair.forEach(t => {
                     const chainCfg = CONFIG_CHAINS[(t.chain || '').toLowerCase()] || {};
@@ -1921,17 +2063,18 @@ async function deferredInit() {
                 });
                 $pairSection.append($pairGrid);
 
-                // === 2-COLUMN LAYOUT: Column 1 (CHAIN + PAIR) | Column 2 (DEX) ===
+                // === 2-COLUMN LAYOUT: Column 1 (CHAIN + PAIR) | Column 2 (DEX + MetaDEX) ===
                 const $grid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;"></div>');
                 const $col1 = $('<div></div>');
                 $col1.append($chainSection);
                 $col1.append($pairSection);
                 const $col2 = $('<div></div>');
                 $col2.append($dexSection);
+                if (metaDexEnabled) $col2.append($metaDexSection);  // ✅ MetaDEX terpisah
                 $grid.append($col1).append($col2);
                 $wrap.append($grid);
             } else {
-                // Normal Multichain Mode: stacked layout (CHAIN → EXCHANGER → DEX)
+                // Normal Multichain Mode: stacked layout (CHAIN → EXCHANGER → DEX → META-DEX)
                 $wrap.append($chainSection);
 
                 const $cexSection = $('<div style="margin-bottom:15px;"></div>');
@@ -1951,6 +2094,7 @@ async function deferredInit() {
                 $cexSection.append($cexGrid);
                 $wrap.append($cexSection);
                 $wrap.append($dexSection);
+                if (metaDexEnabled) $wrap.append($metaDexSection);  // ✅ MetaDEX terpisah di bawah DEX
             }
 
             const savedFilterKey = isCEXModeNow ? `FILTER_CEX_${window.CEXModeManager.getSelectedCEX()}` : 'FILTER_MULTICHAIN';
@@ -1972,13 +2116,21 @@ async function deferredInit() {
                         return pairSelTotal.includes(mapped);
                     });
                 }
-                if (dexSel.length > 0) totalFiltered = totalFiltered.filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())));
+                if (dexSel.length > 0) {
+                    const regularDexSelCex = dexSel.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
+                    if (regularDexSelCex.length > 0) {
+                        totalFiltered = totalFiltered.filter(t => (t.dexs || []).some(d => regularDexSelCex.includes(String(d.dex || '').toLowerCase())));
+                    }
+                }
                 total = (chainsSel.length > 0 && pairSelTotal.length > 0 && dexSel.length > 0) ? totalFiltered.length : 0;
             } else if (chainsSel.length > 0 && cexSel.length > 0 && ((fmNow.dex || []).length > 0)) {
-                total = flat.filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()))
-                    .filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
-                    .filter(t => (t.dexs || []).some(d => (dexSel || []).includes(String(d.dex || '').toLowerCase())))
-                    .length;
+                const regularDexSelMulti = dexSel.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
+                let totalFlat = flat.filter(t => chainsSel.includes(String(t.chain || '').toLowerCase()))
+                    .filter(t => cexSel.includes(String(t.cex || '').toUpperCase()));
+                if (regularDexSelMulti.length > 0) {
+                    totalFlat = totalFlat.filter(t => (t.dexs || []).some(d => regularDexSelMulti.includes(String(d.dex || '').toLowerCase())));
+                }
+                total = totalFlat.length;
             } else {
                 total = 0;
             }
@@ -1988,6 +2140,21 @@ async function deferredInit() {
             $('#modal-summary-bar').empty().append($sum);
 
             $('#modal-filter-sections').off('change.multif').on('change.multif', 'label.fc-chain input, label.fc-cex input, label.fc-pair input, label.fc-dex input', function () {
+                // Single-select META-DEX: jika yang di-check adalah META-DEX, uncheck yang lain
+                const $lbl2 = $(this).closest('label');
+                if ($lbl2.hasClass('fc-dex') && $(this).prop('checked')) {
+                    const changedVal2 = $lbl2.attr('data-val');
+                    if (window.CONFIG_DEXS?.[changedVal2]?.isMetaDex) {
+                        $('#modal-filter-sections').find('label.fc-dex').each(function () {
+                            const v = $(this).attr('data-val');
+                            if (v !== changedVal2 && window.CONFIG_DEXS?.[v]?.isMetaDex) {
+                                $(this).find('input').prop('checked', false);
+                                $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                            }
+                        });
+                    }
+                }
+
                 const prev = isCEXModeNow ? (typeof getFilterCEX === 'function' ? getFilterCEX(window.CEXModeManager.getSelectedCEX()) : {}) : getFilterMulti();
                 const prevChains = (prev.chains || []).map(s => String(s).toLowerCase());
                 const prevCex = (prev.cex || []).map(s => String(s).toUpperCase());
@@ -2147,7 +2314,7 @@ async function deferredInit() {
 
             $container.append($topRow);
 
-            // Row 2: DEX (horizontal, flex-wrap)
+            // Row 2: DEX (horizontal, flex-wrap) — DEX biasa saja (bukan MetaDEX)
             const $dexSection = $('<div></div>');
             $dexSection.append($('<div style="font-weight:700; color:#333; margin-bottom:10px; font-size:13px; border-bottom:2px solid #e5e5e5; padding-bottom:6px;">DEX</div>'));
             const $dexGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start;"></div>');
@@ -2157,10 +2324,12 @@ async function deferredInit() {
                 return a;
             }, {});
             dexAllowed.forEach(dx => {
+                const dexConfig = CONFIG_DEXS[dx] || {};
+                if (dexConfig.isMetaDex) return; // skip MetaDEX dari section DEX biasa
                 const cnt = byDex[dx] || 0;
                 if (cnt === 0) return;
                 const checked = dexSel.includes(dx);
-                const col = (CONFIG_DEXS[dx] && (CONFIG_DEXS[dx].warna || CONFIG_DEXS[dx].WARNA)) || '#333';
+                const col = (dexConfig.warna || dexConfig.WARNA) || '#333';
                 const id = `modal-sc-dex-${dx}`;
                 $dexGrid.append($(`
                     <label class="sc-dex" data-val="${dx}" data-color="${col}" for="${id}" style="display:flex; align-items:center; gap:3px; padding:3px 8px; border-radius:3px; cursor:pointer; border:2px solid ${checked ? col : 'transparent'}; background:${checked ? '#f8f8f8' : 'white'};">
@@ -2173,13 +2342,52 @@ async function deferredInit() {
             $dexSection.append($dexGrid);
             $container.append($dexSection);
 
+            // Row 3: META-DEX (terpisah, section sendiri)
+            if (window.CONFIG_APP?.APP?.META_DEX === true) {
+                const $metaDexSc = $('<div style="margin-top:14px;"></div>');
+                $metaDexSc.append($('<div style="font-weight:700; color:#7c3aed; margin-bottom:8px; font-size:13px; border-bottom:2px solid #e5e5e5; padding-bottom:6px;">META-DEX <span style="font-size:10px;font-weight:400;color:#888;"></span></div>'));
+                const $metaGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
+                const metaKeys = Object.keys(CONFIG_DEXS || {}).filter(k => {
+                    const dcfg = CONFIG_DEXS[k];
+                    if (!dcfg?.isMetaDex || dcfg?.disabled || dcfg?.isBackendProvider) return false;
+                    // Hanya tampilkan jika ada di META_DEX_CONFIG.aggregators (active in config)
+                    if (!window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[k]) return false;
+                    // KAMINO hanya untuk Solana
+                    if (dcfg?.solanaOnly && chain !== 'solana') return false;
+                    return true;
+                });
+                metaKeys.forEach(dx => {
+                    const dexConfig = CONFIG_DEXS[dx] || {};
+                    // META-DEX applies to all tokens in the chain, use flatPair.length
+                    const cnt = flatPair.length;
+                    const checked = dexSel.includes(dx);
+                    const col = (dexConfig.warna || dexConfig.WARNA) || '#7c3aed';
+                    const id = `modal-sc-dex-${dx}`;
+                    $metaGrid.append($(`
+                        <label class="sc-dex" data-val="${dx}" data-color="${col}" for="${id}"
+                               style="display:flex; align-items:center; gap:3px; padding:3px 8px; border-radius:3px; cursor:pointer;
+                                      border:2px solid ${checked ? col : '#c4b5fd'}; background:${checked ? '#f5f3ff' : 'white'};">
+                            <input type="checkbox" id="${id}" ${checked ? 'checked' : ''} style="width:11px; height:11px; margin:0;">
+                            <span style="font-weight:500; font-size:10px; color:${col};">${dx.toUpperCase()}</span>
+                            <span style="background:${col};color:#fff;padding:0 3px;border-radius:3px;font-size:8px;">META</span>
+                            <span style="font-size:9px; opacity:0.7; color:#555;">[${cnt}]</span>
+                        </label>
+                    `));
+                });
+                $metaDexSc.append($metaGrid);
+                $container.append($metaDexSc);
+            }
+
             $wrap.append($container);
 
             let totalSingle = 0;
             if ((cexSel && cexSel.length) && (pairSel && pairSel.length) && (dexSel && dexSel.length)) {
-                const filtered = flat.filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
-                    .filter(t => { const p = String(t.symbol_out || '').toUpperCase(); const key = pairDefs[p] ? p : 'NON'; return pairSel.includes(key); })
-                    .filter(t => (t.dexs || []).some(d => dexSel.includes(String(d.dex || '').toLowerCase())));
+                const regularDexSelScModal = dexSel.filter(dx => !window.CONFIG_DEXS?.[dx]?.isMetaDex);
+                let filtered = flat.filter(t => cexSel.includes(String(t.cex || '').toUpperCase()))
+                    .filter(t => { const p = String(t.symbol_out || '').toUpperCase(); const key = pairDefs[p] ? p : 'NON'; return pairSel.includes(key); });
+                if (regularDexSelScModal.length > 0) {
+                    filtered = filtered.filter(t => (t.dexs || []).some(d => regularDexSelScModal.includes(String(d.dex || '').toLowerCase())));
+                }
                 totalSingle = filtered.length;
             } else {
                 totalSingle = 0;
@@ -2191,6 +2399,21 @@ async function deferredInit() {
 
             // Event handler untuk filter changes
             $('#modal-filter-sections').off('change.scf').on('change.scf', 'label.sc-cex input, label.sc-pair input, label.sc-dex input', function () {
+                // Single-select META-DEX: jika yang di-check adalah META-DEX, uncheck yang lain
+                const $lbl3 = $(this).closest('label');
+                if ($lbl3.hasClass('sc-dex') && $(this).prop('checked')) {
+                    const changedVal3 = $lbl3.attr('data-val');
+                    if (window.CONFIG_DEXS?.[changedVal3]?.isMetaDex) {
+                        $('#modal-filter-sections').find('label.sc-dex').each(function () {
+                            const v = $(this).attr('data-val');
+                            if (v !== changedVal3 && window.CONFIG_DEXS?.[v]?.isMetaDex) {
+                                $(this).find('input').prop('checked', false);
+                                $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
+                            }
+                        });
+                    }
+                }
+
                 const prev = getFilterChain(chain);
                 const prevC = (prev.cex || []).map(String);
                 const prevP = (prev.pair || []).map(x => String(x).toUpperCase());
@@ -6515,6 +6738,72 @@ $(document).on('click', '#histClearAll', async function () {
             `);
         });
 
+        // ✅ MetaDEX Section — tampilkan di kolom kanan editor modal jika META_DEX=true
+        $('#bulk-meta-dex-column').hide();
+        $('.bulk-modal-grid').removeClass('has-meta-dex');
+        $('#bulk-modal-editor').removeClass('has-meta-dex-active');
+        $('#bulk-meta-dex-inputs').empty();
+        if (window.CONFIG_APP?.APP?.META_DEX === true) {
+            const metaAggs = Object.keys(window.CONFIG_DEXS || {}).filter(k => {
+                const cfg = window.CONFIG_DEXS[k];
+                if (!cfg || !cfg.isMetaDex || cfg.disabled || cfg.isBackendProvider) return false;
+                // Hanya tampilkan jika ada di META_DEX_CONFIG.aggregators (active in config)
+                if (!window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[k]) return false;
+                return true;
+            });
+
+            // Baca modal tersimpan untuk chain ini
+            const savedChainMeta = (getFromLocalStorage('META_DEX_SETTINGS') || {})[chainKey] || {};
+
+            if (metaAggs.length > 0) {
+                const $metaDexContainer = $('#bulk-meta-dex-inputs');
+                $('#bulk-meta-dex-column').show();
+                $('.bulk-modal-grid').addClass('has-meta-dex');
+                $('#bulk-modal-editor').addClass('has-meta-dex-active');
+
+                metaAggs.forEach(aggKey => {
+                    const aggCfg = window.CONFIG_DEXS[aggKey] || {};
+                    const aggLabel = (aggCfg.label || aggKey).toUpperCase();
+                    const aggColor = aggCfg.warna || '#7c3aed';
+                    // Skip EVM-only aggregators for Solana chain
+                    if (aggCfg.evmOnly && String(chainKey).toLowerCase() === 'solana') return;
+                    // Skip Solana-only aggregators (e.g., KAMINO) for non-Solana chains
+                    if (aggCfg.solanaOnly && String(chainKey).toLowerCase() !== 'solana') return;
+
+                    const chainTag = aggCfg.evmOnly
+                        ? `<span style="background:#0ea5e9;color:#fff;padding:0 4px;border-radius:3px;font-size:9px;margin-left:4px;">EVM</span>`
+                        : aggCfg.solanaOnly
+                        ? `<span style="background:#9945ff;color:#fff;padding:0 4px;border-radius:3px;font-size:9px;margin-left:4px;">SOL</span>`
+                        : `<span style="background:#6b21a8;color:#fff;padding:0 4px;border-radius:3px;font-size:9px;margin-left:4px;">ALL</span>`;
+
+                    const savedLeft = savedChainMeta[aggKey]?.left ?? 100;
+                    const savedRight = savedChainMeta[aggKey]?.right ?? 100;
+
+                    $metaDexContainer.append(`
+                        <div style="border-left:3px solid ${aggColor}; border-radius:4px;
+                                    background:#fafafa; padding:4px 7px; margin-bottom:5px;">
+                            <div class="uk-flex uk-flex-middle" style="gap:4px; margin-bottom:3px;">
+                                <span style="background:${aggColor};color:#fff;padding:0 4px;border-radius:3px;
+                                             font-size:8px;line-height:1.6;font-weight:700;">META</span>
+                                <span style="color:${aggColor};font-weight:700;font-size:12px;">${aggLabel}</span>
+                                ${chainTag}
+                            </div>
+                            <div class="uk-flex uk-flex-middle" style="gap:4px; flex-wrap:nowrap;">
+                                <span style="color:#2563eb;font-size:10px;font-weight:600;white-space:nowrap;">KIRI</span>
+                                <input type="number" class="uk-input bulk-meta-left" data-agg="${aggKey}"
+                                       style="width:52px;height:22px;padding:1px 4px;font-size:11px;
+                                              text-align:center;border-color:${aggColor}55;" min="0" step="1" value="${savedLeft}">
+                                <span style="color:#e11d48;font-size:10px;font-weight:600;white-space:nowrap;">KANAN</span>
+                                <input type="number" class="uk-input bulk-meta-right" data-agg="${aggKey}"
+                                       style="width:52px;height:22px;padding:1px 4px;font-size:11px;
+                                              text-align:center;border-color:${aggColor}55;" min="0" step="1" value="${savedRight}">
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+        }
+
         // Initial update
         updateAffectedCount();
 
@@ -6657,25 +6946,40 @@ $(document).on('click', '#histClearAll', async function () {
         }
     }
 
-    // Get current DEX values from inputs
+    // Get current DEX values from inputs (DEX biasa + MetaDEX)
     function getCurrentDexValues() {
-        const values = {};
+        const values = { dexs: {}, meta: {} };
         $('.bulk-dex-left').each(function () {
             const dexKey = $(this).data('dex');
             const left = parseFloat($(this).val()) || 0;
             const right = parseFloat($(`.bulk-dex-right[data-dex="${dexKey}"]`).val()) || 0;
-            values[dexKey] = { left, right };
+            values.dexs[dexKey] = { left, right };
+        });
+        // ✅ MetaDEX values
+        $('.bulk-meta-left').each(function () {
+            const aggKey = $(this).data('agg');
+            const left = parseFloat($(this).val()) || 0;
+            const right = parseFloat($(`.bulk-meta-right[data-agg="${aggKey}"]`).val()) || 0;
+            values.meta[aggKey] = { left, right };
         });
         return values;
     }
 
-    // Apply profile values to DEX inputs
+    // Apply profile values to DEX inputs (DEX biasa + MetaDEX)
     function applyProfileValues(profile) {
         const ranges = profile.ranges || {};
+        const metaRanges = profile.metaRanges || {};
+        // Apply DEX biasa
         Object.keys(ranges).forEach(dexKey => {
             const { left, right } = ranges[dexKey];
             $(`.bulk-dex-left[data-dex="${dexKey}"]`).val(left);
             $(`.bulk-dex-right[data-dex="${dexKey}"]`).val(right);
+        });
+        // ✅ Apply MetaDEX
+        Object.keys(metaRanges).forEach(aggKey => {
+            const { left, right } = metaRanges[aggKey];
+            $(`.bulk-meta-left[data-agg="${aggKey}"]`).val(left);
+            $(`.bulk-meta-right[data-agg="${aggKey}"]`).val(right);
         });
     }
 
@@ -6733,7 +7037,8 @@ $(document).on('click', '#histClearAll', async function () {
         const newProfile = {
             name: profileName.trim(),
             chain: chainKey, // 🚀 Store chain info
-            ranges: currentValues,
+            ranges: currentValues.dexs,       // DEX biasa
+            metaRanges: currentValues.meta,   // ✅ MetaDEX modal per chain
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -6841,13 +7146,25 @@ $(document).on('click', '#histClearAll', async function () {
 
     function getSelectedDexInputs() {
         const inputs = {};
+        const metaInputs = {};
+
+        // DEX biasa (hanya yang dicentang)
         $('.bulk-dex-checkbox:checked').each(function () {
             const dexKey = String($(this).val()).toLowerCase();
             const left = parseFloat($(`.bulk-dex-left[data-dex="${dexKey}"]`).val()) || 0;
             const right = parseFloat($(`.bulk-dex-right[data-dex="${dexKey}"]`).val()) || 0;
             inputs[dexKey] = { left, right };
         });
-        return inputs;
+
+        // ✅ MetaDEX (semua yang tampil — tidak ada checkbox, selalu aktif)
+        $('.bulk-meta-left').each(function () {
+            const aggKey = String($(this).data('agg')).toLowerCase();
+            const left = parseFloat($(this).val()) || 0;
+            const right = parseFloat($(`.bulk-meta-right[data-agg="${aggKey}"]`).val()) || 0;
+            metaInputs[aggKey] = { left, right };
+        });
+
+        return { dexInputs: inputs, metaInputs };
     }
 
     function getAffectedTokens() {
@@ -6882,7 +7199,7 @@ $(document).on('click', '#histClearAll', async function () {
         }
 
         // Enable/disable apply button
-        const dexInputs = getSelectedDexInputs();
+        const { dexInputs } = getSelectedDexInputs();
         const canApply = affected.length > 0 && Object.keys(dexInputs).length > 0;
         $('#bulk-apply-btn').prop('disabled', !canApply);
     }
@@ -6894,7 +7211,7 @@ $(document).on('click', '#histClearAll', async function () {
         if (!chainKey) return;
 
         const affected = getAffectedTokens();
-        const dexInputs = getSelectedDexInputs();
+        const { dexInputs, metaInputs } = getSelectedDexInputs();
 
         if (affected.length === 0 || Object.keys(dexInputs).length === 0) {
             if (typeof toast !== 'undefined' && toast.warning) {
@@ -6904,8 +7221,12 @@ $(document).on('click', '#histClearAll', async function () {
         }
 
         // Confirm before applying
-        const confirmMsg = `DEX yang diubah Modalnya:\n${Object.entries(dexInputs).map(([dex, vals]) => `- ${dex.toUpperCase()}: KIRI=${vals.left}, KANAN=${vals.right}`).join('\n')
-            }\nLanjutkan?\n\n`;
+        let confirmLines = Object.entries(dexInputs).map(([dex, vals]) => `- ${dex.toUpperCase()}: KIRI=${vals.left}, KANAN=${vals.right}`);
+        if (Object.keys(metaInputs).length > 0) {
+            confirmLines.push('--- META-DEX ---');
+            Object.entries(metaInputs).forEach(([agg, vals]) => confirmLines.push(`- [META] ${agg.toUpperCase()}: KIRI=${vals.left}, KANAN=${vals.right}`));
+        }
+        const confirmMsg = `DEX yang diubah Modalnya:\n${confirmLines.join('\n')}\nLanjutkan?\n\n`;
 
         if (!confirm(confirmMsg)) return;
 
@@ -6947,6 +7268,14 @@ $(document).on('click', '#histClearAll', async function () {
 
             // Save updated tokens
             setTokensChain(chainKey, allTokens);
+
+            // ✅ Simpan MetaDEX modal ke META_DEX_SETTINGS[chain]
+            if (Object.keys(metaInputs).length > 0) {
+                const existingMetaSettings = getFromLocalStorage('META_DEX_SETTINGS') || {};
+                existingMetaSettings[chainKey] = { ...(existingMetaSettings[chainKey] || {}), ...metaInputs };
+                saveToLocalStorage('META_DEX_SETTINGS', existingMetaSettings);
+                console.log(`[Bulk Modal] ✅ META_DEX_SETTINGS saved for chain ${chainKey}:`, metaInputs);
+            }
 
             // 🔒 Flush pending writes before closing modal
             console.log('[Bulk Modal] 🔄 Flushing changes to IndexedDB before closing modal...');

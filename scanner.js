@@ -76,6 +76,10 @@ let animationFrameId;
 let isScanRunning = false;
 // Counter untuk melacak jumlah request DEX yang masih berjalan (termasuk fallback).
 let activeDexRequests = 0;
+// Counter META-DEX yang sudah dijadwalkan (setTimeout) tapi belum mulai — cegah scan "done" terlalu dini.
+let pendingMetaDexScheduled = 0;
+// Total META-DEX requests yang pernah dijadwalkan (untuk progress display X/Y)
+let totalMetaDexScheduled = 0;
 // Resolver yang menunggu seluruh request DEX selesai sebelum finalisasi.
 let dexRequestWaiters = [];
 // Total token yang sedang di-scan (dinamis, berkurang saat ada token dihapus)
@@ -144,7 +148,8 @@ function markDexRequestStart() {
 function markDexRequestEnd() {
     try {
         activeDexRequests = Math.max(0, activeDexRequests - 1);
-        if (activeDexRequests === 0 && dexRequestWaiters.length > 0) {
+        // Trigger waiters hanya jika KEDUA counter nol: tidak ada request aktif DAN tidak ada META-DEX scheduled
+        if (activeDexRequests === 0 && pendingMetaDexScheduled === 0 && dexRequestWaiters.length > 0) {
             const waiters = dexRequestWaiters.slice();
             dexRequestWaiters.length = 0;
             waiters.forEach(fn => {
@@ -155,7 +160,8 @@ function markDexRequestEnd() {
 }
 
 function waitForPendingDexRequests(timeoutMs = 8000) {
-    if (activeDexRequests === 0) return Promise.resolve();
+    // Selesai hanya jika tidak ada request aktif DAN tidak ada META-DEX yang masih di-queue setTimeout
+    if (activeDexRequests === 0 && pendingMetaDexScheduled === 0) return Promise.resolve();
     return new Promise((resolve) => {
         let settled = false;
         const done = () => {
@@ -356,7 +362,17 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
     const flatTokens = tokensToScan
         .filter(t => allowedChains.includes(String(t.chain).toLowerCase()))
         .filter(t => {
-            try { return (Array.isArray(t.dexs) && t.dexs.some(d => allowedDexs.includes(String(d.dex || '').toLowerCase()))); } catch (_) { return true; }
+            try {
+                // Pisah regular DEX dan META-DEX dari allowedDexs
+                const regularAllowed = allowedDexs.filter(dx => !(window.CONFIG_DEXS?.[dx]?.isMetaDex));
+                const hasMetaDexAllowed = allowedDexs.some(dx => window.CONFIG_DEXS?.[dx]?.isMetaDex);
+                // Regular DEX: cek per-token (token.dexs[])
+                if (regularAllowed.length > 0) {
+                    return Array.isArray(t.dexs) && t.dexs.some(d => regularAllowed.includes(String(d.dex || '').toLowerCase()));
+                }
+                // Hanya META-DEX yang aktif → semua token lolos (META-DEX berlaku untuk semua token)
+                return hasMetaDexAllowed;
+            } catch (_) { return true; }
         });
 
     // Jika tidak ada token yang lolos filter, hentikan proses dan beri notifikasi.
@@ -517,6 +533,30 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
         if (userVal !== undefined && userVal !== null && userVal !== '') return parseInt(userVal) || 0;
         const configDelay = (window.CONFIG_DEXS || {})[String(dx).toLowerCase()]?.delay;
         return parseInt(configDelay) || 0;
+    };
+
+    // Per-aggregator request scheduler: mencegah burst request ke API rate-limited (RANGO/DZAP/RUBIC).
+    // Setiap request dijadwalkan setelah request sebelumnya selesai + minDelay,
+    // sehingga maksimal 1 request per minDelay ms per aggregator (tidak tergantung jumlah token).
+    const metaDexNextTime = {};
+    const scheduleMetaDexRequest = (aggKey, minDelay, fn) => {
+        const now = Date.now();
+        const earliest = Math.max(now, metaDexNextTime[aggKey] || 0);
+        metaDexNextTime[aggKey] = earliest + minDelay;
+        // Increment counter SEBELUM setTimeout — agar waitForPendingDexRequests tidak resolve dini
+        pendingMetaDexScheduled++;
+        totalMetaDexScheduled++;
+        setTimeout(() => {
+            // Decrement saat callback mulai jalan (sudah bukan "pending scheduled" lagi)
+            pendingMetaDexScheduled = Math.max(0, pendingMetaDexScheduled - 1);
+            // Jika ini yang terakhir scheduled DAN tidak ada active request → trigger waiters
+            if (pendingMetaDexScheduled === 0 && activeDexRequests === 0 && dexRequestWaiters.length > 0) {
+                const waiters = dexRequestWaiters.slice();
+                dexRequestWaiters.length = 0;
+                waiters.forEach(f => { try { f(); } catch (_) { } });
+            }
+            fn();
+        }, Math.max(0, earliest - now));
     };
 
     // Fungsi helper untuk membuat jeda (delay).
@@ -822,6 +862,11 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                 token.dexs.forEach((dexData) => {
                     // Skip DEX not included in active selection
                     try { if (!allowedDexs.includes(String(dexData.dex || '').toLowerCase())) return; } catch (_) { }
+                    // ✅ META-DEX: Skip isMetaDex entries in regular loop — handled by Meta-DEX scan below
+                    try {
+                        const dexKeyCheck = String(dexData.dex || '').toLowerCase();
+                        if ((window.CONFIG_DEXS || {})[dexKeyCheck]?.isMetaDex) return;
+                    } catch (_) { }
                     // Normalize DEX name to handle aliases (kyberswap->kyber, matcha->0x, etc)
                     let dex = String(dexData.dex || '').toLowerCase();
                     try {
@@ -1780,6 +1825,184 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                     }
                 });
             }
+
+            // ===== META-DEX SCAN LOOP =====
+            // Scan Meta-DEX aggregators (lifi, dzap, rubic, rango, kamino) terpisah dari token.dexs.
+            // Hanya berjalan jika CONFIG_APP.APP.META_DEX === true dan CEX result OK.
+            if (window.CONFIG_APP?.APP?.META_DEX === true && cexResult.ok) {
+                const metaDexAggregators = window.CONFIG_APP?.META_DEX_CONFIG?.aggregators || {};
+                const metaDexUserSettings = (ConfigScan.metaDex?.aggregators) || {};
+                const currentChain = String(token.chain || '').toLowerCase();
+                const supportedEVMChains = window.CONFIG_APP?.META_DEX_CONFIG?.supportedChains || [];
+
+                // ✅ Baca modal PER-CHAIN dari META_DEX_SETTINGS = { chain: { aggKey: {left, right} } }
+                // Modal diset user di Pengaturan Scanner per chain, berlaku untuk semua token chain tersebut
+                const globalMetaSettings = (typeof getFromLocalStorage === 'function')
+                    ? (getFromLocalStorage('META_DEX_SETTINGS') || {})
+                    : {};
+                // Baca data untuk chain saat ini (dilakukan di dalam loop per token — currentChain sudah tersedia)
+                const chainModalData = globalMetaSettings[currentChain] || {};
+
+                // ✅ Top-N routes: batasi jumlah route yang diproses (default 3)
+                const topNRoutes = parseInt(ConfigScan?.metaDex?.topRoutes) || 3;
+
+                for (const [aggKey, aggConfig] of Object.entries(metaDexAggregators)) {
+                    // Cek filter allowedDexs (dari resolveActiveDexList)
+                    if (!allowedDexs.includes(aggKey)) continue;
+
+                    // Cek enabled/disabled dari user settings
+                    const userAggCfg = metaDexUserSettings[aggKey] || {};
+                    const isAggEnabled = userAggCfg.enabled !== undefined ? userAggCfg.enabled : (aggConfig.enabled !== false);
+                    if (!isAggEnabled) continue;
+
+                    // EVM-only check: skip Solana chain untuk EVM aggregators
+                    if (aggConfig.evmOnly && currentChain === 'solana') continue;
+                    // Supported chain check untuk EVM aggregators
+                    if (aggConfig.evmOnly && supportedEVMChains.length > 0 && !supportedEVMChains.includes(currentChain)) continue;
+                    // Solana-only check: skip non-Solana chains (e.g., KAMINO hanya Solana)
+                    if (aggConfig.solanaOnly && currentChain !== 'solana') continue;
+
+                    // Jeda per aggregator: jedaKoin/2 karena setiap token 2 arah (KIRI+KANAN)
+                    // Total request META-DEX = N×2, sehingga queue butuh ½×jedaKoin agar selesai bareng DEX biasa
+                    const jedaAgg = Math.max(Math.floor((jedaKoin || 400) / 2), 150);
+
+                    // Normalize contract addresses
+                    const chainCfgMeta = (window.CONFIG_CHAINS || {})[currentChain] || {};
+                    const pairDefsMeta = chainCfgMeta.PAIRDEXS || {};
+                    const nonDefMeta = pairDefsMeta['NON'] || {};
+                    const isAddrInvalidMeta = (addr) => !addr || String(addr).toLowerCase() === '0x' || String(addr).length < 6;
+
+                    // Scan kedua arah: TokentoPair dan PairtoToken
+                    ['TokentoPair', 'PairtoToken'].forEach(metaDir => {
+                        const isKiriMeta = metaDir === 'TokentoPair';
+                        if (isKiriMeta && !isPosChecked('Actionkiri')) return;
+                        if (!isKiriMeta && !isPosChecked('ActionKanan')) return;
+
+                        // ID generation (sebelum skip checks agar bisa tampilkan SKIP di cell)
+                        const sym1Meta = isKiriMeta ? String(token.symbol_in || '').toUpperCase() : String(token.symbol_out || '').toUpperCase();
+                        const sym2Meta = isKiriMeta ? String(token.symbol_out || '').toUpperCase() : String(token.symbol_in || '').toUpperCase();
+                        const tokenIdMeta = String(token.id || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                        const baseIdRawMeta = `${String(token.cex).toUpperCase()}_${aggKey.toUpperCase()}_${sym1Meta}_${sym2Meta}_${String(token.chain).toUpperCase()}_${tokenIdMeta}`;
+                        const metaBaseId = baseIdRawMeta.replace(/[^A-Z0-9_]/g, '');
+                        const metaCellId = tableBodyId + '_' + metaBaseId;
+
+                        // Helper: tampilkan SKIP di cell (sama seperti regular DEX)
+                        const markMetaSkip = (reason, isError) => {
+                            const cell = document.getElementById(metaCellId);
+                            if (!cell) return;
+                            try { cell.classList.add('dex-skip'); } catch (_) { }
+                            if (isError) try { cell.classList.add('dex-error'); } catch (_) { }
+                            const span = ensureDexStatusSpan(cell);
+                            span.className = isError ? 'dex-status uk-text-danger' : 'dex-status uk-text-muted';
+                            span.innerHTML = `<span class="uk-label uk-label-warning"><< SKIP >></span>`;
+                            if (reason) span.title = reason;
+                            try { if (cell.dataset) cell.dataset.final = '1'; } catch (_) { }
+                        };
+
+                        // Skip check: CEX tidak ada harga
+                        if (!cexResult.ok) {
+                            markMetaSkip('CEX tidak ada harga - META-DEX di-skip', true);
+                            return;
+                        }
+
+                        // Skip check (Wallet CEX filter)
+                        const isWalletCEXChecked = (typeof $ === 'function') ? $('#checkWalletCEX').is(':checked') : false;
+                        if (isWalletCEXChecked) {
+                            const cexDataMeta = (token.dataCexs && token.cex) ? token.dataCexs[String(token.cex).toUpperCase()] : null;
+                            const wdToken = cexDataMeta?.withdrawToken ?? token.withdrawToken;
+                            const dpPair = cexDataMeta?.depositPair ?? token.depositPair;
+                            const wdPair = cexDataMeta?.withdrawPair ?? token.withdrawPair;
+                            const dpToken = cexDataMeta?.depositToken ?? token.depositToken;
+                            if (isKiriMeta && (wdToken === false || dpPair === false)) {
+                                const missing = [];
+                                if (wdToken === false) missing.push(`WD ${sym1Meta}`);
+                                if (dpPair === false) missing.push(`DP ${sym2Meta}`);
+                                markMetaSkip(missing.join(' & ') + ' OFF');
+                                return;
+                            }
+                            if (!isKiriMeta && (wdPair === false || dpToken === false)) {
+                                const missing = [];
+                                if (wdPair === false) missing.push(`WD ${sym1Meta}`);
+                                if (dpToken === false) missing.push(`DP ${sym2Meta}`);
+                                markMetaSkip(missing.join(' & ') + ' OFF');
+                                return;
+                            }
+                        }
+
+                        // Hitung modal dan amountIn dari META_DEX_SETTINGS per-chain
+                        const modalLeft = parseFloat(chainModalData[aggKey]?.left) || 100;
+                        const modalRight = parseFloat(chainModalData[aggKey]?.right) || 100;
+                        const modalMeta = isKiriMeta ? modalLeft : modalRight;
+
+                        const amountInMeta = isKiriMeta
+                            ? (DataCEX.priceBuyToken > 0 ? modalMeta / DataCEX.priceBuyToken : 0)
+                            : (DataCEX.priceBuyPair > 0 ? modalMeta / DataCEX.priceBuyPair : 0);
+                        if (amountInMeta <= 0) return;
+
+                        // Contract addresses
+                        let scInMeta = isKiriMeta ? token.sc_in : token.sc_out;
+                        let scOutMeta = isKiriMeta ? token.sc_out : token.sc_in;
+                        let desInMeta = isKiriMeta ? Number(token.des_in) : Number(token.des_out);
+                        let desOutMeta = isKiriMeta ? Number(token.des_out) : Number(token.des_in);
+                        const symOutMeta = isKiriMeta ? String(token.symbol_out || '') : String(token.symbol_in || '');
+                        if (String(symOutMeta).toUpperCase() === 'NON' || isAddrInvalidMeta(scOutMeta)) {
+                            if (nonDefMeta?.scAddressPair) {
+                                scOutMeta = nonDefMeta.scAddressPair;
+                                desOutMeta = Number(nonDefMeta.desPair || desOutMeta || 18);
+                            }
+                        }
+
+                        // Panggil API Meta-DEX dengan per-aggregator scheduler (cegah burst ke rate-limited API)
+                        scheduleMetaDexRequest(aggKey, jedaAgg, () => {
+                            markDexRequestStart();
+                            if (!isScanRunning) { markDexRequestEnd(); return; }
+
+                            getPriceDEX(
+                                scInMeta, desInMeta, scOutMeta, desOutMeta, amountInMeta,
+                                DataCEX.priceBuyPair > 0 ? DataCEX.priceBuyPair : 1,
+                                aggKey,
+                                isKiriMeta ? token.symbol_in : token.symbol_out,
+                                isKiriMeta ? token.symbol_out : token.symbol_in,
+                                token.cex, token.chain,
+                                (window.CONFIG_CHAINS || {})[currentChain]?.Kode_Chain || '',
+                                metaDir, tableBodyId
+                            )
+                                .then(dexRes => {
+                                    try {
+                                        const update = calculateResult(
+                                            metaBaseId, tableBodyId, dexRes.amount_out, dexRes.FeeSwap,
+                                            isKiriMeta ? token.sc_in : token.sc_out,
+                                            isKiriMeta ? token.sc_out : token.sc_in,
+                                            token.cex, modalMeta, amountInMeta,
+                                            DataCEX.priceBuyToken, DataCEX.priceSellToken,
+                                            DataCEX.priceBuyPair, DataCEX.priceSellPair,
+                                            isKiriMeta ? token.symbol_in : token.symbol_out,
+                                            isKiriMeta ? token.symbol_out : token.symbol_in,
+                                            isKiriMeta ? DataCEX.feeWDToken : DataCEX.feeWDPair,
+                                            aggKey, token.chain,
+                                            (window.CONFIG_CHAINS || {})[currentChain]?.Kode_Chain || '',
+                                            metaDir, 0, dexRes
+                                        );
+                                        if (update) uiUpdateQueue.push(update);
+                                    } catch (e) {
+                                        uiUpdateQueue.push({ type: 'error', id: metaCellId, message: `META-DEX ${aggKey.toUpperCase()}: ${e.message}`, swapMessage: '' });
+                                    } finally {
+                                        markDexRequestEnd();
+                                    }
+                                })
+                                .catch(err => {
+                                    try {
+                                        const msg = (err && err.pesanDEX) ? String(err.pesanDEX) : `Error Meta-DEX ${aggKey}`;
+                                        uiUpdateQueue.push({ type: 'error', id: metaCellId, message: msg, swapMessage: '' });
+                                    } catch (_) { }
+                                    markDexRequestEnd();
+                                });
+                        }, jedaAgg);
+                    });
+                }
+            }
+            // ===== END META-DEX SCAN LOOP =====
+
             // Beri jeda antar token dalam satu grup.
             await delay(jedaKoin);
         } catch (error) {
@@ -1802,6 +2025,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
         // FIX: Simpan total token di variabel global untuk tracking saat delete
         SCAN_TOTAL_TOKENS = tokensToProcess.length;
         SCAN_PROCESSED_TOKENS = 0;
+        totalMetaDexScheduled = 0; // Reset counter META-DEX saat scan baru dimulai
         let processed = 0; // track tokens completed across groups
 
         // --- PROSES UTAMA ---
@@ -1883,14 +2107,50 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
 
         // FIX: Gunakan SCAN_TOTAL_TOKENS yang dinamis untuk finalisasi
         const finalTotal = SCAN_TOTAL_TOKENS;
-        updateProgress(finalTotal, finalTotal, startTime, 'SELESAI');
 
-        // REFACTORED: Tunggu semua request DEX (termasuk fallback) benar-benar selesai.
-        //('[FINAL] Waiting for pending DEX requests to settle...');
-        // ✅ FIX: Increased timeout from 8000ms to 30000ms to accommodate fallback strategies
-        // Primary request can take up to 10s, fallback another 10s = 20s minimum needed
-        // 30s provides buffer for delays and multiple concurrent fallback requests
-        await waitForPendingDexRequests(30000);
+        // Cek apakah META-DEX masih punya request yang pending/scheduled
+        const hasPendingMeta = pendingMetaDexScheduled > 0 || activeDexRequests > 0;
+        if (hasPendingMeta) {
+            // Tampilkan 95% dengan teks "menunggu META-DEX" — bukan SELESAI dulu
+            try {
+                const dur = ((Date.now() - startTime) / 1000 / 60).toFixed(2);
+                $('#progress-bar').css('width', '95%');
+                $('#progress-text').text('95%');
+                const metaTotalNow = totalMetaDexScheduled || (pendingMetaDexScheduled + activeDexRequests);
+                $('#progress').text(`META-DEX - MEMPROSES [0/${metaTotalNow} req] :: Mulai: ${new Date(startTime).toLocaleTimeString()} ~ DURASI [${dur} Menit]`);
+            } catch (_) {}
+
+            // Update teks live setiap detik selama menunggu META-DEX
+            const metaWaitInterval = setInterval(() => {
+                try {
+                    if (!isScanRunning && pendingMetaDexScheduled === 0 && activeDexRequests === 0) {
+                        clearInterval(metaWaitInterval);
+                        return;
+                    }
+                    const dur2 = ((Date.now() - startTime) / 1000 / 60).toFixed(2);
+                    const remaining = pendingMetaDexScheduled + activeDexRequests;
+                    const total = totalMetaDexScheduled || remaining;
+                    const done = Math.max(0, total - remaining);
+                    // Tampilkan: selesai/total request (bukan token, karena tiap token = 2 arah)
+                    $('#progress').text(`META-DEX - MEMPROSES [${done}/${total} req] :: Mulai: ${new Date(startTime).toLocaleTimeString()} ~ DURASI [${dur2} Menit]`);
+                } catch (_) {}
+            }, 1000);
+
+            // Tunggu semua request DEX (regular + META-DEX) benar-benar selesai.
+            // Timeout dinamis: hitung sisa waktu queue META-DEX + 20s buffer untuk request in-flight.
+            const metaDexQueueRemainingMs = Math.max(0, ...Object.values(metaDexNextTime).map(t => t - Date.now()), 0);
+            const waitTimeoutMs = Math.max(30000, metaDexQueueRemainingMs + 20000);
+            await waitForPendingDexRequests(waitTimeoutMs);
+            clearInterval(metaWaitInterval);
+        } else {
+            // Tidak ada META-DEX pending, langsung tunggu sisa request in-flight biasa
+            const metaDexQueueRemainingMs = Math.max(0, ...Object.values(metaDexNextTime).map(t => t - Date.now()), 0);
+            const waitTimeoutMs = Math.max(30000, metaDexQueueRemainingMs + 20000);
+            await waitForPendingDexRequests(waitTimeoutMs);
+        }
+
+        // Sekarang baru tampilkan SELESAI 100%
+        updateProgress(finalTotal, finalTotal, startTime, 'SELESAI');
         if (activeDexRequests > 0) {
             // console.warn(`[FINAL] Continuing with ${activeDexRequests} pending DEX request(s) after timeout window.`);
         }
@@ -2058,6 +2318,8 @@ async function stopScanner() {
     const wasScanning = isScanRunning; // Capture state sebelum di-set false
 
     isScanRunning = false;
+    pendingMetaDexScheduled = 0; // Reset agar waitForPendingDexRequests tidak tertahan
+    totalMetaDexScheduled = 0;
     try { cancelAnimationFrame(animationFrameId); } catch (_) { }
     // ✅ PERF: Use TimerManager for centralized timer control
     if (typeof TimerManager !== 'undefined') {
@@ -2130,6 +2392,8 @@ async function stopScanner() {
  */
 function stopScannerSoft() {
     isScanRunning = false;
+    pendingMetaDexScheduled = 0; // Reset agar waitForPendingDexRequests tidak tertahan
+    totalMetaDexScheduled = 0;
     try { cancelAnimationFrame(animationFrameId); } catch (_) { }
 
     // === RELEASE GLOBAL SCAN LOCK (SOFT STOP) ===
