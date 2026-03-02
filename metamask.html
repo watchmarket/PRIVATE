@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaMask Bridge Quote Stream</title>
+    <style>
+        body { font-family: monospace; background: #121212; color: #00ff00; padding: 20px; }
+        #log { white-space: pre-wrap; word-break: break-all; border: 1px solid #333; padding: 15px; border-radius: 5px; background: #1a1a1a; }
+        .status { margin-bottom: 10px; color: #aaa; }
+        .quote-entry { border-bottom: 1px solid #333; padding: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <h2>SSE Quote Stream</h2>
+    <div class="status" id="status">Status: Connecting...</div>
+    <div id="log">Waiting for quotes...</div>
+
+    <script>
+        const logElement = document.getElementById('log');
+        const statusElement = document.getElementById('status');
+
+        // The URL provided
+        const url = "https://bridge.api.cx.metamask.io/getQuoteStream?walletAddress=0x7809151CFEF645A14a52F5903dE04CB9D2a0D14b&destWalletAddress=0x7809151CFEF645A14a52F5903dE04CB9D2a0D14b&srcChainId=1&destChainId=1&srcTokenAddress=0x0000000000000000000000000000000000000000&destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7&srcTokenAmount=300000000000000000&insufficientBal=true&resetApproval=false&gasIncluded=true&gasIncluded7702=false&slippage=0.5";
+
+        // Initialize the SSE connection
+        const eventSource = new EventSource(url);
+
+        // Connection opened
+        eventSource.onopen = () => {
+            statusElement.innerText = "Status: Connected. Listening for 'quote' events...";
+            statusElement.style.color = "#00ff00";
+        };
+
+        // Listen specifically for the "quote" event type
+        eventSource.addEventListener("quote", (event) => {
+            try {
+                // The data is a JSON string, so we parse it
+                const data = JSON.parse(event.data);
+                
+                // Create a timestamped log entry
+                const timestamp = new Date().toLocaleTimeString();
+                const newEntry = document.createElement('div');
+                newEntry.className = 'quote-entry';
+                newEntry.innerHTML = `<strong>[${timestamp}] Quote Received:</strong><br>${JSON.stringify(data, null, 2)}`;
+                
+                // Prepend to show newest first
+                logElement.prepend(newEntry);
+                
+                console.log("New Quote:", data);
+            } catch (err) {
+                console.error("Error parsing JSON:", err);
+            }
+        });
+
+        // Error handling (e.g., connection lost)
+        eventSource.onerror = (err) => {
+            statusElement.innerText = "Status: Error/Connection Lost. Retrying...";
+            statusElement.style.color = "#ff4444";
+            console.error("SSE Error:", err);
+        };
+    </script>
+</body>
+</html>
