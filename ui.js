@@ -259,7 +259,8 @@ function RenderCardSignal() {
         const metaBadge = isMetaDexCard
             ? '<span style="background:rgba(255,255,255,0.25);color:#fff;padding:0 4px;border-radius:3px;font-size:9px;font-weight:bold;margin-left:4px;">META</span>'
             : '';
-        left.innerHTML = `<span class="uk-text-bold" style="color:#fff!important; font-size:14px;">${String(dex).toUpperCase()}${metaBadge}</span>`;
+        const dexDisplayLabel = (window.CONFIG_DEXS?.[dexLower]?.label ? String(window.CONFIG_DEXS[dexLower].label).toUpperCase() : String(dex).toUpperCase());
+        left.innerHTML = `<span class="uk-text-bold" style="color:#fff!important; font-size:14px;">${dexDisplayLabel}${metaBadge}</span>`;
 
         const toggle = document.createElement('a');
         toggle.className = 'uk-icon-link uk-text-bolder';

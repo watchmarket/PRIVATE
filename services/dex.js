@@ -1306,7 +1306,7 @@
       return {
         amount_out: subResults[0].amount_out,
         FeeSwap: subResults[0].FeeSwap,
-        dexTitle: 'LIFI',
+        dexTitle: 'JUMPER',
         subResults: subResults,
         isMultiDex: true
       };

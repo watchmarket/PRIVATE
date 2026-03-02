@@ -29,9 +29,9 @@ function getMonitoringColumnSpec(dexList) {
   const spec = [];
   const activeDexList = Array.isArray(dexList) ? dexList : [];
   spec.push({ type: 'orderbook-left', label: 'ORDERBOOK', classes: 'uk-text-center uk-text-bolder th-orderbook' });
-  activeDexList.forEach(d => spec.push({ type: 'dex', side: 'left', key: String(d).toLowerCase(), label: String(d).toUpperCase(), classes: 'uk-text-center uk-text-small th-dex' }));
+  activeDexList.forEach(d => { const cfgLbl = window.CONFIG_DEXS?.[String(d).toLowerCase()]?.label; const lbl = cfgLbl ? String(cfgLbl).toUpperCase() : String(d).toUpperCase(); spec.push({ type: 'dex', side: 'left', key: String(d).toLowerCase(), label: lbl, classes: 'uk-text-center uk-text-small th-dex' }); });
   spec.push({ type: 'detail', label: 'DETAIL TOKEN', classes: 'uk-text-center uk-text-bolder th-detail' });
-  activeDexList.forEach(d => spec.push({ type: 'dex', side: 'right', key: String(d).toLowerCase(), label: String(d).toUpperCase(), classes: 'uk-text-center uk-text-small th-dex' }));
+  activeDexList.forEach(d => { const cfgLbl = window.CONFIG_DEXS?.[String(d).toLowerCase()]?.label; const lbl = cfgLbl ? String(cfgLbl).toUpperCase() : String(d).toUpperCase(); spec.push({ type: 'dex', side: 'right', key: String(d).toLowerCase(), label: lbl, classes: 'uk-text-center uk-text-small th-dex' }); });
   spec.push({ type: 'orderbook-right', label: 'ORDERBOOK', classes: 'uk-text-center uk-text-bolder th-orderbook' });
   return spec;
 }

@@ -50,6 +50,9 @@
 
                 $('#chain-links-container a, #chain-links-container .chain-link, #chain-links-container .icon, #multichain_scanner, #multichain_scanner .icon')
                     .css({ pointerEvents: 'auto', opacity: 1 });
+                // ✅ KEEP CEX icon links ACTIVE during scan
+                $('#cex-links-container a, #cex-links-container .icon')
+                    .css({ pointerEvents: 'auto', opacity: 1 });
                 // ✅ KEEP Scanner Filter Modal icon ACTIVE during scan (modal will show readonly inputs)
                 $('#ScannerFilterModal').css({ pointerEvents: 'auto', opacity: 1 });
                 // ✅ KEEP Calculator Modal icon ACTIVE and fully functional during scan

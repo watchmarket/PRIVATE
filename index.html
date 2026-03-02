@@ -282,7 +282,11 @@
           <!-- ========================================= -->
           <div class="uk-width-1-4@m">
             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
-              <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
+              <!-- META-DEX Settings (shown only when META_DEX=true) -->
+            <div id="meta-dex-settings-group" style="display:none; margin-top: 4px;">
+              <!-- JS akan populate -->
+            </div>
+              <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-top">
                 <span uk-icon="cloud-download"></span> PENGATURAN RPC
               </h5>
               <div class="uk-text-meta uk-text-small uk-text-danger uk-margin-small-top">
@@ -348,7 +352,7 @@
                 <label class="uk-form-label uk-text-small uk-text-danger uk-text-bolder">
                   MATCHA API KEYS (Required) ⚠️
                 </label>
-                <textarea class="uk-textarea uk-form-small" id="matchaApiKeys" name="matchaApiKeys" rows="4"
+                <textarea class="uk-textarea uk-form-small" id="matchaApiKeys" name="matchaApiKeys" rows="6"
                   placeholder="key1,key2,key3 atau pisahkan dengan enter&#10; daftar di: https://dashboard.0x.org"
                   aria-label="Matcha API Keys"> </textarea>
                 <div class="uk-text-meta uk-text-small uk-text-warning">
@@ -384,10 +388,7 @@
           <!-- COLUMN 3 - CEX API KEYS (Wider) -->
           <!-- ========================================= -->
           <div class="uk-width-expand@m">
-             <!-- META-DEX Settings (shown only when META_DEX=true) -->
-            <div id="meta-dex-settings-group" style="display:none; margin-bottom: 6px;">
-              <!-- JS akan populate -->
-            </div>
+             
             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
               <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
                 <span uk-icon="lock"></span> API KEY EXCHANGER

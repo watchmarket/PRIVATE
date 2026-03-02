@@ -1,17 +1,18 @@
 const CONFIG_APP = {
     APP: {
-         NAME: "APP PRIVATE",
+//         NAME: "APP_PANTAUAN",
+          NAME: "APP PRIVATE",
         VERSION: "2026.03.02",
         SCAN_LIMIT: false,
         AUTORUN: true,
-        AUTO_VOLUME: true,   // Set false untuk menyembunyikan & menonaktifkan fitur auto volume
-        VOL_CHECK: true,
+        AUTO_VOLUME: true,  // cek volume otomatis untuk filter dan alert
+        VOL_CHECK: true, // cek volume aktual
+        DEBUG_LOG: false,
         // META-DEX: fitur DEX TAMBAHAN yang menampilkan BANYAK quote sekaligus per token.
         // Berbeda dari DEX regular (single-quote). Berjalan TERPISAH dari scan DEX regular.
         // Jika true → Settings menampilkan panel: Modal DEX, Filter Scanner, Card Signal, Jeda DEX.
         META_DEX: true,
-        LIMIT_METADEX:2,
-        DEBUG_LOG: false,   // ✅ PERF: Set true untuk aktifkan debug logging (default: false untuk performance)
+        LIMIT_METADEX: 2,
     },
     // ========================================================================
     // META-DEX CONFIGURATION
@@ -32,7 +33,7 @@ const CONFIG_APP = {
             lifi: { enabled: true, evmOnly: false, jedaDex: 600, label: 'JUMPER' },       // EVM + Solana multi-route
            // dzap: { enabled: true, evmOnly: false, jedaDex: 500, label: 'DZAP' },       // EVM + Solana multi-route
            // rubic: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rubic' },     // EVM + Solana multi-quote
-            //rango: { enabled: true, evmOnly: false, jedaDex: 500, label: 'RANGO' },       // EVM + Solana multi-quote
+            rango: { enabled: true, evmOnly: false, jedaDex: 500, label: 'RANGO' },       // EVM + Solana multi-quote
             //rocketx: { enabled: true, evmOnly: false, jedaDex: 600, label: 'ROCKET' },    // EVM + Solana multi-quote
             metax: { enabled: true, evmOnly: false, jedaDex: 800, label: 'METAX' },       // EVM + Solana, SSE streaming
         },
@@ -467,7 +468,7 @@ const CONFIG_UI = {
     DEXES: [
         { key: 'kyber', label: 'KyberSwap', badgeClass: 'bg-kyberswap', fallbackSlug: 'kyberswap' },
         { key: 'sushi', label: 'SUSHI', badgeClass: 'bg-sushi', fallbackSlug: 'sushi' },
-        { key: 'lifi', label: 'LIFI', badgeClass: 'bg-lifi', fallbackSlug: 'lifi' },
+        { key: 'lifi', label: 'JUMPER', badgeClass: 'bg-lifi', fallbackSlug: 'lifi' },
         { key: 'okx', label: 'OKX', badgeClass: 'bg-okx', fallbackSlug: 'okx' },
         { key: 'relay', label: 'Relay', badgeClass: 'bg-relay', fallbackSlug: 'relay' },
         { key: 'odos', label: 'ODOS', badgeClass: 'bg-odos', fallbackSlug: 'odos', skipDelay: true },
