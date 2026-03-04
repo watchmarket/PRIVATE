@@ -1,9 +1,9 @@
 const CONFIG_APP = {
     APP: {
-//         NAME: "APP_PANTAUAN",
-//NAME: "WATCHMARKET-TEST",
-          NAME: "APP PRIVATE",
-        VERSION: "2026.03.03",
+        //  NAME: "APP_PANTAUAN",
+        //NAME: "WATCHMARKET-TEST",
+        NAME: "APP PRIVATE",
+        VERSION: "2026.03.05",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,  // cek volume otomatis untuk filter dan alert
@@ -32,8 +32,8 @@ const CONFIG_APP = {
         // Setiap aggregator mengembalikan BANYAK quote dari berbagai DEX sekaligus.
         aggregators: {
             lifi: { enabled: true, evmOnly: false, jedaDex: 600, label: 'JUMPER' },       // EVM + Solana multi-route
-           // dzap: { enabled: true, evmOnly: false, jedaDex: 500, label: 'DZAP' },       // EVM + Solana multi-route
-           // rubic: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rubic' },     // EVM + Solana multi-quote
+            // dzap: { enabled: true, evmOnly: false, jedaDex: 500, label: 'DZAP' },       // EVM + Solana multi-route
+            // rubic: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rubic' },     // EVM + Solana multi-quote
             rango: { enabled: true, evmOnly: false, jedaDex: 500, label: 'RANGO' },       // EVM + Solana multi-quote
             //rocketx: { enabled: true, evmOnly: false, jedaDex: 600, label: 'ROCKET' },    // EVM + Solana multi-quote
             metax: { enabled: true, evmOnly: true, jedaDex: 800, label: 'METAX' },        // EVM only (no Solana support)

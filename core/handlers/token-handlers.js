@@ -223,6 +223,14 @@
     });
 
     /**
+     * Export koin for APPHYBRID (Hybrid CSV format)
+     */
+    $(document).on('click', '#exportKoinHybridBtn', function (e) {
+        e.preventDefault();
+        try { exportKoinForHybrid(); } catch (err) { console.error(err); }
+    });
+
+    /**
      * Token form submission handler
      * Handles both add and edit operations
      */

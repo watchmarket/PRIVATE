@@ -549,6 +549,133 @@ function downloadTokenScannerCSV() {
 }
 
 // ============================
+// EXPORT KOIN → APPHYBRID CSV
+// ============================
+/**
+ * Export tokens in APPHYBRID-compatible CSV format.
+ * CSV columns: ticker,cex,symbolToken,scToken,decToken,tickerPair,symbolPair,scPair,decPair,chain,modalCtD,modalDtC,minPnl
+ *
+ * - Each token × CEX combo = 1 CSV row
+ * - Modal CTD/DTC from META_DEX_SETTINGS[chain].metax (MetaMask)
+ * - minPnl = modalCtD × 0.2%
+ * - symbolToken/symbolPair auto-generated from CEX format
+ */
+function exportKoinForHybrid() {
+    // 1. Determine active tokens
+    const isCEXMode = !!(window.CEXModeManager && typeof window.CEXModeManager.isCEXMode === 'function' && window.CEXModeManager.isCEXMode());
+    let tokenData, chainLabel;
+    if (isCEXMode) {
+        const activeCEX = (typeof window.CEXModeManager.getSelectedCEX === 'function') ? (window.CEXModeManager.getSelectedCEX() || 'CEX') : 'CEX';
+        const chains = Object.keys(window.CONFIG_CHAINS || {});
+        const allTokens = [];
+        chains.forEach(ck => {
+            const ct = getFromLocalStorage(`TOKEN_${String(ck).toUpperCase()}`, []);
+            if (Array.isArray(ct)) allTokens.push(...ct);
+        });
+        tokenData = allTokens.filter(t =>
+            Array.isArray(t.selectedCexs) && t.selectedCexs.map(c => String(c).toUpperCase()).includes(activeCEX.toUpperCase())
+        );
+        chainLabel = `CEX_${activeCEX}`;
+    } else {
+        tokenData = getFromLocalStorage(getActiveTokenKeyLocal(), []);
+        chainLabel = getActiveChainLabel();
+    }
+
+    if (!Array.isArray(tokenData) || tokenData.length === 0) {
+        if (typeof toast !== 'undefined' && toast.warning) toast.warning('Tidak ada koin untuk di-export');
+        return;
+    }
+
+    // 2. Read META_DEX_SETTINGS for metax modal
+    const metaDexSettings = (typeof getFromLocalStorage === 'function')
+        ? (getFromLocalStorage('META_DEX_SETTINGS') || {})
+        : {};
+
+    // 3. CEX symbol format helpers (match APPHYBRID CONFIG_CEX.symbolFmt)
+    const cexSymbolFmt = {
+        'BINANCE': (t) => `${String(t).toUpperCase()}USDT`,
+        'MEXC': (t) => `${String(t).toUpperCase()}USDT`,
+        'GATE': (t) => `${String(t).toUpperCase()}_USDT`,
+        'INDODAX': (t) => `${String(t).toLowerCase()}idr`,
+        'KUCOIN': (t) => `${String(t).toUpperCase()}-USDT`,
+        'BITGET': (t) => `${String(t).toUpperCase()}USDT`,
+        'BYBIT': (t) => `${String(t).toUpperCase()}USDT`,
+        'HTX': (t) => `${String(t).toLowerCase()}usdt`,
+        'OKX': (t) => `${String(t).toUpperCase()}-USDT`,
+    };
+    const getSymbol = (cex, ticker) => {
+        if (!ticker || String(ticker).toUpperCase() === 'USDT' || String(ticker).toUpperCase() === 'NON') return '';
+        const fmt = cexSymbolFmt[String(cex).toUpperCase()];
+        return fmt ? fmt(ticker) : `${String(ticker).toUpperCase()}USDT`;
+    };
+
+    // 4. Build CSV rows
+    const CSV_COLS = ['ticker', 'cex', 'symbolToken', 'scToken', 'decToken', 'tickerPair', 'symbolPair', 'scPair', 'decPair', 'chain', 'modalCtD', 'modalDtC', 'minPnl'];
+    const rows = [];
+
+    tokenData.forEach(token => {
+        if (!token.symbol_in || !token.symbol_out) return;
+        const selectedCexs = (token.selectedCexs || []).map(c => String(c).toUpperCase());
+        if (selectedCexs.length === 0) return;
+
+        const chain = String(token.chain || '').toLowerCase();
+        const chainMetax = metaDexSettings[chain] || {};
+        const metaxModal = chainMetax['metax'] || {};
+        const modalCtD = parseFloat(metaxModal.left) || 100;
+        const modalDtC = parseFloat(metaxModal.right) || 100;
+        const minPnl = +(modalCtD * 0.002).toFixed(4);
+
+        const ticker = String(token.symbol_in || '').toUpperCase();
+        const tickerPair = String(token.symbol_out || '').toUpperCase();
+        const scToken = String(token.sc_in || '');
+        const scPair = String(token.sc_out || '');
+        const decToken = Number(token.des_in) || 18;
+        const decPair = Number(token.des_out) || 18;
+
+        selectedCexs.forEach(cex => {
+            const cexLower = cex.toLowerCase();
+            const symbolToken = getSymbol(cex, ticker);
+            const symbolPair = getSymbol(cex, tickerPair);
+
+            rows.push([
+                ticker, cexLower, symbolToken, scToken, decToken,
+                tickerPair, symbolPair, scPair, decPair,
+                chain, modalCtD, modalDtC, minPnl
+            ]);
+        });
+    });
+
+    if (rows.length === 0) {
+        if (typeof toast !== 'undefined' && toast.warning) toast.warning('Tidak ada data koin yang valid untuk di-export');
+        return;
+    }
+
+    // 5. Build CSV string
+    const escCSV = v => `"${String(v).replace(/"/g, '""')}"`;
+    const csvContent = [
+        CSV_COLS.join(','),
+        ...rows.map(r => r.map(escCSV).join(','))
+    ].join('\n');
+
+    // 6. Download
+    const appName = (window.CONFIG_APP?.APP?.NAME || 'SCANNER').replace(/[^a-z0-9]+/gi, '_').toUpperCase();
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `HYBRID_${appName}_${chainLabel}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    if (typeof toast !== 'undefined' && toast.success) {
+        toast.success(`Export ${rows.length} baris koin (${tokenData.length} token) berhasil`);
+    }
+    try { setLastAction('EXPORT KOIN HYBRID', 'success'); } catch (_) { }
+}
+
+// ============================
 // MERGE TOKENS HELPER
 // ============================
 /**

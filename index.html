@@ -54,7 +54,7 @@
 
             <span id="chain-links-container"></span>
 
-           <img class="icon" id="openCalculatorModal" title="KALKULATOR CRYPTO (Ctrl+K)" width="24px"
+            <img class="icon" id="openCalculatorModal" title="KALKULATOR CRYPTO (Ctrl+K)" width="24px"
               src="assets/icons/calculator.png" style="cursor: pointer;" />
 
             <!-- CEX Icons Container - Populated by JS -->
@@ -62,8 +62,8 @@
             <span id="cex-links-container"></span>
 
             <!-- Calculator Icon - Always accessible -->
-            
- <img class="icon" id="SettingConfig" data-feature="settings" title="SETTING APLIKASI (Ctrl+S)" width="24px"
+
+            <img class="icon" id="SettingConfig" data-feature="settings" title="SETTING APLIKASI (Ctrl+S)" width="24px"
               src="assets/icons/database.png" />
 
             <a href="saldo.html" target="_blank" data-feature="assets"><img class="icon" title="SALDO ASSET"
@@ -206,6 +206,8 @@
 
                 <img class="icon" id="UpdateWalletCEX" data-feature="wallet" title="CHECK EXCHANGER" width="24px"
                   src="assets/icons/filter.png" style="margin-left: 8px; cursor: pointer; margin-right:8px; " />
+                <img class="icon" id="exportKoinHybridBtn" title="EXPORT KOIN UNTUK APLIKASI ANDROID" width="22px"
+                  src="assets/icons/export.png" style="margin-right: 8px; cursor: pointer;" />
 
                 <input type="file" id="scannerUploadJSON" accept=".csv,text/csv" style="display:none;"
                   onchange="uploadTokenScannerCSV(event)">
@@ -283,9 +285,9 @@
           <div class="uk-width-1-4@m">
             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
               <!-- META-DEX Settings (shown only when META_DEX=true) -->
-            <div id="meta-dex-settings-group" style="display:none; margin-top: 4px;">
-              <!-- JS akan populate -->
-            </div>
+              <div id="meta-dex-settings-group" style="display:none; margin-top: 4px;">
+                <!-- JS akan populate -->
+              </div>
               <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-top">
                 <span uk-icon="cloud-download"></span> PENGATURAN RPC
               </h5>
@@ -388,7 +390,7 @@
           <!-- COLUMN 3 - CEX API KEYS (Wider) -->
           <!-- ========================================= -->
           <div class="uk-width-expand@m">
-             
+
             <div class="uk-card uk-card-default uk-card-body uk-card-hover uk-padding-small">
               <h5 class="uk-h5 uk-text-primary uk-text-bolder uk-margin-small-bottom">
                 <span uk-icon="lock"></span> API KEY EXCHANGER
@@ -403,7 +405,7 @@
               </div>
             </div>
 
-           
+
           </div>
 
         </div> <!-- end grid -->
