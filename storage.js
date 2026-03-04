@@ -623,6 +623,7 @@ function exportKoinForHybrid() {
         const modalDtC = parseFloat(metaxModal.right) || 100;
         const minPnl = +(modalCtD * 0.002).toFixed(4);
 
+        const chain = String(token.chain || '').toLowerCase();
         const ticker = String(token.symbol_in || '').toUpperCase();
         const tickerPair = String(token.symbol_out || '').toUpperCase();
         const scToken = String(token.sc_in || '');
