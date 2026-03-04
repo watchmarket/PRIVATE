@@ -160,12 +160,11 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
           const baseIdRawm = `${String(data.cex).toUpperCase()}_${metaCanonical.toUpperCase()}_${sym1m}_${sym2m}_${String(data.chain).toUpperCase()}_${tokenIdm}`;
           const baseIdm = baseIdRawm.replace(/[^A-Z0-9_]/g, '');
           const fullCellIdm = `${idPrefix}${baseIdm}`;
-          // Baca modal dari META_DEX_SETTINGS (per-chain) untuk tampilan awal
+          // Baca modal dari token.dataDexs (per-token) untuk tampilan awal
           let modalMeta = 100;
           try {
-            const gms = (typeof getFromLocalStorage === 'function') ? (getFromLocalStorage('META_DEX_SETTINGS') || {}) : {};
-            const ck = String(data.chain || '').toLowerCase();
-            modalMeta = isLeft ? (gms[ck]?.[dexKeyLower]?.left || 100) : (gms[ck]?.[dexKeyLower]?.right || 100);
+            const tokenDexData = data.dataDexs || {};
+            modalMeta = isLeft ? (tokenDexData[dexKeyLower]?.left || 100) : (tokenDexData[dexKeyLower]?.right || 100);
           } catch (_) { }
           const dexNamem = (dexConfigElse.label) ? String(dexConfigElse.label) : String(dexKey).toUpperCase();
           html += `
@@ -384,7 +383,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const hasDX = !isIndodax && (data.depositToken === false || data.depositPair === false);
       const hasDisabledWallet = hasWX || hasDX;
       const redBg = 'background-color: rgba(231,76,60,0.18) !important;';
-      const leftBg  = hasWX ? redBg : '';
+      const leftBg = hasWX ? redBg : '';
       const rightBg = hasDX ? redBg : '';
 
       // Start row — plain, warna diterapkan per sel kiri/kanan
@@ -1397,7 +1396,7 @@ function DisplayPNL(data) {
           const saved = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('SETTING_SCANNER') : null;
           const v = parseInt(saved?.metaDex?.topRoutes);
           if (v > 0) return v;
-        } catch (_) {}
+        } catch (_) { }
         return dexConfig?.maxProviders || 3;
       })();
 
@@ -1441,7 +1440,7 @@ function DisplayPNL(data) {
           && String(t.symbol_in).toUpperCase() === _keyIn
           && String(t.symbol_out).toUpperCase() === _keyOut);
         if (_hit) { metaWdFlag = _hit.withdrawToken; metaDpFlag = _hit.depositToken; }
-      } catch (_) {}
+      } catch (_) { }
       const metaWdUrl = (direction === 'tokentopair')
         ? (cexUrls?.withdrawTokenUrl || cexUrls?.withdrawUrl || '#')
         : (cexUrls?.withdrawPairUrl || cexUrls?.withdrawUrl || '#');

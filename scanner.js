@@ -1839,13 +1839,9 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                 const currentChain = String(token.chain || '').toLowerCase();
                 const supportedEVMChains = window.CONFIG_APP?.META_DEX_CONFIG?.supportedChains || [];
 
-                // ✅ Baca modal PER-CHAIN dari META_DEX_SETTINGS = { chain: { aggKey: {left, right} } }
-                // Modal diset user di Pengaturan Scanner per chain, berlaku untuk semua token chain tersebut
-                const globalMetaSettings = (typeof getFromLocalStorage === 'function')
-                    ? (getFromLocalStorage('META_DEX_SETTINGS') || {})
-                    : {};
-                // Baca data untuk chain saat ini (dilakukan di dalam loop per token — currentChain sudah tersedia)
-                const chainModalData = globalMetaSettings[currentChain] || {};
+                // ✅ Baca modal PER-TOKEN dari token.dataDexs (sama seperti DEX regular)
+                // Modal diset user di form edit koin / bulk modal editor, berlaku per-token
+                const tokenDataDexs = token.dataDexs || {};
 
                 // ✅ Top-N routes: batasi jumlah route yang diproses (default 3)
                 const topNRoutes = parseInt(ConfigScan?.metaDex?.topRoutes) || 3;
@@ -1933,10 +1929,10 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                             }
                         }
 
-                        // Hitung modal META-DEX — gunakan META_DEX_SETTINGS sebagai maxModal,
+                        // Hitung modal META-DEX — gunakan token.dataDexs sebagai maxModal (per-token),
                         // lalu terapkan Auto Level (sama seperti DEX biasa) jika diaktifkan
-                        const maxModalLeft = parseFloat(chainModalData[aggKey]?.left) || 100;
-                        const maxModalRight = parseFloat(chainModalData[aggKey]?.right) || 100;
+                        const maxModalLeft = parseFloat(tokenDataDexs[aggKey]?.left) || 100;
+                        const maxModalRight = parseFloat(tokenDataDexs[aggKey]?.right) || 100;
                         const maxModalMeta = isKiriMeta ? maxModalLeft : maxModalRight;
 
                         let modalMeta = maxModalMeta;
@@ -2165,7 +2161,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                 $('#progress-text').text('95%');
                 const metaTotalNow = totalMetaDexScheduled || (pendingMetaDexScheduled + activeDexRequests);
                 $('#progress').text(`META-DEX - MEMPROSES [0/${metaTotalNow} req] :: Mulai: ${new Date(startTime).toLocaleTimeString()} ~ DURASI [${dur} Menit]`);
-            } catch (_) {}
+            } catch (_) { }
 
             // Update teks live setiap detik selama menunggu META-DEX
             const metaWaitInterval = setInterval(() => {
@@ -2180,7 +2176,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                     const done = Math.max(0, total - remaining);
                     // Tampilkan: selesai/total request (bukan token, karena tiap token = 2 arah)
                     $('#progress').text(`META-DEX - MEMPROSES [${done}/${total} req] :: Mulai: ${new Date(startTime).toLocaleTimeString()} ~ DURASI [${dur2} Menit]`);
-                } catch (_) {}
+                } catch (_) { }
             }, 1000);
 
             // Tunggu semua request DEX (regular + META-DEX) benar-benar selesai.

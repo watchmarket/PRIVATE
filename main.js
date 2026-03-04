@@ -915,7 +915,7 @@ function renderSettingsForm() {
                 &#x26A1; META-DEX SETTINGS
             </h5>
         `;
-// Options: top-N routes
+        // Options: top-N routes
         const topN = savedMetaDexNow.topRoutes ?? 2;
         metaDexHtml += `
             <div style="margin-top:8px;padding:6px 8px;background:#f8f9fa;border-radius:4px;border:1px solid #e2e8f0;">
@@ -949,7 +949,7 @@ function renderSettingsForm() {
             `;
         });
 
-        
+
 
         $('#meta-dex-settings-group').html(metaDexHtml).show();
         console.log('[Settings] META-DEX settings rendered');
@@ -4894,6 +4894,20 @@ async function deferredInit() {
                 right: Number.isFinite(rightVal) ? rightVal : 0
             };
         });
+
+        // ✅ MetaDEX aggregators — merge into dataDexsGlobal
+        $('#sync-dex-config .sync-metadex-checkbox:checked').each(function () {
+            const dx = String($(this).data('dex'));
+            const leftVal = parseFloat($(`#sync-dex-config .sync-metadex-left[data-dex="${dx}"]`).val());
+            const rightVal = parseFloat($(`#sync-dex-config .sync-metadex-right[data-dex="${dx}"]`).val());
+            const dxLower = dx.toLowerCase();
+            selectedDexsGlobal.push(dxLower);
+            dataDexsGlobal[dxLower] = {
+                left: Number.isFinite(leftVal) ? leftVal : 100,
+                right: Number.isFinite(rightVal) ? rightVal : 100
+            };
+        });
+
         if (selectedDexsGlobal.length < 1) {
             if (typeof toast !== 'undefined' && toast.warning) toast.warning('Pilih minimal 1 DEX untuk digunakan.');
             return;
@@ -5826,6 +5840,37 @@ $(document).ready(function () {
                 </div>`);
         });
 
+        // ✅ MetaDEX aggregators — render di bawah DEX regular
+        if (window.CONFIG_APP?.APP?.META_DEX === true) {
+            const metaAggs = Object.keys(window.CONFIG_DEXS || {}).filter(k => {
+                const cfg = window.CONFIG_DEXS[k];
+                if (!cfg || !cfg.isMetaDex || cfg.disabled || cfg.isBackendProvider) return false;
+                if (!window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[k]) return false;
+                const cLower = activeSingleChainKey.toLowerCase();
+                if (cfg.evmOnly && cLower === 'solana') return false;
+                if (cfg.solanaOnly && cLower !== 'solana') return false;
+                return true;
+            });
+
+            if (metaAggs.length > 0) {
+                $dex.append(`<div style="border-top:1px dashed #c084fc; margin:6px 0 4px; padding-top:4px;"><span style="font-size:10px; color:#7c3aed; font-weight:700;">⚡ META-DEX AGGREGATOR</span></div>`);
+                metaAggs.forEach(aggKey => {
+                    const aggCfg = window.CONFIG_DEXS[aggKey] || {};
+                    const aggLabel = (aggCfg.label || aggKey).toUpperCase();
+                    const aggColor = aggCfg.warna || '#7c3aed';
+                    $dex.append(`
+                        <div class="uk-flex uk-flex-middle sync-dex-row" data-dex="${aggKey}" style="gap:6px; padding: 4px; border-left: 3px solid ${aggColor}; background: ${aggColor}08;">
+                            <label class="uk-margin-remove" style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" class="uk-checkbox sync-metadex-checkbox" data-dex="${aggKey}" style="margin-right: 6px;">
+                            </label>
+                            <span class="uk-text-small uk-text-bold sync-dex-label" style="width:70px; color: ${aggColor};">${aggLabel}</span>
+                            <input type="number" class="uk-input uk-form-small sync-metadex-left" data-dex="${aggKey}" placeholder="Modal Kiri" value="100" style="flex: 1; border-color:${aggColor}55;">
+                            <input type="number" class="uk-input uk-form-small sync-metadex-right" data-dex="${aggKey}" placeholder="Modal Kanan" value="100" style="flex: 1; border-color:${aggColor}55;">
+                        </div>`);
+                });
+            }
+        }
+
         // Disable price filter initially (akan di-enable saat tabel sudah ada data)
         if (typeof window.updatePriceFilterState === 'function') {
             window.updatePriceFilterState();
@@ -6416,13 +6461,23 @@ function readCexSelectionFromForm() {
 function readDexSelectionFromForm() {
     const selectedDexs = [];
     const dataDexs = {};
+    // DEX regular
     $('#dex-checkbox-koin .dex-edit-checkbox:checked').each(function () {
         const dexName = String($(this).val());
         const dexKeyLower = dexName.toLowerCase().replace(/[^a-z0-9_-]/gi, '');
-        // Normalize: always use lowercase canonical key for consistency
         const canonicalKey = dexKeyLower || dexName.toLowerCase();
         const leftVal = parseFloat($(`#dex-${dexKeyLower}-left`).val());
         const rightVal = parseFloat($(`#dex-${dexKeyLower}-right`).val());
+        selectedDexs.push(canonicalKey);
+        dataDexs[canonicalKey] = { left: isNaN(leftVal) ? 0 : leftVal, right: isNaN(rightVal) ? 0 : rightVal };
+    });
+    // ✅ MetaDEX aggregators (per-token, dari container terpisah #metadex-checkbox-koin)
+    $('#metadex-checkbox-koin .metadex-edit-checkbox:checked').each(function () {
+        const aggName = String($(this).val());
+        const aggKeyLower = aggName.toLowerCase().replace(/[^a-z0-9_-]/gi, '');
+        const canonicalKey = aggKeyLower || aggName.toLowerCase();
+        const leftVal = parseFloat($(`#metadex-${aggKeyLower}-left`).val());
+        const rightVal = parseFloat($(`#metadex-${aggKeyLower}-right`).val());
         selectedDexs.push(canonicalKey);
         dataDexs[canonicalKey] = { left: isNaN(leftVal) ? 0 : leftVal, right: isNaN(rightVal) ? 0 : rightVal };
     });
@@ -6805,8 +6860,8 @@ $(document).on('click', '#histClearAll', async function () {
                     const chainTag = aggCfg.evmOnly
                         ? `<span style="background:#0ea5e9;color:#fff;padding:0 4px;border-radius:3px;font-size:9px;margin-left:4px;">EVM</span>`
                         : aggCfg.solanaOnly
-                        ? `<span style="background:#9945ff;color:#fff;padding:0 4px;border-radius:3px;font-size:9px;margin-left:4px;">SOL</span>`
-                        : `<span style="background:#6b21a8;color:#fff;padding:0 4px;border-radius:3px;font-size:9px;margin-left:4px;">ALL</span>`;
+                            ? `<span style="background:#9945ff;color:#fff;padding:0 4px;border-radius:3px;font-size:9px;margin-left:4px;">SOL</span>`
+                            : `<span style="background:#6b21a8;color:#fff;padding:0 4px;border-radius:3px;font-size:9px;margin-left:4px;">ALL</span>`;
 
                     const savedLeft = savedChainMeta[aggKey]?.left ?? 100;
                     const savedRight = savedChainMeta[aggKey]?.right ?? 100;
@@ -7298,16 +7353,24 @@ $(document).on('click', '#histClearAll', async function () {
                 };
             });
 
-            // Save updated tokens
-            setTokensChain(chainKey, allTokens);
-
-            // ✅ Simpan MetaDEX modal ke META_DEX_SETTINGS[chain]
+            // ✅ Simpan MetaDEX modal PER-TOKEN ke dataDexs (sama seperti DEX regular)
             if (Object.keys(metaInputs).length > 0) {
-                const existingMetaSettings = getFromLocalStorage('META_DEX_SETTINGS') || {};
-                existingMetaSettings[chainKey] = { ...(existingMetaSettings[chainKey] || {}), ...metaInputs };
-                saveToLocalStorage('META_DEX_SETTINGS', existingMetaSettings);
-                console.log(`[Bulk Modal] ✅ META_DEX_SETTINGS saved for chain ${chainKey}:`, metaInputs);
+                allTokens = allTokens.map(token => {
+                    if (!affectedIds.has(String(token.id))) return token;
+                    const newDataDexs = { ...(token.dataDexs || {}) };
+                    Object.entries(metaInputs).forEach(([aggKey, vals]) => {
+                        newDataDexs[aggKey] = { left: vals.left, right: vals.right };
+                    });
+                    let newSelectedDexs = [...(token.selectedDexs || [])];
+                    Object.keys(metaInputs).forEach(aggKey => {
+                        if (!newSelectedDexs.includes(aggKey)) newSelectedDexs.push(aggKey);
+                    });
+                    return { ...token, dataDexs: newDataDexs, selectedDexs: newSelectedDexs };
+                });
             }
+
+            // Save updated tokens (DEX regular + MetaDEX per-token)
+            setTokensChain(chainKey, allTokens);
 
             // 🔒 Flush pending writes before closing modal
             console.log('[Bulk Modal] 🔄 Flushing changes to IndexedDB before closing modal...');

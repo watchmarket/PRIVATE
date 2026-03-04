@@ -125,7 +125,7 @@
             });
             metaDex.topRoutes = parseInt($('#meta-dex-topN').val()) || 3;
 
-            // NOTE: META_DEX_SETTINGS (modal per chain) disimpan via Editor Modal DEX (bulk-modal-editor)
+            // NOTE: MetaDEX modal sekarang disimpan PER-TOKEN di dataDexs (via Edit Koin / Bulk Modal Editor)
             console.log('[Settings Save] metaDex settings:', metaDex);
         }
 

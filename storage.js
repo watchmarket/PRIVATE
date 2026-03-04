@@ -586,10 +586,8 @@ function exportKoinForHybrid() {
         return;
     }
 
-    // 2. Read META_DEX_SETTINGS for metax modal
-    const metaDexSettings = (typeof getFromLocalStorage === 'function')
-        ? (getFromLocalStorage('META_DEX_SETTINGS') || {})
-        : {};
+    // 2. Read MetaDEX modal per-token from dataDexs
+    // (MetaDEX modal sekarang disimpan per-token, bukan global META_DEX_SETTINGS)
 
     // 3. CEX symbol format helpers (match APPHYBRID CONFIG_CEX.symbolFmt)
     const cexSymbolFmt = {
@@ -618,9 +616,9 @@ function exportKoinForHybrid() {
         const selectedCexs = (token.selectedCexs || []).map(c => String(c).toUpperCase());
         if (selectedCexs.length === 0) return;
 
-        const chain = String(token.chain || '').toLowerCase();
-        const chainMetax = metaDexSettings[chain] || {};
-        const metaxModal = chainMetax['metax'] || {};
+        // ✅ Baca modal MetaDEX dari per-token dataDexs
+        const tokenDexData = token.dataDexs || {};
+        const metaxModal = tokenDexData['metax'] || {};
         const modalCtD = parseFloat(metaxModal.left) || 100;
         const modalDtC = parseFloat(metaxModal.right) || 100;
         const minPnl = +(modalCtD * 0.002).toFixed(4);

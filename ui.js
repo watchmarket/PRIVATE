@@ -641,21 +641,20 @@ function buildCexCheckboxForKoin(token) {
         const id = `cex-${upper}`;
 
         if (isCexMode) {
-            // Gunakan pointer-events:none (bukan disabled) agar form_off/form_on tidak mengubahnya
             const opacity = upper === activeCex ? '1' : '0.35';
             const badge = upper === activeCex
-                ? `<small style="color:#888;margin-left:5px;font-size:10px;">(mode aktif)</small>`
+                ? `<small style="color:#888;margin-left:3px;font-size:9px;">(aktif)</small>`
                 : '';
             container.append(
-                `<label class="uk-display-block uk-margin-xsmall" style="pointer-events:none;opacity:${opacity};">` +
+                `<label style="pointer-events:none;opacity:${opacity};white-space:nowrap;">` +
                 `<input type="checkbox" class="uk-checkbox" id="${id}" value="${upper}" ${isChecked ? 'checked' : ''}>` +
-                ` <span style="color:${color};font-weight:bold;">${upper}</span>${badge}</label>`
+                ` <span style="color:${color};font-weight:bold;font-size:13px;">${upper}</span>${badge}</label>`
             );
         } else {
             container.append(
-                `<label class="uk-display-block uk-margin-xsmall">` +
+                `<label style="white-space:nowrap;">` +
                 `<input type="checkbox" class="uk-checkbox" id="${id}" value="${upper}" ${isChecked ? 'checked' : ''}>` +
-                ` <span style="color:${color};font-weight:bold;">${upper}</span></label>`
+                ` <span style="color:${color};font-weight:bold;font-size:13px;">${upper}</span></label>`
             );
         }
     });
@@ -697,9 +696,42 @@ function buildDexCheckboxForKoin(token = {}) {
         container.append(`<div class="uk-flex uk-flex-middle uk-margin-small"><label class="uk-margin-small-right"><input type="checkbox" class="uk-checkbox dex-edit-checkbox" id="dex-${safeId}" value="${dexKeyLower}" ${isChecked ? 'checked' : ''}> <b>${dexName.toUpperCase()}</b></label><div class="uk-flex uk-flex-middle" style="gap:6px;"><input type="number" class="uk-input uk-form-xxsmall dex-left" id="dex-${safeId}-left" placeholder="KIRI" value="${leftVal}" style="width:88px;"><input type="number" class="uk-input uk-form-xxsmall dex-right" id="dex-${safeId}-right" placeholder="KANAN" value="${rightVal}" style="width:88px;"></div></div>`);
     });
 
-    // Removed 4-DEX selection cap: no checkbox limit handler
-    // ✅ NOTE: MetaDEX aggregators tidak ditampilkan di sini karena modal-nya GLOBAL
-    //        (bukan per-token). Setting modal MetaDEX ada di panel Pengaturan Scanner.
+    // ✅ MetaDEX aggregators — render ke container terpisah (#metadex-checkbox-koin)
+    const metaContainer = $('#metadex-checkbox-koin');
+    metaContainer.empty();
+    const metaColumn = $('#metadex-column-koin');
+
+    if (window.CONFIG_APP?.APP?.META_DEX === true) {
+        const metaAggs = Object.keys(window.CONFIG_DEXS || {}).filter(k => {
+            const cfg = window.CONFIG_DEXS[k];
+            if (!cfg || !cfg.isMetaDex || cfg.disabled || cfg.isBackendProvider) return false;
+            if (!window.CONFIG_APP?.META_DEX_CONFIG?.aggregators?.[k]) return false;
+            const chainLower = String(chainName).toLowerCase();
+            if (cfg.evmOnly && chainLower === 'solana') return false;
+            if (cfg.solanaOnly && chainLower !== 'solana') return false;
+            return true;
+        });
+
+        if (metaAggs.length > 0) {
+            metaColumn.show();
+            metaAggs.forEach(aggKey => {
+                const aggCfg = window.CONFIG_DEXS[aggKey] || {};
+                const aggLabel = (aggCfg.label || aggKey).toUpperCase();
+                const aggColor = aggCfg.warna || '#7c3aed';
+                const safeId = aggKey.toLowerCase().replace(/[^a-z0-9_-]/gi, '');
+                const isChecked = selectedDexs.includes(aggKey.toLowerCase()) || selectedDexs.includes(aggKey);
+                const stored = dataDexs[aggKey] || dataDexs[aggKey.toLowerCase()] || {};
+                const leftVal = stored.left ?? 100;
+                const rightVal = stored.right ?? 100;
+
+                metaContainer.append(`<div class="uk-flex uk-flex-middle uk-margin-small"><label class="uk-margin-small-right" style="min-width:95px;"><input type="checkbox" class="uk-checkbox metadex-edit-checkbox" id="metadex-${safeId}" value="${aggKey.toLowerCase()}" ${isChecked ? 'checked' : ''}> <b style="color:${aggColor};">${aggLabel}</b></label><div class="uk-flex uk-flex-middle" style="gap:6px;"><input type="number" class="uk-input uk-form-xxsmall metadex-left" id="metadex-${safeId}-left" placeholder="KIRI" value="${leftVal}" style="width:82px;border-color:${aggColor}55;"><input type="number" class="uk-input uk-form-xxsmall metadex-right" id="metadex-${safeId}-right" placeholder="KANAN" value="${rightVal}" style="width:82px;border-color:${aggColor}55;"></div></div>`);
+            });
+        } else {
+            metaColumn.hide();
+        }
+    } else {
+        metaColumn.hide();
+    }
 }
 
 /** Disable all form inputs globally. */
