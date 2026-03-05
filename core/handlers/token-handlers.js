@@ -267,6 +267,7 @@
             ...readCexSelectionFromForm(),
             ...readDexSelectionFromForm()
         };
+        console.log('[SaveEditkoin] updatedToken dataDexs:', JSON.stringify(updatedToken.dataDexs), 'selectedDexs:', updatedToken.selectedDexs);
 
         if (!updatedToken.symbol_in || !updatedToken.symbol_out) {
             // Restore button state
@@ -326,6 +327,7 @@
         }
 
         if (m.type === 'single') {
+            console.log('[SaveEditkoin] SINGLE MODE saving token dataDexs:', JSON.stringify(tokens[idx >= 0 ? idx : tokens.length - 1]?.dataDexs), 'selectedDexs:', tokens[idx >= 0 ? idx : tokens.length - 1]?.selectedDexs);
             setTokensChain(m.chain, tokens);
         } else if (m.type === 'cex') {
             // Save to the source chain DB, or the chain selected in form for new tokens
@@ -548,6 +550,120 @@
         } catch (e) {
             // console.error('Copy to Multichain failed:', e);
             if (typeof toast !== 'undefined' && toast.error) toast.error('Gagal menyalin ke Multichain');
+        }
+    });
+
+    // ⭐ Star shortcut: import token to multichain from monitoring table
+    $(document).on('click', '.import-multi-btn', function () {
+        try {
+            const $star = $(this);
+            const mode = getAppMode();
+            if (mode.type !== 'single' && mode.type !== 'cex') {
+                if (typeof toast !== 'undefined' && toast.info) toast.info('Import hanya tersedia pada mode per-chain.');
+                return;
+            }
+            const chainKey = String(mode.chain || $star.data('chain')).toLowerCase();
+            const tokenId = String($star.data('id'));
+            const symbolIn = String($star.data('symbol-in')).toUpperCase();
+            const symbolOut = String($star.data('symbol-out')).toUpperCase();
+
+            // Find token in current chain's token list
+            const chainTokens = getTokensChain(chainKey);
+            const token = chainTokens.find(t => String(t.id) === tokenId);
+            if (!token) {
+                if (typeof toast !== 'undefined' && toast.error) toast.error('Token tidak ditemukan');
+                return;
+            }
+
+            // Check if already exists in multichain
+            let multi = getTokensMulti();
+            const matchIdx = multi.findIndex(t =>
+                String(t.chain).toLowerCase() === chainKey &&
+                String(t.symbol_in).toUpperCase() === symbolIn &&
+                String(t.symbol_out).toUpperCase() === symbolOut
+            );
+
+            const alreadyExists = matchIdx !== -1;
+            let confirmMsg;
+
+            if (alreadyExists) {
+                const existingCexs = (multi[matchIdx].selectedCexs || []).map(c => String(c).toUpperCase());
+                const newCexs = (token.selectedCexs || []).map(c => String(c).toUpperCase());
+                const mergedCexs = [...new Set([...existingCexs, ...newCexs])];
+                confirmMsg =
+                    `⭐ TOKEN SUDAH ADA DI MULTICHAIN\n\n` +
+                    `${symbolIn}/${symbolOut} (${chainKey.toUpperCase()})\n\n` +
+                    `CEX Existing : ${existingCexs.join(', ')}\n` +
+                    `CEX Import   : ${newCexs.join(', ')}\n` +
+                    `CEX Merged   : ${mergedCexs.join(', ')}\n\n` +
+                    `Lanjutkan MERGE CEX & DEX?`;
+            } else {
+                const cexList = (token.selectedCexs || []).map(c => String(c).toUpperCase()).join(', ');
+                confirmMsg =
+                    `⭐ Import ke Multichain?\n\n` +
+                    `Token : ${symbolIn}/${symbolOut}\n` +
+                    `Chain : ${chainKey.toUpperCase()}\n` +
+                    `CEX   : ${cexList || '-'}\n\n` +
+                    `Lanjutkan?`;
+            }
+
+            if (!confirm(confirmMsg)) return;
+
+            // Build token object for multichain
+            const tokenObj = { ...token, chain: chainKey };
+
+            if (alreadyExists) {
+                // MERGE
+                const existing = multi[matchIdx];
+                const mergedCexs = [...new Set([
+                    ...(existing.selectedCexs || []).map(c => String(c).toUpperCase()),
+                    ...(tokenObj.selectedCexs || []).map(c => String(c).toUpperCase())
+                ])];
+                const mergedDexs = [...new Set([
+                    ...(existing.selectedDexs || []).map(d => String(d).toLowerCase()),
+                    ...(tokenObj.selectedDexs || []).map(d => String(d).toLowerCase())
+                ])];
+                const mergedDataCexs = { ...(existing.dataCexs || {}) };
+                (tokenObj.selectedCexs || []).forEach(cx => {
+                    const up = String(cx).toUpperCase();
+                    if (!mergedDataCexs[up]) {
+                        const _on = up === 'INDODAX';
+                        mergedDataCexs[up] = (tokenObj.dataCexs || {})[up] || {
+                            feeWDToken: 0, feeWDPair: 0,
+                            depositToken: _on, withdrawToken: _on,
+                            depositPair: _on, withdrawPair: _on
+                        };
+                    }
+                });
+                const mergedDataDexs = { ...(existing.dataDexs || {}), ...(tokenObj.dataDexs || {}) };
+
+                multi[matchIdx] = {
+                    ...existing,
+                    ...tokenObj,
+                    selectedCexs: mergedCexs,
+                    selectedDexs: mergedDexs,
+                    dataCexs: mergedDataCexs,
+                    dataDexs: mergedDataDexs
+                };
+            } else {
+                // ADD NEW
+                multi.push(tokenObj);
+            }
+
+            setTokensMulti(multi);
+
+            // Update star to gold
+            $star.css('color', '#f1c40f').attr('title', 'Sudah ada di Multichain');
+
+            const action = alreadyExists ? 'di-MERGE dengan' : 'diimport ke';
+            if (typeof toast !== 'undefined' && toast.success) {
+                toast.success(`⭐ ${symbolIn}/${symbolOut} berhasil ${action} Multichain`);
+            }
+
+            try { if (typeof renderFilterCard === 'function') renderFilterCard(); } catch (_) { }
+        } catch (e) {
+            console.error('[Star Import] Error:', e);
+            if (typeof toast !== 'undefined' && toast.error) toast.error('Gagal import ke Multichain');
         }
     });
 

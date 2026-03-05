@@ -6481,6 +6481,7 @@ function readDexSelectionFromForm() {
         selectedDexs.push(canonicalKey);
         dataDexs[canonicalKey] = { left: isNaN(leftVal) ? 0 : leftVal, right: isNaN(rightVal) ? 0 : rightVal };
     });
+    console.log('[readDexSelectionFromForm] selectedDexs:', selectedDexs, 'dataDexs:', JSON.stringify(dataDexs));
     return { selectedDexs, dataDexs };
 }
 
@@ -7300,7 +7301,7 @@ $(document).on('click', '#histClearAll', async function () {
         const affected = getAffectedTokens();
         const { dexInputs, metaInputs } = getSelectedDexInputs();
 
-        if (affected.length === 0 || Object.keys(dexInputs).length === 0) {
+        if (affected.length === 0 || (Object.keys(dexInputs).length === 0 && Object.keys(metaInputs).length === 0)) {
             if (typeof toast !== 'undefined' && toast.warning) {
                 toast.warning('Tidak ada perubahan untuk diterapkan');
             }

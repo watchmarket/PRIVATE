@@ -640,7 +640,7 @@
               <label class="uk-form-label uk-text-bold">
                 Pilih DEX & Modal {KIRI, KANAN}
               </label>
-              <div id="dex-checkbox-koin" class="uk-margin-small-top" style="max-height:380px; overflow-y:auto;"></div>
+              <div id="dex-checkbox-koin" class="uk-margin-small-top"></div>
             </div>
 
             <!-- Kolom MetaDEX -->
@@ -648,8 +648,7 @@
               <label class="uk-form-label uk-text-bold" style="color:#7c3aed;">
                 ⚡ Meta-DEX & Modal {KIRI, KANAN}
               </label>
-              <div id="metadex-checkbox-koin" class="uk-margin-small-top" style="max-height:380px; overflow-y:auto;">
-              </div>
+              <div id="metadex-checkbox-koin" class="uk-margin-small-top"></div>
             </div>
           </div>
 
@@ -660,8 +659,9 @@
         <div class="uk-flex uk-flex-right uk-margin-top uk-grid-small" uk-grid>
           <div><button class="uk-button uk-button-danger" type="button" id="HapusEditkoin">Hapus</button></div>
           <!-- <div><button class="uk-button uk-button-secondary" type="button" id="CopyToMultiBtn" style="display:none;">Import</button></div> -->
-          <div>
-            <button class="uk-button uk-button-secondary" type="button" id="CopyToMultiBtn" style="display:none;">
+          <!-- Import button removed: import sekarang via ⭐ star shortcut di tabel monitoring -->
+          <div style="display:none;">
+            <button class="uk-button uk-button-secondary" type="button" id="CopyToMultiBtn">
               <span uk-icon="star"></span> Import
             </button>
           </div>

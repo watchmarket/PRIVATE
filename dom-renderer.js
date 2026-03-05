@@ -490,6 +490,29 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                       data-symbol-out="${String(data.symbol_out).toUpperCase()}"
                        title="UBAH DATA KOIN" uk-icon="icon: settings; ratio: 0.7" class="uk-text-primary uk-text-bolder edit-token-button" style="cursor:pointer"></span>
 
+                ${(() => {
+          const _m = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
+          if (_m.type === 'single' || _m.type === 'cex') {
+            const _multiTokens = (typeof getTokensMulti === 'function') ? getTokensMulti() : [];
+            const _exists = _multiTokens.some(t =>
+              String(t.chain).toLowerCase() === String(data.chain).toLowerCase() &&
+              String(t.symbol_in).toUpperCase() === String(data.symbol_in).toUpperCase() &&
+              String(t.symbol_out).toUpperCase() === String(data.symbol_out).toUpperCase()
+            );
+            const _starColor = _exists ? '#f1c40f' : '#ccc';
+            const _starTitle = _exists ? 'Sudah ada di Multichain' : 'Import ke Multichain';
+            return `<span data-id="${data.id}"
+                              data-chain="${String(data.chain).toLowerCase()}"
+                              data-cex="${String(data.cex).toUpperCase()}"
+                              data-symbol-in="${String(data.symbol_in).toUpperCase()}"
+                              data-symbol-out="${String(data.symbol_out).toUpperCase()}"
+                              title="${_starTitle}"
+                              class="import-multi-btn"
+                              style="cursor:pointer; font-size:14px; color:${_starColor}; margin:0 2px;">★</span>`;
+          }
+          return '';
+        })()}
+
                 <span id="${idPrefix}DelMulti-${data.id}"
                       data-id="${data.id}"
                       data-chain="${String(data.chain).toLowerCase()}"
