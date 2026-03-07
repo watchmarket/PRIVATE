@@ -220,7 +220,8 @@
                     sc_out: item.sc_out,
                     des_out: item.des_out,
                     status: item.status,
-                    dexs: dexArray
+                    dexs: dexArray,
+                    dataDexs: item.dataDexs || {}
                 });
             });
         });

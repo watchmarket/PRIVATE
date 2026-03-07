@@ -371,6 +371,16 @@
                     console.error('[Update Token] Management list refresh error:', e);
                 }
 
+                // ✅ Live refresh tabel scanner tanpa reload halaman
+                try {
+                    const m = getAppMode();
+                    if (m.type === 'single') {
+                        if (typeof loadAndDisplaySingleChainTokens === 'function') loadAndDisplaySingleChainTokens();
+                    } else {
+                        if (typeof refreshTokensTable === 'function') refreshTokensTable();
+                    }
+                } catch (_) { }
+
                 try {
                     const action = (idx !== -1) ? 'UBAH KOIN' : 'TAMBAH KOIN';
                     setLastAction(`${action}`);
