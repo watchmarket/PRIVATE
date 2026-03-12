@@ -1,9 +1,9 @@
 const CONFIG_APP = {
     APP: {
-        //  NAME: "APP_PANTAUAN",
-        //NAME: "WATCHMARKET-TEST",
+        //NAME: "APP_PANTAUAN",
+        // NAME: "WATCHMARKET",
         NAME: "APP PRIVATE",
-        VERSION: "2026.03.07",
+        VERSION: "2026.03.12",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,  // cek volume otomatis untuk filter dan alert

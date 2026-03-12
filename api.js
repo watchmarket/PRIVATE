@@ -242,6 +242,52 @@ function parseOrderbook(cex, response) {
           bids: Array.isArray(response.bids) ? response.bids.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : []
         };
 
+      case 'indodax': {
+        // Indodax format: { sell: [[price_idr, amount], ...], buy: [[price_idr, amount], ...] }
+        // sell = asks, buy = bids; prices in IDR → convert to USDT
+        const convertFn = (typeof convertIDRtoUSDT === 'function') ? convertIDRtoUSDT : (v => v);
+        return {
+          asks: Array.isArray(response.sell) ? response.sell.map(([p, a]) => [convertFn(parseFloat(p)), parseFloat(a)]) : [],
+          bids: Array.isArray(response.buy)  ? response.buy.map(([p, a])  => [convertFn(parseFloat(p)), parseFloat(a)]) : []
+        };
+      }
+
+      case 'bitget': {
+        // Bitget format: { data: { asks: [[price, size], ...], bids: [[price, size], ...] } }
+        const d = response.data || response;
+        return {
+          asks: Array.isArray(d.asks) ? d.asks.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : [],
+          bids: Array.isArray(d.bids) ? d.bids.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : []
+        };
+      }
+
+      case 'bybit': {
+        // Bybit format: { result: { a: [[price, size], ...], b: [[price, size], ...] } }
+        const r = response.result || {};
+        return {
+          asks: Array.isArray(r.a) ? r.a.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : [],
+          bids: Array.isArray(r.b) ? r.b.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : []
+        };
+      }
+
+      case 'htx': {
+        // HTX format: { status: "ok", tick: { asks: [...], bids: [...] } }
+        const tick = response.tick || {};
+        return {
+          asks: Array.isArray(tick.asks) ? tick.asks.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : [],
+          bids: Array.isArray(tick.bids) ? tick.bids.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : []
+        };
+      }
+
+      case 'okx': {
+        // OKX format: { data: [{ asks: [[p,sz,_,_],...], bids: [[p,sz,_,_],...] }] }
+        const book = (response.data || [])[0] || {};
+        return {
+          asks: Array.isArray(book.asks) ? book.asks.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : [],
+          bids: Array.isArray(book.bids) ? book.bids.map(([p, a]) => [parseFloat(p), parseFloat(a)]) : []
+        };
+      }
+
       default:
         // Fallback ke standard
         return {
