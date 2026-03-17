@@ -1,9 +1,9 @@
 const CONFIG_APP = {
     APP: {
-        //NAME: "APP_PANTAUAN",
+       // NAME: "APP_PANTAUAN",
         // NAME: "WATCHMARKET",
         NAME: "APP PRIVATE",
-        VERSION: "2026.03.12",
+        VERSION: "2026.03.17",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,  // cek volume otomatis untuk filter dan alert
@@ -825,8 +825,8 @@ const CONFIG_DEXS = {
                 pairtotoken: 'kyber'           // DEX→CEX: Official KyberSwap API
             },
             secondary: {
-                tokentopair: 'swoop-kyber',     // CEX→DEX: SWOOP filtered (rotation)
-                pairtotoken: 'swoop-kyber'     // DEX→CEX: LIFI filtered (rotation)
+                tokentopair: 'lifi-kyber',     // CEX→DEX: SWOOP filtered (rotation)
+                pairtotoken: 'lifi-kyber'     // DEX→CEX: LIFI filtered (rotation)
             }
         },
         allowFallback: true,  // ✅ Enable rotation between primary and alternative
@@ -1039,7 +1039,7 @@ const CONFIG_DEXS = {
         isBackendProvider: true,   // ⚡ Strategi-string internal — tidak tampil sebagai DEX column
         warna: "#ff6b35",
         proxy: true,
-        delay: 1000,
+        delay: 1500,
     },
     swing: {
         label: 'SWING',
