@@ -3,7 +3,7 @@ const CONFIG_APP = {
        // NAME: "APP_PANTAUAN",
         // NAME: "WATCHMARKET",
         NAME: "APP PRIVATE",
-        VERSION: "2026.03.17",
+        VERSION: "2026.03.25",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,  // cek volume otomatis untuk filter dan alert
@@ -515,17 +515,17 @@ const CONFIG_UI = {
             'kyber': 4000,           // KyberSwap: 4s (60 req/min, fast API)
             'velora6': 4000,         // Velora v6.2: 4s (ParaSwap based)
             'velora5': 4000,         // Velora v5: 4s (ParaSwap v5 API fallback)
-            'matcha': 3500,          // Matcha/0x: 3.5s (<250ms median, but allow buffer)
-            'delta-matcha': 3500,    // 1Delta Matcha: 3.5s (proxy to 0x)
+            'matcha': 4500,          // Matcha/0x: 3.5s (<250ms median, but allow buffer)
+            'delta-matcha': 4500,    // 1Delta Matcha: 3.5s (proxy to 0x)
             'okx': 4000,             // OKX DEX: 4s
             'relay': 5000,           // Relay: 5s (cross-chain bridge)
             'flytrade': 4000,        // Flytrade: 4s
             'sushi': 4000,           // SushiSwap: 4s
 
             // ODOS Family - slower API, needs more time (1-2 RPS limit)
-            'odos': 5000,            // ODOS: 5s (1 RPS public limit, can timeout)
-            'odos2': 5000,           // ODOS v2: 5s
-            'odos3': 5000,           // ODOS v3: 5s
+            'odos': 6000,            // ODOS: 6s (1 RPS public limit, can timeout)
+            'odos2': 6000,           // ODOS v2: 6s
+            'odos3': 6000,           // ODOS v3: 6s
             'hinkal-odos': 4000,     // Hinkal ODOS Proxy: 4s (typically faster)
 
             // ========== Solana DEXes ==========
@@ -536,6 +536,8 @@ const CONFIG_UI = {
             // ========== Filtered Strategies (Wildcard) ==========
             // Meta-aggregators filtered for specific DEX
             'lifi-*': 6000,          // LIFI filtered: 6s (cross-chain, needs time)
+            'rabby-*': 6000,         // RABBY filtered: 6s (api.rabby.io, stable)
+            'rainbow-*': 5000,       // RAINBOW filtered: 5s (swap.p.rainbow.me, fast)
             'swoop-*': 10000,        // SWOOP filtered: 10s (railway.app slower, prevent cancel)
             'swing-*': 6000,         // SWING filtered: 6s
             'dzap-*': 6000,          // DZAP filtered: 6s (WARNING: 429 rate limit issues)
@@ -550,7 +552,8 @@ const CONFIG_UI = {
             'dzap': 6000,            // DZAP multi-quote: 6s
             'rango': 6000,           // Rango multi-quote: 6s
             'rubic': 6000,           // Rubic multi-quote: 6s
-            'rocketx': 8000,         // RocketX: 8s (multi-provider response)
+            'rocketx': 8000,         // RocketX standalone (unused as column, reserved)
+            'rocketx-velora': 8000,  // RocketX filtered → Velora/ParaSwap route (backend transport)
             'metax': 7000,          // MetaMask Bridge: 12s (SSE stream, collect all quotes)
 
             // ========== Default Fallback ==========
@@ -825,8 +828,8 @@ const CONFIG_DEXS = {
                 pairtotoken: 'kyber'           // DEX→CEX: Official KyberSwap API
             },
             secondary: {
-                tokentopair: 'lifi-kyber',     // CEX→DEX: SWOOP filtered (rotation)
-                pairtotoken: 'lifi-kyber'     // DEX→CEX: LIFI filtered (rotation)
+                tokentopair: 'lifi-kyber',     // CEX→DEX: LIFI filtered (rotation)
+                pairtotoken: 'lifi-kyber'     // DEX→CEX: Rabby filtered (rotation)
             }
         },
         allowFallback: true,  // ✅ Enable rotation between primary and alternative
@@ -905,12 +908,12 @@ const CONFIG_DEXS = {
         // ⚡ ROTATION STRATEGY: Alternate between Flytrade and LIFI
         fetchdex: {
             primary: {
-                tokentopair: 'flytrade',       // CEX→DEX: Flytrade aggregator
-                pairtotoken: 'flytrade'        // DEX→CEX: Flytrade aggregator
+                tokentopair: 'flytrade',        // CEX→DEX: Flytrade aggregator
+                pairtotoken: 'flytrade'         // DEX→CEX: Flytrade aggregator
             },
             alternative: {
-                tokentopair: 'flytrade',  // CEX→DEX: LIFI filtered (rotation)
-                pairtotoken: 'flytrade'   // DEX→CEX: LIFI filtered (rotation)
+                tokentopair: 'rabby-flytrade',  // CEX→DEX: Rabby filtered → Magpie route
+                pairtotoken: 'rabby-flytrade'   // DEX→CEX: Rabby filtered → Magpie route
             }
         },
         allowFallback: false,  // ✅ Enable rotation between primary and alternative
@@ -932,12 +935,12 @@ const CONFIG_DEXS = {
         // ⚡ CHAIN-SPECIFIC STRATEGY: Solana uses direct endpoint, EVM uses proxies
         fetchdex: {
             primary: {
-                tokentopair: 'delta-matcha',   // CEX→DEX: 1Delta proxy (fast, free) - EVM only
-                pairtotoken: 'swoop-matcha'    // DEX→CEX: SWOOP filtered - EVM only
+                tokentopair: 'delta-matcha',    // CEX→DEX: 1Delta proxy (fast, free) - EVM only
+                pairtotoken: 'rainbow-matcha'     // DEX→CEX: SWOOP filtered - EVM only
             },
             alternative: {
-                tokentopair: 'matcha',    // CEX→DEX: Direct Matcha API (Solana) or fallback (EVM)
-                pairtotoken: 'matcha'     // DEX→CEX: Direct Matcha API (Solana) or fallback (EVM)
+                tokentopair: 'matcha',  // CEX→DEX: Rainbow proxy - alternative to 1Delta - EVM only
+                pairtotoken: 'swoop-matcha'     // DEX→CEX: Rabby filtered - EVM only
             },
             // ✅ SOLANA OVERRIDE: For Solana chain, always use direct matcha endpoint
             solana: {
@@ -982,11 +985,11 @@ const CONFIG_DEXS = {
         fetchdex: {
             primary: {
                 tokentopair: 'velora6',        // CEX→DEX: Official Velora v6.2
-                pairtotoken: 'velora5'         // DEX→CEX: Official Velora v6.2
+                pairtotoken: 'rocketx-velora'         // DEX→CEX: Official Velora v5
             },
             alternative: {
-                tokentopair: 'swing-velora',   // CEX→DEX: SWING filtered (rotation)
-                pairtotoken: 'lifi-velora'         // DEX→CEX: Velora v5 (ParaSwap v5 API fallback)
+                tokentopair: 'velora5', // CEX→DEX: RocketX filtered → ParaSwap route
+                pairtotoken: 'swing-velora'     // DEX→CEX: SWING filtered → ParaSwap route
             }
         },
         allowFallback: true,  // ✅ Enable rotation between primary and alternative
@@ -1040,6 +1043,24 @@ const CONFIG_DEXS = {
         warna: "#ff6b35",
         proxy: true,
         delay: 1500,
+    },
+    rabby: {
+        label: 'RABBY',
+        badgeClass: 'bg-rabby',
+        disabled: false,
+        isBackendProvider: true,   // ⚡ Strategi-string internal — tidak tampil sebagai DEX column
+        warna: "#7c3aed",          // Purple color (Rabby brand)
+        proxy: false,
+        delay: 2500,               // 2.5s delay — Rabby public API has strict rate limits
+    },
+    rainbow: {
+        label: 'RAINBOW',
+        badgeClass: 'bg-rainbow',
+        disabled: false,
+        isBackendProvider: true,   // ⚡ Strategi-string internal — tidak tampil sebagai DEX column
+        warna: "#ff6ec7",          // Pink/rainbow color
+        proxy: false,
+        delay: 800,
     },
     swing: {
         label: 'SWING',
@@ -1147,17 +1168,17 @@ const CONFIG_DEXS = {
         allowFallback: false
     },
 
+    // RocketX: TIDAK dipakai sebagai kolom DEX mandiri.
+    // Digunakan sebagai backend transport via 'rocketx-velora' (filtered strategy untuk kolom Velora).
+    // Lihat: CONFIG_DEXS.velora.fetchdex.alternative.tokentopair = 'rocketx-velora'
     rocketx: {
-        label: 'ROCKETXa',
+        label: 'RocketX',
         badgeClass: 'bg-rocketx',
-        disabled: false,
-        proxy: false,        // Proxy untuk hindari CORS; API key di header
-        warna: "#ffd52bff",   // RocketX red-orange
-        isMetaDex: true,    // ✅ Meta-DEX: multi-quote DEX aggregator
-        evmOnly: false,     // ✅ EVM + Solana
+        disabled: true,      // ❌ Tidak tampil sebagai kolom
+        proxy: false,
+        warna: "#ffd52bff",
+        evmOnly: true,
         delay: 600,
-        isMultiDex: true,
-        maxProviders: 3,   // Maks sub-kolom yang ditampilkan
         builder: ({ chainCode, tokenAddress, pairAddress }) =>
             `https://app.rocketx.exchange/swap?fromChain=${chainCode}&toChain=${chainCode}&fromToken=${tokenAddress}&toToken=${pairAddress}`,
         fetchdex: {

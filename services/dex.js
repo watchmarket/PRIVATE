@@ -770,6 +770,87 @@
         };
       }
     },
+
+    'rainbow-matcha': {
+      buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, SavedSettingData }) => {
+        /**
+         * Rainbow Swap API - Alternative proxy for 0x/Matcha quotes
+         * Endpoint: https://swap.p.rainbow.me/v1/quote
+         * Method: GET
+         *
+         * Same 0x-protocol response format as delta-matcha and direct matcha.
+         * No API key required.
+         *
+         * Parameters:
+         * - allowFallback: enable fallback routing
+         * - buyToken / sellToken: token addresses (0xEeee... for native)
+         * - chainId: numeric chain ID
+         * - currency: USD
+         * - enableNewChainSwaps: true
+         * - fromAddress: user wallet address
+         * - slippage: 2 (2%)
+         * - source: 0x  ← forces routing through 0x/Matcha aggregator
+         * - sellAmount: amount in wei
+         */
+
+        const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+
+        const params = new URLSearchParams({
+          allowFallback:       'true',
+          buyToken:            sc_output_in,
+          chainId:             String(codeChain),
+          currency:            'USD',
+          enableNewChainSwaps: 'true',
+          fromAddress:         userAddr,
+          sellToken:           sc_input_in,
+          slippage:            '2',
+          source:              '0x',
+          sellAmount:          String(amount_in_big)
+        });
+
+        return {
+          url: `https://swap.p.rainbow.me/v1/quote?${params.toString()}`,
+          method: 'GET',
+          headers: {}
+        };
+      },
+      parseResponse: (response, { des_output, chainName }) => {
+        /**
+         * Rainbow returns 0x-protocol format:
+         * { buyAmount: "123456789", sellAmount: "...", price: "...", ... }
+         * buyAmount is raw output in base units (wei / token decimals)
+         */
+
+        if (!response?.buyAmount) {
+          throw new Error("Invalid Rainbow response - missing buyAmount");
+        }
+
+        const amount_out = parseFloat(response.buyAmount) / Math.pow(10, des_output);
+
+        let FeeSwap = getFeeSwap(chainName);
+        try {
+          if (response.fees && response.fees.gasFee) {
+            const gasFeeUsd = parseFloat(response.fees.gasFee.amount || 0);
+            if (Number.isFinite(gasFeeUsd) && gasFeeUsd > 0) FeeSwap = gasFeeUsd;
+          } else if (response.gas && response.gas.usdValue) {
+            const gasUsd = parseFloat(response.gas.usdValue || 0);
+            if (Number.isFinite(gasUsd) && gasUsd > 0) FeeSwap = gasUsd;
+          }
+        } catch (e) {
+          console.warn('[Rainbow-Matcha] Could not parse gas fee, using default');
+        }
+
+        console.log(`[Rainbow-Matcha] buyAmount: ${response.buyAmount}, out: ${amount_out.toFixed(6)}`);
+
+        return {
+          amount_out,
+          FeeSwap,
+          dexTitle:  'MATCHA',
+          routeTool: 'MATCHA via RAINBOW'
+        };
+      }
+    },
+
     okx: {
       buildRequest: ({ amount_in_big, codeChain, sc_input_in, sc_output_in }) => {
         const selectedApiKey = getRandomApiKeyOKX(apiKeysOKXDEX);
@@ -1658,6 +1739,136 @@
   dexStrategies['swoop-sushi'] = createFilteredSwoopStrategy('sushiswap', 'SUSHI');   // If SWOOP supports Sushi
 
   // =============================
+  // RABBY Filtered Strategy Factory - Rabby Wallet Swap API as Provider
+  // =============================
+  /**
+   * Factory function to create Rabby filtered strategies for specific DEX providers
+   * Rabby Wallet Swap API: https://api.rabby.io/v1/wallet/swap_quote
+   * Method: GET
+   *
+   * Support matrix:
+   * - kyber:    ✅ dex_id=kyberswap
+   * - matcha:   ✅ dex_id=matcha_v2
+   * - flytrade: ✅ dex_id=magpie
+   *
+   * Chain support: Ethereum, BSC, Polygon, Arbitrum, Optimism, Base, Avalanche
+   *
+   * Native token note:
+   *   Rabby uses the chain slug (e.g. "eth") as the token ID for native tokens.
+   *   ERC20 tokens use their contract address.
+   */
+  function createFilteredRabbyStrategy(rabbyDexId, dexTitle) {
+    return {
+      buildRequest: ({ codeChain, sc_input, sc_output, amount_in_big, SavedSettingData }) => {
+        // Rabby uses chain slugs instead of numeric chain IDs
+        const chainSlugMap = {
+          1:     'eth',
+          56:    'bsc',
+          137:   'matic',
+          42161: 'arb',
+          10:    'op',
+          8453:  'base',
+          43114: 'avax',
+          250:   'ftm',
+          100:   'xdai'
+        };
+
+        const chainSlug = chainSlugMap[Number(codeChain)];
+        if (!chainSlug) {
+          throw new Error(`Rabby does not support chain ID ${codeChain}. Supported: ETH, BSC, Polygon, Arbitrum, Optimism, Base, Avalanche`);
+        }
+
+        const userAddr = SavedSettingData?.walletMeta || '0x365d358dc96ae70c35a1e338a9a7645313d1231b';
+
+        // Rabby uses chain slug as native token ID (e.g. "eth" for ETH on Ethereum)
+        const nativeAddresses = [
+          '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+          '0x0000000000000000000000000000000000000000'
+        ];
+
+        let payTokenId   = sc_input.toLowerCase();
+        let receiveTokenId = sc_output.toLowerCase();
+
+        if (nativeAddresses.includes(payTokenId)) {
+          payTokenId = chainSlug;
+        }
+        if (nativeAddresses.includes(receiveTokenId)) {
+          receiveTokenId = chainSlug;
+        }
+
+        const params = new URLSearchParams({
+          id:                  userAddr,
+          chain_id:            chainSlug,
+          dex_id:              rabbyDexId,
+          pay_token_id:        payTokenId,
+          pay_token_raw_amount: String(amount_in_big),
+          receive_token_id:    receiveTokenId,
+          slippage:            '0.01',
+          fee:                 'true',
+          no_pre_exec:         'true'
+        });
+
+        return {
+          url: `https://api.rabby.io/v1/wallet/swap_quote?${params.toString()}`,
+          method: 'GET',
+          headers: {}
+        };
+      },
+      parseResponse: (response, { des_output, chainName }) => {
+        // Rabby returns: { receive_token: { amount, raw_amount_hex_str, decimals }, gas: { usd_value } }
+        const receiveToken = response?.receive_token;
+
+        if (!receiveToken) {
+          throw new Error(`RABBY-${dexTitle}: Invalid response - missing receive_token`);
+        }
+
+        let amount_out;
+
+        // receive_token_raw_amount is TOP-LEVEL in response (confirmed from API response)
+        if (response.receive_token_raw_amount !== undefined && response.receive_token_raw_amount !== null) {
+          amount_out = parseFloat(response.receive_token_raw_amount) / Math.pow(10, des_output);
+        } else if (receiveToken.amount !== undefined && receiveToken.amount !== null) {
+          // Fallback: human-readable amount inside receive_token object
+          amount_out = parseFloat(receiveToken.amount);
+        } else if (receiveToken.raw_amount_hex_str) {
+          // Fallback: hex string inside receive_token
+          const rawBig = BigInt(receiveToken.raw_amount_hex_str);
+          amount_out = Number(rawBig) / Math.pow(10, des_output);
+        } else if (receiveToken.raw_amount) {
+          amount_out = parseFloat(receiveToken.raw_amount) / Math.pow(10, des_output);
+        } else {
+          throw new Error(`RABBY-${dexTitle}: Cannot parse output amount from response`);
+        }
+
+        if (!Number.isFinite(amount_out) || amount_out <= 0) {
+          throw new Error(`RABBY-${dexTitle}: Invalid output amount: ${amount_out}`);
+        }
+
+        // Gas fee from Rabby response if available, else fallback
+        let FeeSwap = getFeeSwap(chainName);
+        const gasUsd = parseFloat(response?.gas?.usd_value || response?.gas_price_usd || 0);
+        if (Number.isFinite(gasUsd) && gasUsd > 0) {
+          FeeSwap = gasUsd;
+        }
+
+        console.log(`[RABBY-${dexTitle}] Using ${dexTitle} via Rabby: ${amount_out.toFixed(6)} output`);
+
+        return {
+          amount_out:  amount_out,
+          FeeSwap:     FeeSwap,
+          dexTitle:    dexTitle,
+          routeTool:   `${dexTitle} via RABBY`
+        };
+      }
+    };
+  }
+
+  // Create filtered Rabby strategies
+  dexStrategies['rabby-kyber']    = createFilteredRabbyStrategy('kyberswap', 'KYBER');
+  dexStrategies['rabby-matcha']   = createFilteredRabbyStrategy('matcha_v2', 'MATCHA');
+  dexStrategies['rabby-flytrade'] = createFilteredRabbyStrategy('magpie',    'FLYTRADE');
+
+  // =============================
   // DZAP Filtered Strategy Factory - DZAP as REST API Provider
   // =============================
   /**
@@ -1865,6 +2076,71 @@
   dexStrategies['swing-kyber'] = createFilteredSwingStrategy('kyber', 'KYBER');  // SWING returns 'kyberswap' or 'kyber'
   dexStrategies['swing-matcha'] = createFilteredSwingStrategy('0x', 'MATCHA');
   dexStrategies['swing-okx'] = createFilteredSwingStrategy('okx', 'OKX');
+
+  // =============================
+  // ROCKETX Filtered Strategies - RocketX as backend transport for specific DEX
+  // Mirip pola swoop-velora / lifi-velora / swing-velora:
+  //   rocketx-velora → panggil RocketX API, filter route ParaSwap, return ke kolom VELORA
+  // =============================
+  function createFilteredRocketXStrategy(exchangeKey, dexTitle) {
+    return {
+      buildRequest: (params) => {
+        // Reuse buildRequest dari dexStrategies.rocketx (chain map, amount, native normalize, API key)
+        return dexStrategies.rocketx.buildRequest(params);
+      },
+      parseResponse: (response, { chainName }) => {
+        if (!response || !Array.isArray(response.quotes)) {
+          throw new Error(`ROCKETX-${dexTitle}: Invalid response - no quotes array`);
+        }
+        const allQuotes = response.quotes;
+        if (allQuotes.length === 0) throw new Error(`ROCKETX-${dexTitle}: No quotes available`);
+
+        // Hanya ambil DEX quotes (skip CEX: CHANGELLY, CHANGENOW, SIMPLESWAP dll)
+        const dexQuotes = allQuotes.filter(q => q.exchangeInfo?.exchange_type === 'DEX');
+
+        // Filter ke exchange yang sesuai (e.g., 'paraswap' untuk Velora)
+        const key = exchangeKey.toLowerCase();
+        const filteredQuotes = dexQuotes.filter(q => {
+          const title = String(q.exchangeInfo?.title || '').toLowerCase();
+          const keyword = String(q.exchangeInfo?.keyword || '').toLowerCase();
+          return title.includes(key) || keyword.includes(key);
+        });
+
+        if (filteredQuotes.length === 0) {
+          throw new Error(`ROCKETX-${dexTitle}: No ${dexTitle} route found (${dexQuotes.length} DEX / ${allQuotes.length} total)`);
+        }
+
+        // Ambil quote terbaik dari hasil filter
+        let best = null;
+        for (const q of filteredQuotes) {
+          const amount_out = parseFloat(q.toAmount);
+          if (!Number.isFinite(amount_out) || amount_out <= 0) continue;
+          const platformFeeUsd = parseFloat(q.platformFeeUsd || 0);
+          const gasFeeUsd = parseFloat(q.gasFeeUsd || 0);
+          const FeeSwap = (platformFeeUsd + gasFeeUsd) > 0
+            ? (platformFeeUsd + gasFeeUsd)
+            : getFeeSwap(chainName);
+          if (!best || amount_out > best.amount_out) {
+            best = { amount_out, FeeSwap };
+          }
+        }
+
+        if (!best) throw new Error(`ROCKETX-${dexTitle}: No valid ${dexTitle} quotes parsed`);
+
+        console.log(`[ROCKETX-${dexTitle}] ${dexTitle} via ROCKETX: ${best.amount_out}`);
+
+        return {
+          amount_out: best.amount_out,
+          FeeSwap: best.FeeSwap,
+          dexTitle: dexTitle,
+          routeTool: `${dexTitle} via ROCKETX`
+        };
+      }
+    };
+  }
+
+  // Velora = ParaSwap protocol → filter key 'paraswap'
+  dexStrategies['rocketx-velora'] = createFilteredRocketXStrategy('paraswap', 'VELORA');
 
   // =============================
   // SWING Strategy - Multi-DEX Aggregator (Top 3 Routes)
@@ -2932,49 +3208,33 @@
       const dexQuotes = allQuotes.filter(q => q.exchangeInfo?.exchange_type === 'DEX');
       if (dexQuotes.length === 0) throw new Error('RocketX: No DEX quotes (all routes are CEX)');
 
-      // Parse each DEX quote into subResults
-      const subResults = [];
+      // Ambil satu quote terbaik (amount_out tertinggi)
+      let best = null;
       for (const q of dexQuotes) {
         try {
           const amount_out = parseFloat(q.toAmount);
           if (!Number.isFinite(amount_out) || amount_out <= 0) continue;
 
-          // Fee = platform fee (0.5%) + gas fee
           const platformFeeUsd = parseFloat(q.platformFeeUsd || 0);
           const gasFeeUsd = parseFloat(q.gasFeeUsd || 0);
           const FeeSwap = (platformFeeUsd + gasFeeUsd) > 0
             ? (platformFeeUsd + gasFeeUsd)
             : getFeeSwap(chainName);
 
-          const providerName = String(
-            q.exchangeInfo?.title || q.exchangeInfo?.keyword || 'ROCKETX'
-          ).toUpperCase();
-
-          subResults.push({ amount_out, FeeSwap, dexTitle: providerName });
+          if (!best || amount_out > best.amount_out) {
+            best = { amount_out, FeeSwap };
+          }
         } catch (_) { continue; }
       }
 
-      if (subResults.length === 0) throw new Error('RocketX: No valid DEX quotes parsed');
+      if (!best) throw new Error('RocketX: No valid DEX quotes parsed');
 
-      // Top-N from user setting (Max Route)
-      const maxN = (() => {
-        try {
-          const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
-          if (v > 0) return v;
-        } catch (_) {}
-        return (typeof window !== 'undefined' && window.CONFIG_DEXS?.rocketx?.maxProviders) || 3;
-      })();
-
-      subResults.sort((a, b) => b.amount_out - a.amount_out);
-      const topN = subResults.slice(0, maxN);
-      console.log(`[ROCKETX] Top ${topN.length} DEX quotes (${dexQuotes.length} DEX / ${allQuotes.length} total)`);
+      console.log(`[ROCKETX] Best DEX quote: ${best.amount_out} (${dexQuotes.length} DEX / ${allQuotes.length} total)`);
 
       return {
-        amount_out: topN[0].amount_out,
-        FeeSwap: topN[0].FeeSwap,
-        dexTitle: 'ROCKETX',
-        subResults: topN,
-        isMultiDex: true
+        amount_out: best.amount_out,
+        FeeSwap: best.FeeSwap,
+        dexTitle: 'ROCKETX'
       };
     }
   };

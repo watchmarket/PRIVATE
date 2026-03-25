@@ -207,7 +207,7 @@ $(document).ready(function () {
                             const r = String(msg.val.run || 'NO').toUpperCase();
                             applyRunUI(r === 'YES');
                             if (r === 'NO') {
-                                const running = (typeof window.App?.Scanner?.isScanRunning !== 'undefined') ? !!window.App.Scanner.isScanRunning : false;
+                                const running = (typeof window.App?.Scanner?.isScanRunning === 'function') ? window.App.Scanner.isScanRunning() : false;
                                 if (running) {
                                     // ========== FIX RELOAD LOOP ==========
                                     // Hanya reload jika sudah lewat cooldown period

@@ -222,12 +222,12 @@ a:hover,
 }
 
 .td-dex {
-    width: 115px !important;
+    width: 135px !important;
     min-width: 115px;
 }
 
 .td-orderbook {
-    min-width: 140px;
+    min-width: 100px;
     border-left: 2px solid rgba(24, 24, 24, 0.35)!important;
     border-right: 2px solid rgba(24, 24, 24, 0.35) !important;
 }
