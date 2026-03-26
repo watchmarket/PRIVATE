@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title id="appTitle">MONITORING PRICE</title>
+    <link rel="icon" href="icons/favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════
+     ONBOARDING MODAL
+═══════════════════════════════════════ -->
+    <div class="onboard-overlay" id="onboardOverlay">
+        <div class="onboard-card">
+            <div class="onboard-logo"><img src="icons/favicon.png" class="app-logo" alt=""> <span
+                    id="onboardAppName"></span></div>
+
+            <div class="onboard-sub">Aplikasi Scanner Harga Crypto CEX & DEX</div>
+            <div class="onboard-form-group">
+                <label class="form-label">Username</label>
+                <input class="form-input" id="obUsername" type="text" placeholder="contoh: trader01" autocomplete="off">
+            </div>
+            <div class="onboard-form-group">
+                <label class="form-label">Wallet Metamask (EVM)</label>
+                <input class="form-input" id="obWallet" type="text" placeholder="0x..." autocomplete="off">
+            </div>
+            <button class="btn-onboard" id="btnOnboard">MULAI →</button><br /><br />
+            <div class="onboard-version" id="onboardVersion"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+     TOP BAR
+═══════════════════════════════════════ -->
+    <div class="top-bar">
+        <div class="app-name">
+            <img src="icons/favicon.png" class="app-logo" alt="">
+            <span id="appNameDisplay"></span> <span class="app-version" id="appVersion"></span>
+            <span class="scanning-badge" id="scanBadge">▶ SCANNING...</span>
+            <span id="notStartedNotice" class="scan-status-badge">■ BELUM SCANNING</span>
+            <span id="scanDoneNotice" class="scan-status-badge scan-status-done" style="display:none">✅ SCANNING
+                SELESAI</span>
+            <span id="scanStopNotice" class="scan-status-badge scan-status-stop" style="display:none">■ STOP
+                SCANNING</span>
+        </div>
+
+
+
+        <div class="top-right">
+            <!-- Tab pills — visible in landscape only -->
+            <div class="top-tabs" id="topTabs">
+
+
+                <button class="top-tab-btn active" data-tab="tabMonitor">
+                    <img src="icons/monitoring.png" class="top-tab-icon" alt="SCANNER HARGA CRYPTO">SCANNER
+                </button>
+                <button class="top-tab-btn" data-tab="tabToken">
+                    <img src="icons/token.png" class="top-tab-icon" alt="DAFTAR KOIN CRYPTO">DATA KOIN
+                </button>
+
+                <button class="top-tab-btn" data-tab="tabSettings">
+                    <img src="icons/setting.png" class="top-tab-icon" alt="PENGATURAN APLIKASI">PENGATURAN
+                </button>
+                <!-- <button class="top-tab-btn" onclick="openCalcModal()">
+                <img src="icons/kalkulator.png" class="top-tab-icon" alt="KALKULATOR CRYPTO">
+            </button> -->
+            </div>
+
+            <!-- Scan Controls — muncul hanya saat tab Scanner aktif -->
+            <div class="scan-footer" id="scanFooter" style="display:none">
+                |
+                <div class="scan-sort-group" id="monSortBar">
+                    <button class="sort-btn active" data-sort="az" title="Sorting A→Z">A→Z</button>
+                    <button class="sort-btn" data-sort="za" title="Sorting Z→A">Z→A</button>
+
+                </div>
+                <button class="fab-scan" id="btnScan">
+                    <span id="btnScanIcon">▶</span>
+                    <span id="btnScanLbl">START</span>
+                    <span id="btnScanCount">[0]</span>
+                </button>
+                <!-- <button class="sort-btn" id="btnAutoReload" title="Auto Scanner">🔄</button> -->
+                <button class="sort-btn" id="monFavFilter" title="Filter Favorit">⭐</button>
+            </div>
+            <!-- <span class="username-chip" id="topUsername">@-</span> -->
+        </div>
+        <!-- Progress bar -->
+        <div class="scan-progress-strip">
+            <div class="scan-progress-bar" id="scanBar"></div>
+        </div>
+    </div>
+
+    <!-- Signal Chips -->
+    <div class="signal-bar" id="signalBar">
+        <span id="noSignalNotice" class="no-signal-notice" style="display:none">● Belum Ada Info Selisih Harga</span>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+     TAB CONTENT
+═══════════════════════════════════════ -->
+
+    <!-- TAB MONITOR -->
+    <div id="tabMonitor" class="tab-pane active">
+        <div class="monitor-cards" id="monitorList">
+            <div class="token-list-empty">Jika belum ada koin, masuk menu KOIN lalu tekan + untuk menambah.<br>Jika
+                sudah ada koin, tekan START.</div>
+        </div>
+    </div>
+
+    <!-- TAB TOKEN -->
+    <div id="tabToken" class="tab-pane">
+        <div class="token-list-header">
+            <h2>DAFTAR KOIN :</h2>
+            <div class="token-count-group">
+                <span class="token-count" id="tokenCount">Total 0 KOIN</span>
+                <span class="fav-count" id="favCount"></span>
+            </div>
+        </div>
+        <div class="csv-bar">
+            <button class="btn-outline" id="btnExport"><i class="bi bi-download"></i> Export</button>
+            <button class="btn-outline" id="btnImportTrigger"><i class="bi bi-upload"></i> Import</button>
+            <button class="btn-open-bulk" onclick="openBulkModal()"><i class="bi bi-currency-dollar"></i> Modal</button>
+            <button class="btn-outline btn-add-koin" id="fabAdd"><i class="bi bi-plus-lg"></i> Tambah</button>
+            <input type="file" id="importFile"
+                accept=".csv,text/csv,text/plain,text/comma-separated-values,application/octet-stream"
+                style="display:none">
+        </div>
+        <div class="filter-bar">
+            <input class="filter-search" id="tokenSearch" type="text" placeholder="🔍 Cari koin..." autocomplete="off">
+            <button class="sort-btn active" data-sort="az" id="tokSortAZ">A→Z</button>
+            <button class="sort-btn" data-sort="za" id="tokSortZA">Z→A</button>
+            <button class="sort-btn" id="tokFavFilter" title="Filter Favorit">⭐</button>
+        </div>
+        <div class="token-list" id="tokenList">
+            <div class="token-list-empty">Belum ada KOIN. Ketuk tombol + untuk menambah.</div>
+        </div>
+    </div>
+
+    <!-- TAB SETTINGS -->
+    <div id="tabSettings" class="tab-pane">
+        <div class="settings-content">
+            <div class="settings-card">
+                <h3>DATA PENGGUNA & SCANNER</h3>
+
+                <!-- Identitas -->
+                <div class="set-section">👤 Identitas</div>
+                <div class="settings-grid-2">
+                    <div class="settings-field">
+                        <label class="settings-label">Username</label>
+                        <input class="settings-input" id="setUsername" type="text" placeholder="trader01">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label">Kecepatan Scan</label>
+                        <div class="speed-chips" id="speedChips">
+                            <button class="sort-btn" data-speed="800">SLOW</button>
+                            <button class="sort-btn" data-speed="700">MEDIUM</button>
+                            <button class="sort-btn" data-speed="500">FAST</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-field set-wallet-row">
+                    <label class="settings-label">Wallet Metamask (EVM)</label>
+                    <input class="settings-input" id="setWallet" type="text" placeholder="0x...">
+                </div>
+
+                <!-- Preferensi -->
+                <div class="set-section">⚙️ Preferensi</div>
+                <div class="settings-toggle-row">
+                    <div class="settings-toggle-lbl">
+                        <span class="settings-toggle-icon">🔔</span>
+                        <div>
+                            <div class="settings-toggle-title">Notifikasi Suara Info Selisih</div>
+                            <div class="settings-toggle-desc">Aktifkan suara saat sinyal ditemukan</div>
+                        </div>
+                    </div>
+                    <input type="checkbox" id="setSoundMuted" class="settings-toggle-chk">
+                </div>
+
+                <!-- DEX & Auto Level -->
+                <div class="set-section">📊 DEX & Auto Level</div>
+                <div class="settings-grid-4">
+                    <div class="settings-field">
+                        <label class="settings-label">DEX <span class="badge-metax">MT</span></label>
+                        <input class="settings-input" id="setQuoteMetax" type="number" min="1" max="5" value="2">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label">DEX <span class="badge-jumpx">JM</span></label>
+                        <input class="settings-input" id="setQuoteJumpx" type="number" min="1" max="5" value="2">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label">DEX <span class="badge-bungee">BG</span></label>
+                        <input class="settings-input" id="setQuoteBungee" type="number" min="1" max="5" value="2">
+                    </div>
+                    <div class="settings-field">
+                        <label class="settings-label">Auto Level</label>
+                        <input class="settings-input" id="setLevelCount" type="number" min="1" max="4" value="2">
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="settings-card">
+                <h3>FILTER KOIN [<span id="filterCoinCount">0</span> KOIN ]</h3>
+                <div class="settings-row">
+                    <label class="settings-label">Exchanger Aktif <span class="settings-hint">(ketuk untuk
+                            nonaktifkan)</span></label>
+                    <div class="fchip-group" id="filterCexChips"></div>
+                </div>
+                <div class="settings-row">
+                    <label class="settings-label">Chain Aktif <span class="settings-hint">(ketuk untuk
+                            nonaktifkan)</span></label>
+                    <div class="fchip-group" id="filterChainChips"></div>
+                </div>
+                <div class="settings-row">
+                    <label class="settings-label">Pilih Pair <span class="settings-hint">(ketuk untuk
+                            nonaktifkan)</span></label>
+                    <div class="fchip-group" id="filterPairTypeChips">
+                        <span class="fchip pair-type-chip on" data-val="all" onclick="setPairTypeFilter('all')">🟢
+                            SEMUA</span>
+                        <span class="fchip pair-type-chip" data-val="stable" onclick="setPairTypeFilter('stable')">🟡
+                            STABLE</span>
+                        <span class="fchip pair-type-chip" data-val="non" onclick="setPairTypeFilter('non')">🔴
+                            NON-STABLE</span>
+                    </div>
+                </div>
+                <!-- SETTINGS CARD: CEX Wallet Fee WD -->
+                <div class="settings-card" id="cexWalletCard">
+                    <h3>CEK BIAYA WD & STATUS DEPOSIT/WITHDRAW</h3>
+                    <div class="settings-row">
+                        <label class="settings-label">
+                            <span class="settings-hint">(terakhir diperbarui: <span
+                                    id="walletLastUpdate">—</span>)</span>
+                        </label>
+                        <div class="cex-wallet-status" id="cexWalletStatus">
+                            Belum Ada Info Fee WD & Status Deposit/Withdraw. Tekan "Check Wallet Exchanger" untuk
+                            mengambil Info dari Exchanger.
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <button class="btn-update-wallet" id="btnUpdateCexWallet" onclick="runUpdateCexWallet()">
+                            🔄 Check Wallet Exchanger
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+     BOTTOM NAV
+═══════════════════════════════════════ -->
+    <nav class="bottom-nav">
+        <button class="nav-item" id="navCalc" onclick="openCalcModal()">
+            <span class="nav-icon"><img src="icons/kalkulator.png" class="nav-icon-img" alt="kalkulator crypto"></span>
+            <span>KALKULATOR</span>
+        </button>
+        <button class="nav-item" data-tab="tabToken" id="navToken">
+            <span class="nav-icon"><img src="icons/token.png" class="nav-icon-img" alt="daftar koin"></span>
+            <span>DATA KOIN</span>
+        </button>
+
+        <button class="nav-item active" data-tab="tabMonitor" id="navMonitor">
+            <span class="nav-icon"><img src="icons/monitoring.png" class="nav-icon-img" alt="scanner price"></span>
+            <span>SCANNER</span>
+        </button>
+        <button class="nav-item" id="navReload" onclick="reloadWithToast()">
+            <span class="nav-icon"><img src="icons/reload.png" class="nav-icon-img" alt="reload"></span>
+            <span>RELOAD</span>
+        </button>
+        <button class="nav-item" data-tab="tabSettings" id="navSettings">
+            <span class="nav-icon"><img src="icons/setting.png" class="nav-icon-img" alt="pengaturan aplikasi"></span>
+            <span>PENGATURAN</span>
+        </button>
+    </nav>
+
+
+    <!-- ═══════════════════════════════════════
+     BOTTOM SHEET — TOKEN FORM
+═══════════════════════════════════════ -->
+    <div class="sheet-overlay" id="sheetOverlay"></div>
+    <div class="bottom-sheet" id="tokenSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title" id="sheetTitle">Tambah KOIN</div>
+        <input type="hidden" id="editId">
+
+        <div class="sheet-body">
+
+            <!-- Network & CEX chips in one row -->
+            <div class="form-row-ts">
+                <div class="form-group">
+                    <label class="form-label">Network</label>
+                    <div class="chip-group" id="chainChips"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Exchanger</label>
+                    <div class="chip-group" id="cexChips"></div>
+                </div>
+            </div>
+
+            <!-- TOKEN Section -->
+            <div class="sheet-section-title">TOKEN (Koin CEX)</div>
+
+            <div class="form-row-ts">
+                <div class="form-group ac-wrap">
+                    <label class="form-label">Symbol TOKEN</label>
+                    <input class="form-input" id="fTicker" type="text" placeholder="symbol TOKEN" autocomplete="off"
+                        oninput="onTickerInput('token')">
+                    <div class="ac-box" id="acToken"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ticker CEX</label>
+                    <input class="form-input" id="fSymbolToken" type="text" placeholder="Ticker CEX">
+                </div>
+            </div>
+
+            <div class="form-row-scd">
+                <div class="form-group">
+                    <label class="form-label">SC Token</label>
+                    <input class="form-input" id="fScToken" type="text" placeholder="0x...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dec</label>
+                    <input class="form-input" id="fDecToken" type="number" value="18">
+                </div>
+            </div>
+
+            <!-- PAIR Section -->
+            <div class="sheet-section-title">PAIR (Koin DEX)</div>
+
+            <div class="form-row-ts">
+                <div class="form-group ac-wrap">
+                    <label class="form-label">Symbol PAIR</label>
+                    <input class="form-input" id="fTickerPair" type="text" placeholder="Symbol PAIR" autocomplete="off"
+                        oninput="onTickerInput('pair')">
+                    <div class="ac-box" id="acPair"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ticker CEX</label>
+                    <input class="form-input" id="fSymbolPair" type="text" placeholder="Pair DEX">
+                </div>
+            </div>
+
+            <div class="form-row-scd">
+                <div class="form-group">
+                    <label class="form-label">SC Pair</label>
+                    <input class="form-input" id="fScPair" type="text" placeholder="0x...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dec</label>
+                    <input class="form-input" id="fDecPair" type="number" value="18">
+                </div>
+            </div>
+
+            <!-- Modal & PNL -->
+            <div class="sheet-section-title" style="padding-top:6px">Modal & PNL</div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">CEX→DEX ($)</label>
+                    <input class="form-input" id="fModalCtD" type="number" placeholder="Modal CDX" value="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">DEX→CEX ($)</label>
+                    <input class="form-input" id="fModalDtC" type="number" placeholder="Modal DXC" value="80">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Min PnL ($)</label>
+                    <input class="form-input" id="fMinPnl" type="number" step="0.1" placeholder="Min PnL">
+                </div>
+            </div>
+
+        </div><!-- /sheet-body -->
+
+        <div class="sheet-footer">
+            <button class="btn-cancel" id="btnSheetCancel">Batal</button>
+            <button class="btn-primary" id="btnSheetSave">💾 Simpan Token</button>
+        </div>
+    </div>
+
+    <!-- Bulk Update Modal -->
+    <div class="bulk-overlay" id="bulkOverlay" onclick="if(event.target===this)closeBulkModal()">
+        <div class="bulk-modal">
+            <div class="bulk-modal-hdr">
+                <span class="bulk-modal-title">✏️ BULK MODAL</span>
+                <button class="bulk-modal-close" onclick="closeBulkModal()">✕</button>
+            </div>
+            <div class="bulk-modal-body">
+                <div class="bulk-inputs">
+                    <div class="bulk-field">
+                        <label class="bulk-label">CEX→DEX $</label>
+                        <input class="bulk-input" id="bulkCtD" type="number" placeholder="Kiri">
+                    </div>
+                    <div class="bulk-field">
+                        <label class="bulk-label">DEX→CEX $</label>
+                        <input class="bulk-input" id="bulkDtC" type="number" placeholder="Kanan">
+                    </div>
+                    <div class="bulk-field">
+                        <label class="bulk-label">Min PNL $</label>
+                        <input class="bulk-input" id="bulkPnl" type="number" step="0.1" placeholder="Min PnL">
+                    </div>
+                </div>
+                <button class="btn-bulk-apply" id="btnBulkApply">✅ TERAPKAN SEMUA</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toastMsg"></div>
+
+    <!-- Orderbook Tooltip (visibility via .visible class + CSS opacity transition) -->
+    <div class="ob-tooltip" id="obTooltip"></div>
+
+    <!-- ═══════════════════════════════════════
+     KALKULATOR MODAL
+═══════════════════════════════════════ -->
+    <div class="calc-overlay" id="calcOverlay" onclick="if(event.target===this)closeCalcModal()">
+        <div class="calc-modal">
+            <!-- Header -->
+            <div class="calc-modal-hdr">
+                <span class="calc-modal-title">🧮 KALKULATOR CRYPTO</span>
+                <button class="calc-modal-close" onclick="closeCalcModal()">✕</button>
+            </div>
+            <div class="calc-subtitle">Konversi Harga Crypto Secara Realtime</div>
+
+            <!-- Rate Bar -->
+            <div class="calc-rate-strip">
+                <span class="calc-rate-lbl">USDT/IDR :</span>
+                <span class="calc-rate-val" id="calcRateVal">Rp 16.000</span>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="calc-modal-body">
+
+                <!-- Field Rows: USDT, IDR, BTC, ETH, BNB -->
+                <div class="calc-fields">
+                    <div class="calc-field-row">
+                        <label class="calc-field-lbl">USDT</label>
+                        <input class="calc-field-inp" id="cfUsdt" type="number" placeholder="0.00" step="any"
+                            oninput="onCalcField('usdt')">
+                    </div>
+                    <div class="calc-field-row">
+                        <label class="calc-field-lbl">IDR</label>
+                        <input class="calc-field-inp" id="cfIdr" type="number" placeholder="0.00" step="any"
+                            oninput="onCalcField('idr')">
+                    </div>
+                </div>
+
+                <div class="calc-divider"></div>
+
+                <!-- Custom Token -->
+                <div class="calc-custom-label">CUSTOM TOKEN</div>
+                <div class="calc-custom-inputs">
+                    <input class="calc-field-inp" id="cfCustomSym" type="text" placeholder="Symbol (e.g., SOL)"
+                        maxlength="12" autocomplete="off">
+                    <input class="calc-field-inp" id="cfCustomPrice" type="number" placeholder="Harga ($)" step="any"
+                        oninput="onCalcField('custom')">
+                </div>
+                <div class="calc-field-row" style="margin-top:6px">
+                    <label class="calc-field-lbl" id="cfCustomLbl">TOKEN</label>
+                    <input class="calc-field-inp" id="cfCustomAmt" type="number" placeholder="0.00" step="any"
+                        oninput="onCalcField('custom')">
+                </div>
+
+                <!-- Buttons -->
+                <div class="calc-btn-row">
+                    <button class="calc-btn-cek" onclick="calcCekToken()">🔍 CEK TOKEN</button>
+                    <button class="calc-btn-update" onclick="calcUpdatePrice()">↻ UPDATE PRICE</button>
+                </div>
+
+            </div><!-- /calc-modal-body -->
+        </div><!-- /calc-modal -->
+    </div><!-- /calc-overlay -->
+
+    <!-- Wallet Update Loading Overlay -->
+    <div class="wallet-update-overlay" id="walletUpdateOverlay">
+        <div class="wallet-update-box">
+            <div class="wallet-update-spinner"></div>
+            <div class="wallet-update-title">Mengambil Info Exchanger</div>
+            <div class="wallet-update-progress" id="walletUpdateProgress">Menghubungi server...</div>
+        </div>
+    </div>
+
+    <!-- App Dialog Modal -->
+    <div class="app-modal-overlay" id="appModal">
+        <div class="app-modal-card">
+            <div class="app-modal-icon-wrap" id="appModalIcon"></div>
+            <div class="app-modal-title" id="appModalTitle"></div>
+            <div class="app-modal-body" id="appModalBody"></div>
+            <div class="app-modal-footer" id="appModalFooter"></div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <audio id="audioComplete" src="complete.mp3" preload="auto"></audio>
+    <script src="core/base.js"></script>
+    <script src="collectors/cex.js"></script>
+    <script src="collectors/dex-metax.js"></script>
+    <script src="collectors/dex-jumpx.js"></script>
+    <script src="collectors/dex-kyber.js"></script>
+    <script src="collectors/dex-okx.js"></script>
+    <script src="collectors/dex-bungee.js"></script>
+    <script src="services/cex-wallet.js"></script>
+    <script src="services/scan.js"></script>
+    <script src="ui/ui.js"></script>
+    <script>
+        // Init CEX wallet UI setelah halaman siap
+        $(document).ready(function () { if (typeof initCexWalletUI === 'function') initCexWalletUI(); });
+    </script>
+</body>
+
+</html>
