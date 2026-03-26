@@ -36,8 +36,8 @@ const APP_DEV_CONFIG = {
   defaultEnableOkx: true,  // OKX DEX Aggregator
   defaultAutoLevel: true,  // Auto Level CEX orderbook
   defaultQuoteCountJumpx: 2,     // 0 = matikan Jumper/LiFi
-  scanBatchSize: 5,     // jumlah koin yang di-scan paralel per batch
-  maxDexDisplay: 5,     // jumlah kolom DEX yang tampil di hasil scanning (maks = jumlah DEX aktif)
+  scanBatchSize: 10,     // jumlah koin yang di-scan paralel per batch
+  maxDexDisplay: 6,     // jumlah kolom DEX yang tampil di hasil scanning (maks = jumlah DEX aktif)
 
   bungeeApiKey: "71XdjSawshaeie5DeH5b9avPjaoVtoOc2g5ZZx1d",
   bungeeAffiliate: "609913096e183b62cecd0dfdc13382f618baedceb5fef75aad43e6cbff367039708902197e0b2b78b1d76cb0837ad0b318baedceb5fef75aad43e6cb",
