@@ -8,38 +8,38 @@
 // APP_DEV_CONFIG — Pengaturan aplikasi
 // ============================================================
 const APP_DEV_CONFIG = {
-  appName:    "MINI SCANNER",
-  appVersion: "03.27",
+  appName: "MINI SCANNER",
+  appVersion: "03.30",
 
-  telegramBotToken:  "8053447166:AAH7YYbyZ4eBoPX31D8h3bCYdzEeIaiG4JU",
-  telegramGroupId:   "-5271018516",
-  telegramCooldown:  5,   // menit
+  telegramBotToken: "8053447166:AAH7YYbyZ4eBoPX31D8h3bCYdzEeIaiG4JU",
+  telegramGroupId: "-5271018516",
+  telegramCooldown: 5,   // menit
 
   corsProxy: "https://vercel-proxycors.vercel.app/?url=",
 
   // Biaya trading per CEX (0.001 = 0.1%)
   fees: {
     binance: 0.001,
-    gate:    0.0015,
-    mexc:    0.0015,
+    gate: 0.0015,
+    mexc: 0.0015,
     indodax: 0.002,
   },
 
-  defaultMinPnl:          1,
-  defaultInterval:        800,
-  defaultSseTimeout:      6000,
+  defaultMinPnl: 1,
+  defaultInterval: 800,
+  defaultSseTimeout: 6000,
   defaultQuoteCountMetax: 2,     // 0 = matikan MetaMask SSE
   defaultQuoteCountBungee: 2,    // jumlah route Bungee (1–4), 0 = matikan Bungee
-  defaultLevelCount:      4,     // jumlah level orderbook (1–4)
-  defaultEnableKyber:     true,  // KyberSwap DEX
+  defaultLevelCount: 4,     // jumlah level orderbook (1–4)
+  defaultEnableKyber: true,  // KyberSwap DEX
 
-  defaultEnableOkx:       true,  // OKX DEX Aggregator
-  defaultAutoLevel:       true,  // Auto Level CEX orderbook
+  defaultEnableOkx: true,  // OKX DEX Aggregator
+  defaultAutoLevel: true,  // Auto Level CEX orderbook
   defaultQuoteCountJumpx: 2,     // 0 = matikan Jumper/LiFi
-  scanBatchSize:          5,     // jumlah koin yang di-scan paralel per batch
-  maxDexDisplay:          5,     // jumlah kolom DEX yang tampil di hasil scanning (maks = jumlah DEX aktif)
+  scanBatchSize: 5,     // jumlah koin yang di-scan paralel per batch
+  maxDexDisplay: 5,     // jumlah kolom DEX yang tampil di hasil scanning (maks = jumlah DEX aktif)
 
-  bungeeApiKey:   "71XdjSawshaeie5DeH5b9avPjaoVtoOc2g5ZZx1d",
+  bungeeApiKey: "71XdjSawshaeie5DeH5b9avPjaoVtoOc2g5ZZx1d",
   bungeeAffiliate: "609913096e183b62cecd0dfdc13382f618baedceb5fef75aad43e6cbff367039708902197e0b2b78b1d76cb0837ad0b318baedceb5fef75aad43e6cb",
 };
 
@@ -50,19 +50,19 @@ const APP_DEV_CONFIG = {
 // ============================================================
 const CONFIG_CEX_KEYS = {
   BINANCE: {
-    ApiKey:    "PoMTZjrgq2rUNQHpqvoOW0Ajq1iKytG3OZueMyvYwJmMaH175kuVi2QyB98Zocnb",
+    ApiKey: "PoMTZjrgq2rUNQHpqvoOW0Ajq1iKytG3OZueMyvYwJmMaH175kuVi2QyB98Zocnb",
     ApiSecret: "bBq5FCpuCghA0hJuil7gCObTqDzYaLaVdsZVsdfSzv4MZ2rDBK6cpN590eXAwfod",
   },
   MEXC: {
-    ApiKey:    "mx0vglNkKpxcAAEbtk",
+    ApiKey: "mx0vglNkKpxcAAEbtk",
     ApiSecret: "54a488c04cdf4afabf44dd07915731c6",
   },
   GATE: {
-    ApiKey:    "1dbe3d4c92a42de270692e65952574d0",
+    ApiKey: "1dbe3d4c92a42de270692e65952574d0",
     ApiSecret: "9436bfec02a8ed462bda4bd1a516ba82b4f322dd09e120a2bf7ea6b5f0930ef8",
   },
   INDODAX: {
-    ApiKey:    "HRKOX8GL-KD9ANNF5-T7OKENAH-LHL5PBYQ-NW8GQICL",
+    ApiKey: "HRKOX8GL-KD9ANNF5-T7OKENAH-LHL5PBYQ-NW8GQICL",
     ApiSecret: "2ff67f7546f9b1af3344f4012fbb5561969de9440f1d1432c89473d1fe007deb3f3d0bac7400622b",
   },
 };
@@ -74,48 +74,48 @@ const CONFIG_CEX_KEYS = {
 const CONFIG_CEX = {
   binance: {
     label: "Binance",
-    ICON:  "icons/cex/binance.png",
+    ICON: "icons/cex/binance.png",
     WARNA: "#e0a50c",
     ORDERBOOK: {
       urlTpl: (sym) => `https://data-api.binance.vision/api/v3/depth?limit=5&symbol=${sym.toUpperCase()}`,
       parser: "standard",
-      proxy:  false,
+      proxy: false,
     },
     symbolFmt: (ticker) => ticker.toUpperCase() + "USDT",
   },
 
   gate: {
     label: "Gate",
-    ICON:  "icons/cex/gate.png",
+    ICON: "icons/cex/gate.png",
     WARNA: "#D5006D",
     ORDERBOOK: {
       urlTpl: (sym) => `https://api.gateio.ws/api/v4/spot/order_book?limit=5&currency_pair=${sym.toUpperCase()}`,
       parser: "standard",
-      proxy:  true,
+      proxy: true,
     },
     symbolFmt: (ticker) => ticker.toUpperCase() + "_USDT",
   },
 
   mexc: {
     label: "MEXC",
-    ICON:  "icons/cex/mexc.png",
+    ICON: "icons/cex/mexc.png",
     WARNA: "#1448ce",
     ORDERBOOK: {
       urlTpl: (sym) => `https://api.mexc.com/api/v3/depth?symbol=${sym.toUpperCase()}&limit=5`,
       parser: "standard",
-      proxy:  true,
+      proxy: true,
     },
     symbolFmt: (ticker) => ticker.toUpperCase() + "USDT",
   },
 
   indodax: {
     label: "Indodax",
-    ICON:  "icons/cex/indodax.png",
+    ICON: "icons/cex/indodax.png",
     WARNA: "#2eb5f2",
     ORDERBOOK: {
       urlTpl: (sym) => `https://indodax.com/api/depth/${sym.toLowerCase()}`,
       parser: "indodax",
-      proxy:  true,
+      proxy: true,
     },
     symbolFmt: (ticker) => ticker.toLowerCase() + "idr",
   },
@@ -136,115 +136,115 @@ const CONFIG_CEX = {
 const CONFIG_CHAINS = {
   bsc: {
     Kode_Chain: 56,
-    RPC:        'https://rpc.llama-rpc.com/bsc?source=llamaswap',
-    GAS_UNITS:  200_000,
-    USDT_SC:    '0x55d398326f99059fF775485246999027B3197955',
-    USDT_DEC:   18,
-    label:       "BSC",
+    RPC: 'https://rpc.llama-rpc.com/bsc?source=llamaswap',
+    GAS_UNITS: 200_000,
+    USDT_SC: '0x55d398326f99059fF775485246999027B3197955',
+    USDT_DEC: 18,
+    label: "BSC",
     Nama_Pendek: "bsc",
-    WARNA:       "#f0af18",
-    ICON:        "icons/chains/bsc.png",
-    URL_Chain:   "https://bscscan.com",
-    DATAJSON:    "https://watchmarket.github.io/JSON/SNAPSHOT_koin_BSC.json",
+    WARNA: "#f0af18",
+    ICON: "icons/chains/bsc.png",
+    URL_Chain: "https://bscscan.com",
+    DATAJSON: "https://watchmarket.github.io/JSON/SNAPSHOT_koin_BSC.json",
     LINKS: {
       token: (addr) => `https://bscscan.com/token/${addr}`,
     },
     WALLET_CEX: {
-      GATE:    { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
+      GATE: { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
       BINANCE: { address: '0x8894E0a0c962CB723c1976a4421c95949bE2D4E3' },
-      MEXC:    { address: '0x4982085C9e2F89F2eCb8131Eca71aFAD896e89CB' },
+      MEXC: { address: '0x4982085C9e2F89F2eCb8131Eca71aFAD896e89CB' },
       INDODAX: { address: '0xaBa3002AB1597433bA79aBc48eeAd54DC10A45F2' },
     },
   },
 
   ethereum: {
     Kode_Chain: 1,
-    RPC:        'https://rpc.llama-rpc.com/ethereum?source=llamaswap',
-    GAS_UNITS:  300_000,
-    USDT_SC:    '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-    USDT_DEC:   6,
-    label:       "Ethereum",
+    RPC: 'https://rpc.llama-rpc.com/ethereum?source=llamaswap',
+    GAS_UNITS: 300_000,
+    USDT_SC: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    USDT_DEC: 6,
+    label: "Ethereum",
     Nama_Pendek: "erc",
-    WARNA:       "#8098ee",
-    ICON:        "icons/chains/ethereum.png",
-    URL_Chain:   "https://etherscan.io",
-    DATAJSON:    "https://watchmarket.github.io/JSON/SNAPSHOT_koin_ETHEREUM.json",
+    WARNA: "#8098ee",
+    ICON: "icons/chains/ethereum.png",
+    URL_Chain: "https://etherscan.io",
+    DATAJSON: "https://watchmarket.github.io/JSON/SNAPSHOT_koin_ETHEREUM.json",
     LINKS: {
       token: (addr) => `https://etherscan.io/token/${addr}`,
     },
     WALLET_CEX: {
-      GATE:    { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
+      GATE: { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
       BINANCE: { address: '0xDFd5293D8e347dFe59E90eFd55b2956a1343963d' },
-      MEXC:    { address: '0x75e89d5979E4f6Fba9F97c104c2F0AFB3F1dcB88' },
+      MEXC: { address: '0x75e89d5979E4f6Fba9F97c104c2F0AFB3F1dcB88' },
       INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6' },
     },
   },
 
   polygon: {
     Kode_Chain: 137,
-    RPC:        'https://rpc.llama-rpc.com/polygon?source=llamaswap',
-    GAS_UNITS:  200_000,
-    USDT_SC:    '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-    USDT_DEC:   6,
-    label:       "Polygon",
+    RPC: 'https://rpc.llama-rpc.com/polygon?source=llamaswap',
+    GAS_UNITS: 200_000,
+    USDT_SC: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    USDT_DEC: 6,
+    label: "Polygon",
     Nama_Pendek: "poly",
-    WARNA:       "#cd72f4",
-    ICON:        "icons/chains/polygon.png",
-    URL_Chain:   "https://polygonscan.com",
-    DATAJSON:    "https://watchmarket.github.io/JSON/SNAPSHOT_koin_POLYGON.json",
+    WARNA: "#cd72f4",
+    ICON: "icons/chains/polygon.png",
+    URL_Chain: "https://polygonscan.com",
+    DATAJSON: "https://watchmarket.github.io/JSON/SNAPSHOT_koin_POLYGON.json",
     LINKS: {
       token: (addr) => `https://polygonscan.com/token/${addr}`,
     },
     WALLET_CEX: {
-      GATE:    { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
+      GATE: { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
       BINANCE: { address: '0x290275e3db66394C52272398959845170E4DCb88' },
-      MEXC:    { address: '0x51E3D44172868Acc60D68ca99591Ce4230bc75E0' },
+      MEXC: { address: '0x51E3D44172868Acc60D68ca99591Ce4230bc75E0' },
       INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6' },
     },
   },
 
   arbitrum: {
     Kode_Chain: 42161,
-    RPC:        'https://rpc.llama-rpc.com/arbitrum?source=llamaswap',
-    GAS_UNITS:  700_000,
-    USDT_SC:    '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
-    USDT_DEC:   6,
-    label:       "Arbitrum",
+    RPC: 'https://rpc.llama-rpc.com/arbitrum?source=llamaswap',
+    GAS_UNITS: 700_000,
+    USDT_SC: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+    USDT_DEC: 6,
+    label: "Arbitrum",
     Nama_Pendek: "arb",
-    WARNA:       "#a6b0c3",
-    ICON:        "icons/chains/arbitrum.png",
-    URL_Chain:   "https://arbiscan.io",
-    DATAJSON:    "https://watchmarket.github.io/JSON/SNAPSHOT_koin_ARBITRUM.json",
+    WARNA: "#a6b0c3",
+    ICON: "icons/chains/arbitrum.png",
+    URL_Chain: "https://arbiscan.io",
+    DATAJSON: "https://watchmarket.github.io/JSON/SNAPSHOT_koin_ARBITRUM.json",
     LINKS: {
       token: (addr) => `https://arbiscan.io/token/${addr}`,
     },
     WALLET_CEX: {
-      GATE:    { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
+      GATE: { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
       BINANCE: { address: '0x290275e3db66394C52272398959845170E4DCb88' },
-      MEXC:    { address: '0x4982085C9e2F89F2eCb8131Eca71aFAD896e89CB' },
+      MEXC: { address: '0x4982085C9e2F89F2eCb8131Eca71aFAD896e89CB' },
       INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6' },
     },
   },
 
   base: {
     Kode_Chain: 8453,
-    RPC:        'https://rpc.llama-rpc.com/base?source=llamaswap',
-    GAS_UNITS:  300_000,
-    USDT_SC:    '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-    USDT_DEC:   6,
-    label:       "Base",
+    RPC: 'https://rpc.llama-rpc.com/base?source=llamaswap',
+    GAS_UNITS: 300_000,
+    USDT_SC: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    USDT_DEC: 6,
+    label: "Base",
     Nama_Pendek: "base",
-    WARNA:       "#1e46f9",
-    ICON:        "icons/chains/base.png",
-    URL_Chain:   "https://basescan.org",
-    DATAJSON:    "https://watchmarket.github.io/JSON/SNAPSHOT_koin_BASE.json",
+    WARNA: "#1e46f9",
+    ICON: "icons/chains/base.png",
+    URL_Chain: "https://basescan.org",
+    DATAJSON: "https://watchmarket.github.io/JSON/SNAPSHOT_koin_BASE.json",
     LINKS: {
       token: (addr) => `https://basescan.org/token/${addr}`,
     },
     WALLET_CEX: {
-      GATE:    { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
+      GATE: { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe' },
       BINANCE: { address: '0xDFd5293D8e347dFe59E90eFd55b2956a1343963d' },
-      MEXC:    { address: '0x4e3ae00E8323558fA5Cac04b152238924AA31B60' },
+      MEXC: { address: '0x4e3ae00E8323558fA5Cac04b152238924AA31B60' },
       INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6' },
     },
   },

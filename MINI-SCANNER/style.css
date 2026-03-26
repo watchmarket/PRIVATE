@@ -204,6 +204,9 @@ body {
   align-items: center;
   transition: all .2s;
 }
+.top-tab-btn:hover {
+  transform: scale(1.12);
+}
 
 .top-tab-btn.active {
   background: var(--accent);
@@ -799,7 +802,11 @@ body {
   user-select: none;
   text-decoration: none;
 }
-.stok-link:hover { opacity: 1; }
+.stok-link:hover {
+  opacity: 1;
+  transform: scale(1.35);
+  display: inline-block;
+}
 
 .tok-info-link {
   color: inherit;
@@ -1149,8 +1156,11 @@ body.is-scanning .scan-sort-group {
   border: none;
   background: transparent;
   padding: 0;
-  transition: color .2s;
+  transition: color .2s, transform .2s;
   letter-spacing: .3px;
+}
+.nav-item:hover {
+  transform: scale(1.12);
 }
 
 .nav-item .nav-icon {
@@ -2731,7 +2741,10 @@ body.is-scanning .scan-sort-group {
   line-height: 1;
 }
 
-.wdp-link:hover { opacity: 0.75; }
+.wdp-link:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
 
 .ob-tip-title {
   font-size: 11px;
