@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layanan Berpindah</title>
+    <!-- Google Fonts -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <!-- Lucide Icons (Untuk icon kecil di tombol) -->
+    <script src="https://unpkg.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
+            z-index: -1;
+            filter: blur(60px);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2.5rem;
+            max-width: 450px;
+            width: 90%;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* Styling Ikon Gambar */
+        .image-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .main-icon {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.6));
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
+        }
+
+        .btn-new-app {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-new-app:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            letter-spacing: 1px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
+
+        .footer-text {
+            font-size: 0.75rem;
+            color: #475569;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glow" style="top: -10%; left: -10%;"></div>
+    <div class="glow" style="bottom: -10%; right: -10%;"></div>
+
+    <div class="container">
+        <div class="badge">MAAF, APLIKASI DIHENTIKAN</div>
+        
+        <div class="image-wrapper">
+            <!-- Link Gambar dari Anda -->
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712074.png" alt="App Icon" class="main-icon">
+        </div>
+
+        <h1>Aplikasi Telah Ditutup</h1>
+        <p>Layanan ini sudah tidak tersedia. Silakan akses versi terbaru kami melalui tautan di bawah ini.</p>
+        
+        <a href="https://pencari-selisih.github.io/ORAUMUM/" class="btn-new-app" target="_blank">
+            <span>Buka Aplikasi Baru</span>
+            <i data-lucide="external-link" size="18"></i>
+        </a>
+
+        <div class="footer-text">
+            &copy; 2026 WatchMarket. All rights reserved.
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
