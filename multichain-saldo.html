@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Address Balance Checker</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/583/583985.png" type="image/png">
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Toastr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary: #5b21b6;
+            --primary-light: #7c3aed;
+            --secondary: #10b981;
+            --dark: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #e0e7ff 100%);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+            color: white;
+        }
+
+        .btn-premium:disabled {
+            background: #94a3b8;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .summary-stat {
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .summary-stat .label {
+            font-size: 0.85rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .summary-stat .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .summary-stat .value.success {
+            color: var(--secondary);
+        }
+
+        textarea.form-control {
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+
+        textarea.form-control:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+        }
+
+        /* Result Accordion Styles */
+        .address-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .address-header {
+            padding: 16px 20px;
+            background: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid transparent;
+            transition: background 0.2s ease;
+        }
+
+        .address-header:hover {
+            background: #f1f5f9;
+        }
+
+        .address-header.expanded {
+            border-bottom-color: #e2e8f0;
+            background: #f1f5f9;
+        }
+
+        .address-title {
+            font-family: monospace;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.95rem;
+        }
+
+        .address-total {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+
+        .address-body {
+            padding: 12px 16px;
+        }
+
+        .chain-badge {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .token-row {
+            background: beige;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0px 0 0px 60px;
+            border-bottom: 1px dashed #e2e8f0;
+            font-size: 0.85rem;
+        }
+
+        .token-row:last-child {
+            border-bottom: none;
+        }
+
+        .token-symbol {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .token-amount {
+            color: #475569;
+        }
+
+        .token-value {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner-wrapper {
+            width: 80px;
+            height: 80px;
+            position: relative;
+        }
+
+        .spinner {
+            width: 100%;
+            height: 100%;
+            border: 4px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .progress {
+            width: 300px;
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            margin-top: 24px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="spinner-wrapper">
+            <div class="spinner"></div>
+        </div>
+        <div class="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="loading-text" id="loadingText">Analyzing Addresses... <span id="progressCount">0/0</span></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container-fluid py-4 px-3 px-xl-5">
+
+        <!-- Service Moved Banner -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info alert-dismissible fade show d-flex justify-content-between align-items-center" role="alert"
+                    style="border-radius: 12px; background-color: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; font-size: 0.95rem;">
+                    <div>
+                        <i class="bi bi-info-circle-fill me-2" style="font-size: 1.1rem; vertical-align: -0.1rem;"></i>
+                        <strong>Pemberitahuan:</strong> Aplikasi telah dihentikan dan layanan dipindahkan sepenuhnya ke
+                        <b>Multichain Saldo Mandiri</b> ini karena performanya yang jauh lebih stabil dan cepat.
+                    </div>
+                    <a href="https://pencari-selisih.github.io/PUBLIC/" class="btn btn-primary btn-sm ms-3 text-nowrap" target="_blank" style="border-radius: 8px; font-weight: 600;">
+                        Buka Aplikasi Baru <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <!-- Left Column (Input & Stats) -->
+            <div class="col-lg-5 col-xl-4 mb-4">
+
+                <!-- Brand / Header -->
+                <div class="mb-4">
+                    <h4 class="outfit fw-bold mb-1" style="color: var(--primary);">
+                        <i class="bi bi-wallet2 me-2"></i>Multi-Address Balance Checker
+                    </h4>
+                    <small class="text-muted">Powered by OKX API</small>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="glass-card mb-4 p-3 border-0 bg-white shadow-sm">
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                        <span class="text-muted small fw-bold text-uppercase">Addresses</span>
+                        <span class="fw-bold text-primary" id="statTotalAddr">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                        <span class="text-muted small fw-bold text-uppercase">Total Value</span>
+                        <span class="fw-bold text-success outfit" id="statTotalUsd">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small fw-bold text-uppercase">Success</span>
+                        <span class="fw-bold" id="statSuccessRate">0%</span>
+                    </div>
+                </div>
+
+                <!-- Input Section -->
+                <div class="glass-card p-3 shadow-sm">
+                    <div class="outfit fw-bold mb-3" style="font-size: 0.95rem;">
+                        <i class="bi bi-input-cursor-text me-2"></i>Input Wallets
+                    </div>
+                    <textarea id="addressInput" class="form-control mb-3"
+                        placeholder="0x... (EVM) or Solana Address, satu per baris"
+                        style="font-size: 0.85rem; height: 350px; font-family: monospace;"></textarea>
+                    <button id="btnCheck" class="btn btn-premium w-100 py-2 shadow-sm" style="font-size: 0.9rem;">
+                        <i class="bi bi-search me-2"></i>Scan Balances
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Right Column (Results) -->
+            <div class="col-lg-7 col-xl-8">
+                <div class="glass-card h-100 shadow-sm" id="resultsContainer">
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                        <h5 class="outfit fw-bold mb-0 text-dark"><i class="bi bi-list-columns-reverse me-2"></i>Scan
+                            Results</h5>
+
+                        <!-- Actions -->
+                        <div id="resultsActions" style="display: none;">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary" id="btnExpandAll"><i
+                                        class="bi bi-arrows-expand me-1"></i>Expand All</button>
+                                <button class="btn btn-sm btn-outline-secondary" id="btnCollapseAll"><i
+                                        class="bi bi-arrows-collapse me-1"></i>Collapse All</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="resultsList">
+                        <div class="empty-state">
+                            <i class="bi bi-grid-1x2"></i>
+                            <h5 class="mt-3">No Data Yet</h5>
+                            <p>Enter addresses on the left column and click Scan.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <!-- Aplikasi Mandiri - Tidak butuh file external lain -->
+
+    <script>
+        // ==========================================
+        //  CONFIGURATION & CONSTANTS
+        // ==========================================
+        const OKX_CHAINS = {
+            ethereum: { id: '1', name: 'Ethereum', short: 'ETH', color: '#627eea' },
+            bsc: { id: '56', name: 'BNB Chain', short: 'BSC', color: '#f0b90b' },
+            polygon: { id: '137', name: 'Polygon', short: 'MATIC', color: '#9c6bf0' },
+            base: { id: '8453', name: 'Base', short: 'BASE', color: '#0052ff' },
+            arbitrum: { id: '42161', name: 'Arbitrum', short: 'ARB', color: '#28a0f0' },
+            avax: { id: '43114', name: 'Avalanche', short: 'AVAX', color: '#e84142' },
+            solana: { id: '501', name: 'Solana', short: 'SOL', color: '#9945ff' },
+        };
+
+        // Embedded API Keys for standalone usage
+        let OKX_DEX_KEYS = [
+            { ApiKeyOKX: "28bc65f0-8cd1-4ecb-9b53-14d84a75814b", secretKeyOKX: "E8C92510E44400D8A709FBF140AABEC1", PassphraseOKX: "Regi!#007" },
+            { ApiKeyOKX: "04f923ec-98f2-4e60-bed3-b8f2d419c773", secretKeyOKX: "3D7D0BD3D985C8147F70592DF6BE3C48", PassphraseOKX: "Regi!#007" },
+            { ApiKeyOKX: "cf214e57-8af2-42bf-8afa-3b7880c5a152", secretKeyOKX: "26AA1E415682BD8BBDF44A9B1CFF4759", PassphraseOKX: "Regi!#007" },
+            { ApiKeyOKX: "a77871bd-7855-484c-a675-e429bad3490e", secretKeyOKX: "830C9BB8D963F293857DB0CCA5459089", PassphraseOKX: "Regi!#007" },
+            { ApiKeyOKX: "87db4731-fbe3-416f-8bb4-a4f5e5cb64f7", secretKeyOKX: "B773838680FF09F2069AEE28337BBCD0", PassphraseOKX: "Regi!#007" }
+        ];
+
+        // Embedded CORS proxies to bypass browser restrictions
+        let CORS_PROXIES = [
+            "https://server1.ciwayeh967.workers.dev/?",
+            "https://yazid3.yazidcrypto7.workers.dev/?",
+            "https://yazid5.bustomi.workers.dev/?",
+            "https://server6.hejij49077.workers.dev/?",
+            "https://worker-bold-meadow-ab0a.xaraho1024.workers.dev/?",
+            "https://worker-cool-truth-c06e.nomege1872.workers.dev/?",
+            "https://myserver4.lamowa2709.workers.dev/?"
+        ];
+
+        let _okxKeyIdx = 0;
+        function getNextOkxKey() {
+            if (!OKX_DEX_KEYS.length) return null;
+            const k = OKX_DEX_KEYS[_okxKeyIdx % OKX_DEX_KEYS.length];
+            _okxKeyIdx++;
+            return k;
+        }
+
+        let _proxyIdx = 0;
+        function getNextProxy() {
+            if (!CORS_PROXIES.length) return '';
+            const p = CORS_PROXIES[_proxyIdx % CORS_PROXIES.length];
+            _proxyIdx++;
+            return p;
+        }
+
+        // ==========================================
+        //  UTILITIES
+        // ==========================================
+        function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        function formatUsd(val) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
+        }
+
+        function formatAmount(val) {
+            const num = parseFloat(val);
+            if (!num) return '0';
+            if (num < 0.0001) return num.toExponential(4);
+            if (num < 1) return num.toFixed(4);
+            return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(num);
+        }
+
+        function isEvmAddress(addr) {
+            return /^0x[0-9a-fA-F]{40}$/i.test((addr || '').trim());
+        }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+        }
+
+        // ==========================================
+        //  OKX API IMPLEMENTATION
+        // ==========================================
+        async function hmacSha256B64(secret, message) {
+            const enc = new TextEncoder();
+            const key = await crypto.subtle.importKey(
+                'raw', enc.encode(secret),
+                { name: 'HMAC', hash: 'SHA-256' },
+                false, ['sign']
+            );
+            const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+            return btoa(String.fromCharCode(...new Uint8Array(sig)));
+        }
+
+        async function fetchBalancesForAddress(address) {
+            const creds = getNextOkxKey();
+            if (!creds) throw new Error("No OKX API credentials configured. Please check secrets.js.");
+
+            // Determine chains based on address format
+            const chainKeys = Object.keys(OKX_CHAINS);
+            const isEVM = isEvmAddress(address);
+            let chainIds = [];
+
+            chainKeys.forEach(k => {
+                const chain = OKX_CHAINS[k];
+                if (isEVM && chain.id !== '501') chainIds.push(chain.id); // All EVMs
+                if (!isEVM && chain.id === '501') chainIds.push(chain.id); // Solana
+            });
+
+            if (!chainIds.length) return []; // Unknown address format
+
+            let lastErr = null;
+            // Retry logic
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const proxyUrl = getNextProxy();
+                    const currentCreds = getNextOkxKey();
+
+                    const ts = new Date().toISOString();
+                    const path = '/api/v5/wallet/asset/all-token-balances-by-address';
+                    const qs = `address=${encodeURIComponent(address)}&chains=${chainIds.join(',')}&filter=1`;
+                    const sign = await hmacSha256B64(currentCreds.secretKeyOKX, `${ts}GET${path}?${qs}`);
+
+                    let url = `${proxyUrl}https://web3.okx.com${path}?${qs}`;
+                    if (proxyUrl.includes('?url=')) {
+                        url = `${proxyUrl}${encodeURIComponent(`https://web3.okx.com${path}?${qs}`)}`;
+                    }
+
+                    const res = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'OK-ACCESS-KEY': currentCreds.ApiKeyOKX,
+                            'OK-ACCESS-SIGN': sign,
+                            'OK-ACCESS-PASSPHRASE': currentCreds.PassphraseOKX,
+                            'OK-ACCESS-TIMESTAMP': ts,
+                        }
+                    });
+
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                    const data = await res.json();
+                    if (data.code !== '0') throw new Error(data.msg || 'OKX API Error');
+
+                    return data.data?.[0]?.tokenAssets || [];
+
+                } catch (err) {
+                    lastErr = err;
+                    await sleep(400); // Wait before retry
+                }
+            }
+            throw lastErr;
+        }
+
+        function processTokens(tokens) {
+            let totalUsd = 0;
+            const chainsMap = {}; // { chainId: { name, color, total, tokens: [] } }
+
+            tokens.forEach(t => {
+                const bal = parseFloat(t.balance) || 0;
+                const price = parseFloat(t.tokenPrice) || 0;
+                const usdValue = bal * price;
+
+                if (usdValue < 0.1) return; // Ignore dust
+
+                totalUsd += usdValue;
+                const chainId = String(t.chainIndex);
+
+                if (!chainsMap[chainId]) {
+                    // Find chain info
+                    let cInfo = { name: `Chain ${chainId}`, color: '#64748b' };
+                    for (const key in OKX_CHAINS) {
+                        if (OKX_CHAINS[key].id === chainId) {
+                            cInfo = OKX_CHAINS[key]; break;
+                        }
+                    }
+                    chainsMap[chainId] = { info: cInfo, total: 0, list: [] };
+                }
+
+                chainsMap[chainId].total += usdValue;
+                chainsMap[chainId].list.push({ symbol: t.symbol, amount: bal, price: price, val: usdValue });
+            });
+
+            // Sort tokens by value inside chains
+            for (let id in chainsMap) {
+                chainsMap[id].list.sort((a, b) => b.val - a.val);
+            }
+
+            return { totalUsd, chainsMap };
+        }
+
+        // ==========================================
+        //  UI RENDERING
+        // ==========================================
+        function renderAddressCard(address, result, index) {
+            const hasError = !!result.error;
+            const data = result.data || { totalUsd: 0, chainsMap: {} };
+
+            let badgeHtml = hasError
+                ? `<span class="status-badge bg-danger text-white">Error</span>`
+                : `<span class="status-badge bg-success text-white"><i class="bi bi-check-circle me-1"></i>Found</span>`;
+
+            let bodyHtml = '';
+
+            if (hasError) {
+                bodyHtml = `<div class="text-danger small"><i class="bi bi-exclamation-triangle me-2"></i>${escapeHtml(result.error)}</div>`;
+            } else if (Object.keys(data.chainsMap).length === 0) {
+                bodyHtml = `<div class="text-muted text-center py-3"><i class="bi bi-inbox me-2"></i>No tokens found > $0.10</div>`;
+            } else {
+                // Render Chains
+                for (const chainId in data.chainsMap) {
+                    const chainData = data.chainsMap[chainId];
+                    const info = chainData.info;
+
+                    let tokensHtml = chainData.list.map(t => `
+                        <div class="token-row">
+                            <div>
+                                <span class="token-symbol">${escapeHtml(t.symbol)}</span>
+                                <small class="text-muted ms-2">${formatAmount(t.amount)}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="token-value">${formatUsd(t.val)}</span>
+                                <div class="small text-muted" style="font-size: 0.75rem;">@ ${formatUsd(t.price)}</div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    bodyHtml += `
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-1 mb-1">
+                                <span class="chain-badge" style="background-color: ${info.color}">${info.name}</span>
+                                <span class="fw-bold" style="color: ${info.color}; font-size: 0.9rem;">${formatUsd(chainData.total)}</span>
+                            </div>
+                            ${tokensHtml}
+                        </div>
+                    `;
+                }
+            }
+
+            const headerHtml = `
+                <div class="address-header" data-bs-toggle="collapse" data-bs-target="#collapse-${index}">
+                    <div class="d-flex flex-column">
+                        <div class="address-title mb-1">${escapeHtml(address)}</div>
+                        <div>${badgeHtml}</div>
+                    </div>
+                    <div class="address-total">
+                        ${hasError ? '--' : formatUsd(data.totalUsd)}
+                        <i class="bi bi-chevron-down ms-2 text-muted" style="font-size: 0.9rem;"></i>
+                    </div>
+                </div>
+                <div id="collapse-${index}" class="address-body collapse">
+                    ${bodyHtml}
+                </div>
+            `;
+
+            const card = document.createElement('div');
+            card.className = 'address-card';
+            card.dataset.val = hasError ? -1 : data.totalUsd;
+            card.innerHTML = headerHtml;
+
+            // Interaction to toggle arrow direction and expanded background
+            const headerObj = card.querySelector('.address-header');
+            const collapseObj = card.querySelector('.collapse');
+
+            $(collapseObj).on('show.bs.collapse', function () {
+                headerObj.classList.add('expanded');
+                headerObj.querySelector('.bi-chevron-down').classList.replace('bi-chevron-down', 'bi-chevron-up');
+            }).on('hide.bs.collapse', function () {
+                headerObj.classList.remove('expanded');
+                headerObj.querySelector('.bi-chevron-up').classList.replace('bi-chevron-up', 'bi-chevron-down');
+            });
+
+            $('#resultsList').append(card);
+        }
+
+        // ==========================================
+        //  MAIN LOGIC
+        // ==========================================
+        $(document).ready(function () {
+
+            $('#btnCheck').click(async function () {
+                const rawInput = $('#addressInput').val();
+                // Filter out empty lines and trim
+                const addresses = rawInput.split('\n')
+                    .map(a => a.trim())
+                    .filter(a => a.length > 10);
+
+                if (addresses.length === 0) {
+                    toastr.warning('Please enter valid wallet addresses');
+                    return;
+                }
+
+                // Reset UI
+                $('#resultsList').empty();
+                $('#resultsActions').show();
+                $('#btnCheck').prop('disabled', true);
+
+                let grandTotalUsd = 0;
+                let successCount = 0;
+
+                // Setup Overlay
+                $('#loadingOverlay').css('display', 'flex');
+                $('#progressBar').css('width', '0%');
+                $('#progressCount').text(`0/${addresses.length}`);
+                $('#statTotalAddr').text(addresses.length);
+
+                for (let i = 0; i < addresses.length; i++) {
+                    const address = addresses[i];
+                    $('#progressCount').text(`${i + 1}/${addresses.length}`);
+
+                    try {
+                        const tokens = await fetchBalancesForAddress(address);
+                        const processed = processTokens(tokens);
+
+                        grandTotalUsd += processed.totalUsd;
+                        successCount++;
+
+                        renderAddressCard(address, { data: processed }, i);
+                    } catch (err) {
+                        console.error(`Error processing ${address}:`, err);
+                        renderAddressCard(address, { error: err.message || "Failed to fetch balances" }, i);
+                    }
+
+                    // Update progress bar
+                    $('#progressBar').css('width', `${((i + 1) / addresses.length) * 100}%`);
+
+                    // Live update stats
+                    $('#statTotalUsd').text(formatUsd(grandTotalUsd));
+
+                    const rate = Math.round((successCount / (i + 1)) * 100);
+                    const rateEl = $('#statSuccessRate');
+                    rateEl.text(`${rate}%`);
+                    if (rate > 80) rateEl.css('color', 'var(--secondary)');
+                    else if (rate > 50) rateEl.css('color', '#eab308');
+                    else rateEl.css('color', '#ef4444');
+                }
+
+                // Sort DOM elements by value descending
+                let cards = $('.address-card').detach().toArray();
+                cards.sort((a, b) => parseFloat(b.dataset.val) - parseFloat(a.dataset.val));
+                $('#resultsList').append(cards);
+
+                // Done
+                setTimeout(() => {
+                    $('#loadingOverlay').fadeOut();
+                    $('#btnCheck').prop('disabled', false);
+                    toastr.success('Scan Completed!');
+                }, 500);
+            });
+
+            // Expand/Collapse All
+            $('#btnExpandAll').click(function () {
+                $('.address-card .collapse').collapse('show');
+            });
+            $('#btnCollapseAll').click(function () {
+                $('.address-card .collapse').collapse('hide');
+            });
+
+        });
+    </script>
+</body>
+
+</html>

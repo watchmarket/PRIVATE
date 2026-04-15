@@ -1,0 +1,3393 @@
+/* ==========================================================================
+   MULTIPLUS-SCANNER — Flat Minimalist Design System
+   ========================================================================== */
+
+:root {
+    /* — Semantic colors (konsisten dengan config.js) — */
+    --bs-primary: #2563eb;
+    --bs-secondary: #64748b;
+    --bs-success: #16a34a;
+    --bs-danger: #ef4444;
+    --bs-warning: #f59e0b;
+    --bs-info: #0891b2;
+    --bs-light: #f3f4f6;
+    --bs-dark: #656870;
+
+    /* — Surface palette (clean neutral) — */
+    --surface-0: #ffffff;
+    --surface-1: #f9fafb;
+    --surface-2: #f3f4f6;
+    --surface-3: #e5e7eb;
+
+    /* — Border — */
+    --border-color: #e5e7eb;
+    --border-strong: #d1d5db;
+    --border-focus: var(--bs-primary);
+
+    /* — Flat: NO shadows — */
+    --shadow-xs: none;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-focus: 0 0 0 2px rgba(37, 99, 235, 0.2);
+
+    /* — Accent border (left-border pattern) — */
+    --accent-width: 3px;
+    --accent-color: var(--bs-primary);
+
+    /* — Radii — sangat tipis untuk flat modern — */
+    --radius-xs: 2px;
+    --radius-sm: 3px;
+    --radius-md: 4px;
+    --radius-lg: 6px;
+    --radius-xl: 8px;
+
+    /* Aliased for compatibility */
+    --border-radius: var(--radius-md);
+    --border-radius-sm: var(--radius-sm);
+    --border-radius-lg: var(--radius-lg);
+
+    /* — Transitions (fast & purposeful) — */
+    --transition-fast: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    --transition-smooth: background-color 0.15s ease, border-color 0.15s ease;
+    --transition-slow: all 0.2s ease;
+
+    /* — Dark mode: solid, no blur — */
+    --glass-blur: 0px;
+
+    /* — Spacing rhythm — */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+}
+
+/* ==========================================================================
+   Text Color Mappings (Bootstrap-style)
+   ========================================================================== */
+.uk-text-primary {
+    color: var(--bs-primary) !important;
+}
+
+.uk-text-secondary {
+    color: var(--bs-secondary) !important;
+}
+
+.uk-text-success {
+    color: var(--bs-success) !important;
+}
+
+.uk-text-danger {
+    color: var(--bs-danger) !important;
+}
+
+.uk-text-warning {
+    color: var(--bs-warning) !important;
+}
+
+.uk-text-info {
+    color: var(--bs-info) !important;
+}
+
+.uk-text-light {
+    color: var(--bs-light) !important;
+}
+
+.uk-text-muted {
+    color: #3b3e43 !important;
+}
+
+.uk-text-dark {
+    color: var(--bs-dark) !important;
+}
+
+/* ==========================================================================
+   Base Styles - Flat Minimal Design
+   ========================================================================== */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    padding: 1px;
+    background-color: var(--surface-1);
+    color: #111827;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    min-height: 100vh;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override system dark mode preference */
+@media (prefers-color-scheme: dark) {
+    body:not(.dark-mode) {
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+    }
+}
+
+.uk-container {
+    max-width: 100%;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+a,
+.uk-link {
+    text-decoration: none;
+    color: var(--bs-primary);
+    transition: var(--transition-smooth);
+}
+
+a:hover,
+.uk-link:hover {
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+/* ==========================================================================
+   Flat Card Components — Zero shadow, accent border pattern
+   ========================================================================== */
+
+.header-card,
+#scanner-config,
+#filter-card,
+#token-management,
+.uk-card-default,
+.uk-modal-dialog {
+    background: var(--surface-0) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: none !important;
+    transition: var(--transition-smooth);
+}
+
+/* Header card: accent top + left untuk hierarki visual */
+.header-card {
+    padding: 8px 14px !important;
+    border-top: var(--accent-width) solid var(--accent-color) !important;
+    border-left: var(--accent-width) solid var(--accent-color) !important;
+    border-radius: var(--radius-md) !important;
+}
+
+/* Scanner config: accent left tipis */
+#scanner-config {
+    border-left: var(--accent-width) solid var(--surface-3) !important;
+}
+
+/* Hover: hanya border color berubah, NO transform, NO shadow */
+.header-card:hover,
+#scanner-config:hover,
+#filter-card:hover,
+.uk-card-hover:hover {
+    border-color: var(--border-strong) !important;
+    background: var(--surface-0) !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* ==========================================================================
+   Table Styles - Flat Design
+   ========================================================================== */
+.uk-overflow-auto,
+#monitoring-scroll {
+    max-height: calc(100vh - 220px);
+    background: var(--surface-0) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: none !important;
+    overflow: auto;
+}
+
+.uk-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.uk-table thead th {
+    border-bottom: 2px solid var(--border-strong);
+    color: inherit;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 8px 10px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.uk-table:not(.wallet-cex-table) thead th {
+    background: var(--surface-2) !important;
+    color: #000000 !important;
+    border-right: 1px solid var(--border-color);
+}
+
+.uk-table tbody td {
+    font-size: 11.5px;
+    padding: 6px;
+    white-space: normal;
+    vertical-align: middle;
+    transition: background-color 0.1s ease;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.uk-table tbody tr {
+    background-color: var(--surface-0);
+    transition: background-color 0.1s ease;
+}
+
+.uk-table tbody tr:nth-child(even) {
+    background-color: var(--surface-2);
+}
+
+.uk-table tbody tr:hover {
+    background-color: #eff6ff !important;
+    border-left: 2px solid var(--bs-primary);
+}
+
+/* Table column widths */
+.th-orderbook {
+    width: auto !important;
+    min-width: 140px;
+    border-left: 2px solid var(--bs-primary) !important;
+    border-right: 2px solid var(--bs-primary) !important;
+    background: #eff6ff !important;
+    color: var(--bs-primary) !important;
+}
+
+/* DETAIL column - Fixed width untuk menampilkan semua info tanpa terpotong */
+.th-detail {
+    width: 230px !important;
+    min-width: 230px !important;
+    max-width: 230px !important;
+}
+
+.td-detail {
+    width: 230px !important;
+    min-width: 230px !important;
+    max-width: 230px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    vertical-align: top !important;
+}
+
+.th-dex {
+    width: 115px !important;
+    min-width: 115px;
+}
+
+.td-dex {
+    width: auto !important;
+    min-width: 130px;
+    white-space: nowrap;
+}
+
+.td-orderbook {
+    min-width: 100px;
+    border-left: 2px solid rgba(37, 99, 235, 0.2) !important;
+    border-right: 2px solid rgba(37, 99, 235, 0.2) !important;
+    background: rgba(239, 246, 255, 0.4);
+}
+
+/* Orderbook scrollable content */
+.td-orderbook .orderbook-wrap {
+    display: inline-block;
+    max-width: clamp(160px, 16vw, 220px);
+}
+
+.td-orderbook .orderbook-scroll {
+    /* max-height: 110px; */
+    /* Dihapus untuk menghilangkan scroll */
+    padding: 2px;
+    scrollbar-width: thin;
+}
+
+.td-orderbook .orderbook-scroll::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+
+.td-orderbook .orderbook-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+#tabel-monitoring {
+    min-width: 1640px;
+    /* Total: 8 DEX x 115px (920px) + 2 ORDERBOOK x 160px (220px) + 1 DETAIL x 255px (255px) + borders/padding */
+    table-layout: auto;
+}
+
+.monitor-line {
+    display: block;
+    white-space: nowrap;
+}
+
+.detail-line {
+    display: block;
+    margin: 3px 2px;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: nowrap;
+}
+
+.dex-price-link {
+    text-decoration: none;
+}
+
+.dark-mode .dex-price-link:hover {
+    text-decoration: underline;
+}
+
+/* DEX status styling */
+.dex-slot-empty {
+    background-color: #f1f3f6;
+    text-align: center;
+    vertical-align: middle;
+    color: #94a3b8;
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.td-dex strong,
+.multi-sub strong {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.dex-status {
+    display: inline-block;
+    max-width: 100%;
+}
+
+.dex-status [uk-spinner] {
+    vertical-align: -2px;
+}
+
+.dex-status .uk-label {
+    margin: 0 2px;
+    padding: 2px 6px;
+    line-height: 1;
+    font-size: 11px;
+    border-radius: 4px;
+}
+
+.uk-label.uk-label-failed {
+    background-color: #7a7a7a;
+    color: #fff;
+}
+
+.dex-error {
+    background-color: #fee2e2 !important;
+    border: 2px solid #fca5a5 !important;
+}
+
+.dex-skip {
+    background-color: #e6e6e4 !important;
+}
+
+.row-hidden {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Form Controls - Rounded & Glass Effect
+   ========================================================================== */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select,
+button,
+.uk-input,
+.uk-select,
+.uk-textarea,
+.uk-button {
+    border-radius: var(--border-radius) !important;
+    transition: var(--transition-smooth);
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus,
+select:focus,
+.uk-input:focus,
+.uk-select:focus {
+    outline: none;
+    border-color: var(--bs-primary);
+    box-shadow: var(--shadow-focus);
+}
+
+input[type="checkbox"],
+.uk-checkbox {
+    border-radius: 3px !important;
+    accent-color: var(--bs-primary);
+}
+
+input[type="radio"],
+.uk-radio {
+    border-radius: 50% !important;
+    accent-color: var(--bs-primary);
+}
+
+.uk-button-group>.uk-button:first-child {
+    border-top-left-radius: var(--border-radius) !important;
+    border-bottom-left-radius: var(--border-radius) !important;
+}
+
+.uk-button-group>.uk-button:last-child {
+    border-top-right-radius: var(--border-radius) !important;
+    border-bottom-right-radius: var(--border-radius) !important;
+}
+
+/* ==========================================================================
+   Scanner Form Controls - Standardized Layout
+   ========================================================================== */
+.scanner-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.scanner-label input[type="checkbox"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.scanner-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: nowrap;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.scanner-control:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.scanner-control input[type="checkbox"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.scanner-control input[type="checkbox"]:checked {
+    accent-color: var(--bs-success);
+}
+
+.scanner-control span {
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+}
+
+.scanner-control-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.scanner-control-inline input.uk-input {
+    height: 28px;
+    /* padding: 4px 8px; */
+    font-size: 13px;
+}
+
+/* Auto Volume Level Input - Enhanced style */
+#autoVolLevelInput input {
+    font-weight: bold;
+    text-align: center;
+    border-width: 2px;
+    transition: all 0.2s ease;
+}
+
+#autoVolLevelInput input:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}
+
+/* Scanner Form - Compact spacing between groups */
+#FormScanner {
+    gap: 6px !important;
+}
+
+/* Reduce spacing specifically between SCANNER and AUTO groups */
+#FormScanner .scanner-label+.scanner-label {
+    margin-left: -2px;
+}
+
+.scanner-actions {
+    display: inline-flex;
+}
+
+.scanner-actions .uk-button {
+    height: 28px;
+    line-height: 28px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+/* Modern button styles */
+.uk-button-default {
+    background: var(--surface-2);
+    color: #374151;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xs);
+}
+
+.uk-button-default:hover {
+    background: var(--surface-3);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-sm);
+}
+
+.uk-button-primary {
+    background: var(--bs-primary);
+    border: 1px solid var(--bs-primary);
+    color: #fff;
+    box-shadow: none;
+}
+
+.uk-button-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    box-shadow: none;
+}
+
+.uk-button-secondary {
+    background: var(--bs-secondary);
+    border: 1px solid var(--bs-secondary);
+    color: #fff;
+    box-shadow: none;
+}
+
+.uk-button-secondary:hover {
+    background: #475569;
+    border-color: #475569;
+    box-shadow: none;
+}
+
+.uk-button-danger {
+    background: var(--bs-danger);
+    border: 1px solid var(--bs-danger);
+    color: #fff;
+    box-shadow: none;
+}
+
+.uk-button-danger:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    box-shadow: none;
+}
+
+.uk-button-success {
+    background: var(--bs-success);
+    border: 1px solid var(--bs-success);
+    color: #fff;
+    box-shadow: none;
+}
+
+.uk-button-success:hover {
+    background: #15803d;
+    border-color: #15803d;
+    box-shadow: none;
+}
+
+/* Force START button green */
+#startSCAN.uk-button {
+    background: var(--bs-success) !important;
+    border: 1px solid var(--bs-success) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+}
+
+#startSCAN.uk-button:hover:not(.uk-button-disabled):not([disabled]) {
+    background: #15803d !important;
+    border-color: #15803d !important;
+    box-shadow: none !important;
+}
+
+.uk-button-xxsmall {
+    line-height: 1.2;
+    padding: 3px 8px;
+    font-size: 12px;
+    border-radius: var(--border-radius) !important;
+}
+
+.uk-button-disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toggle-radio.active {
+    background-color: var(--bs-success);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+/* ==========================================================================
+   Icons & Interactive Elements
+   ========================================================================== */
+.icon {
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.12s ease;
+    opacity: 0.8;
+}
+
+.icon:hover {
+    transform: scale(1.1);
+    transform-origin: center center;
+    opacity: 1;
+}
+
+.toolbar-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+}
+
+.toolbar-scroll .icon {
+    flex: 0 0 auto;
+}
+
+/* Chain running indicator */
+.chain-link {
+    position: relative;
+}
+
+#multichain_scanner {
+    position: relative;
+    display: inline-block;
+}
+
+.run-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bs-success);
+    border: 2px solid #ffffff;
+    box-shadow: none;
+    z-index: 2;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 0.8;
+    }
+}
+
+/* ==========================================================================
+   Progress Bar - Flat
+   ========================================================================== */
+#progress-container {
+    width: 100%;
+    background: var(--surface-3);
+    border-radius: var(--radius-xs);
+    margin-top: 8px;
+    overflow: hidden;
+    box-shadow: none;
+}
+
+#progress-bar {
+    position: relative;
+    height: 10px;
+    width: 0%;
+    border-radius: var(--radius-xs);
+    background: var(--theme-accent, var(--bs-success));
+    background-image: linear-gradient(45deg,
+            rgba(255, 255, 255, 0.15) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.15) 50%,
+            rgba(255, 255, 255, 0.15) 75%,
+            transparent 75%,
+            transparent);
+    background-size: 1rem 1rem;
+    animation: progress-bar-stripes 1s linear infinite;
+    box-shadow: none;
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+#progress-text {
+    color: white;
+    text-align: center;
+    line-height: 10px;
+    display: block;
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.4px;
+}
+
+@keyframes progress-bar-stripes {
+    0% {
+        background-position: 1rem 0;
+    }
+
+    100% {
+        background-position: 0 0;
+    }
+}
+
+/* ==========================================================================
+   Signal Cards - Glassmorphism
+   ========================================================================== */
+#sinyal-container .signal-card_content {
+    min-height: 20px;
+    padding: 6px 4px;
+}
+
+.signal-card {
+    background: #ffffff !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: none;
+    overflow: hidden;
+    transition: var(--transition-smooth);
+}
+
+.signal-card:hover {
+    box-shadow: none;
+    border-color: var(--border-strong) !important;
+    transform: none;
+}
+
+.signal-card .uk-card-header {
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.signal-card .uk-card-body {
+    background: var(--surface-1) !important;
+    color: #111827 !important;
+}
+
+.signal-card__header {
+    min-height: 30px;
+}
+
+.signal-card__body {
+    padding-top: 6px !important;
+    padding-bottom: 8px !important;
+}
+
+.signal-card__content {
+    font-size: 13.5px;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+/* .signal-item .uk-text-success { color: #198754 !important; }
+.signal-item .uk-text-danger { color: #dc3545 !important; } */
+
+/* ==========================================================================
+   Modals - Glassmorphism
+   ========================================================================== */
+.uk-modal-dialog {
+    background: #ffffff !important;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.uk-modal-header {
+    background: var(--surface-1);
+    border-bottom: 1px solid var(--border-color);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+/* Modern scrollbar — global */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.35);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.6);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+}
+
+/* ==========================================================================
+   Loading Overlays - REMOVED (Using AppOverlay from overlay-manager.js)
+   ========================================================================== */
+/* #pageLoadingOverlay - REMOVED: Replaced by AppOverlay.show() */
+/* #loadingOverlay - REMOVED: Replaced by AppOverlay.show() */
+
+/* ==========================================================================
+   Floating Scroll Button - Flat Design
+   ========================================================================== */
+#btn-scroll-top {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    background: var(--bs-success);
+    color: #fff;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2000;
+    box-shadow: none;
+    transition: var(--transition-smooth);
+}
+
+#btn-scroll-top:hover {
+    background: #059669;
+}
+
+/* ==========================================================================
+   Onboarding Callouts
+   ========================================================================== */
+.cta-settings {
+    background: #e53935 !important;
+    border: 2px solid #b71c1c !important;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
+    transform: scale(1.35) !important;
+    animation: pulse-cta 1.2s infinite;
+}
+
+.cta-sync {
+    background: #ffebee !important;
+    border: 2px solid #e53935 !important;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
+    transform: scale(1.35) !important;
+    animation: pulse-cta 1.2s infinite;
+}
+
+/* Icon menu with red blinking background when data is missing */
+.icon-alert-missing {
+    position: relative;
+    animation: blink-red-bg 1.5s ease-in-out infinite !important;
+}
+
+.icon-alert-missing::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    bottom: -4px;
+    left: -4px;
+    background: rgba(229, 57, 53, 0.4);
+    border-radius: 50%;
+    z-index: -1;
+    animation: pulse-red-bg 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-cta {
+    0% {
+        box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 0 6px rgba(229, 57, 53, 0.35);
+    }
+
+    100% {
+        box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
+    }
+}
+
+@keyframes blink-red-bg {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 8px rgba(229, 57, 53, 0.8));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 16px rgba(229, 57, 53, 1));
+    }
+}
+
+@keyframes pulse-red-bg {
+
+    0%,
+    100% {
+        background: rgba(229, 57, 53, 0.3);
+        transform: scale(1);
+    }
+
+    50% {
+        background: rgba(229, 57, 53, 0.6);
+        transform: scale(1.1);
+    }
+}
+
+.cta-highlight {
+    outline: 2px dashed #ff9800;
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+.uk-form-xxsmall {
+    height: 28px;
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* ==========================================================================
+   SYNC MODAL - Compact Styling
+   ========================================================================== */
+#sync-modal .uk-table td,
+#sync-modal .uk-table th {
+    font-size: 12px;
+    padding: 4px 6px;
+}
+
+/* Compact modal dialog sizing */
+#sync-modal .uk-modal-dialog {
+    max-width: 90vw;
+}
+
+/* Compact modal header */
+#sync-modal .uk-modal-header {
+    padding: 10px 16px;
+}
+
+#sync-modal .uk-modal-header h4 {
+    font-size: 18px;
+    margin-bottom: 0;
+}
+
+#sync-modal .uk-modal-header .uk-text-meta {
+    font-size: 11px;
+}
+
+/* Compact modal body */
+#sync-modal .uk-modal-body {
+    padding: 10px 16px;
+}
+
+/* Compact snapshot info section */
+#sync-modal .uk-modal-body>.uk-flex.uk-text-small {
+    margin-bottom: 6px !important;
+    font-size: 11px;
+}
+
+/* Compact cards inside modal */
+#sync-modal .uk-card-body {
+    padding: 10px 12px;
+}
+
+/* Compact headings */
+#sync-modal h6.uk-heading-bullet {
+    font-size: 12px;
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+}
+
+/* Compact filter containers */
+#sync-modal #sync-filter-cex,
+#sync-modal #sync-filter-pair {
+    max-height: 120px;
+    gap: 4px;
+}
+
+/* Compact DEX config list - 1 DEX per row */
+#sync-modal #sync-dex-config {
+    max-height: 280px;
+    gap: 4px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Filter Harga & Wallet CEX side by side */
+#sync-modal .sync-filter-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+#sync-modal .sync-filter-row>div {
+    flex: 1;
+}
+
+#sync-modal .sync-filter-row h6 {
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+}
+
+/* Labels inside modal - larger font for readability */
+#sync-modal label {
+    font-size: 13px;
+}
+
+/* Compact radio buttons for filters */
+#sync-modal input[type="radio"],
+#sync-modal input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+}
+
+/* Compact inputs in DEX config */
+#sync-modal .uk-input.uk-form-small {
+    height: 24px;
+    padding: 2px 6px;
+    font-size: 11px;
+}
+
+/* Compact table container */
+#sync-modal .uk-overflow-auto {
+    max-height: 50vh;
+}
+
+/* Compact badge */
+#sync-modal .uk-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+}
+
+/* Compact non-config section */
+#sync-modal #sync-non-config {
+    padding: 6px 8px;
+}
+
+#sync-modal #sync-non-config h6 {
+    font-size: 11px;
+}
+
+#sync-modal #sync-non-config .uk-margin-small {
+    margin-top: 4px !important;
+    margin-bottom: 4px !important;
+}
+
+#sync-modal #sync-non-config .uk-form-label {
+    font-size: 10px;
+}
+
+/* Compact footer */
+#sync-modal .uk-modal-footer {
+    padding: 8px 16px;
+}
+
+#sync-modal .uk-modal-footer .uk-button-small {
+    padding: 4px 12px;
+    font-size: 12px;
+}
+
+/* Compact grid gaps */
+#sync-modal .uk-grid-small {
+    margin-left: -12px;
+}
+
+#sync-modal .uk-grid-small>* {
+    padding-left: 12px;
+}
+
+/* Compact table */
+#sync-table {
+    table-layout: auto;
+    width: 100%;
+}
+
+#sync-table thead th {
+    font-size: 11px;
+    padding: 4px 6px;
+}
+
+#sync-table tbody td {
+    font-size: 11px;
+    padding: 3px 6px;
+}
+
+/* ==========================================================================
+   Bulk Modal Editor (Profil Editor Modal) - 3-Column Grid Layout
+   ========================================================================== */
+
+/* Modal dialog: sized to fit columns comfortably */
+#bulk-modal-editor .uk-modal-dialog {
+    width: min(820px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+}
+
+/* When 3 columns visible: expand to fit */
+#bulk-modal-editor.has-meta-dex-active .uk-modal-dialog {
+    width: min(960px, calc(100vw - 24px));
+}
+
+#bulk-modal-editor .uk-modal-header {
+    padding: 10px 16px;
+}
+
+#bulk-modal-editor .uk-modal-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+#bulk-modal-editor .uk-text-meta {
+    font-size: 11px;
+}
+
+#bulk-modal-editor .uk-modal-body {
+    padding: 10px 14px;
+}
+
+#bulk-modal-editor .uk-alert {
+    padding: 7px 12px;
+    margin-bottom: 10px;
+}
+
+#bulk-modal-editor .uk-alert p {
+    font-size: 12px;
+}
+
+/* ─── 3-column CSS Grid ─────────────────────────────────────────────────── */
+/* Default (no META-DEX): 2 columns - filter + dex */
+.bulk-modal-grid {
+    display: grid;
+    grid-template-columns: 155px minmax(280px, 380px);
+    gap: 10px;
+    align-items: start;
+}
+
+/* When META-DEX column is visible: add class via JS → 3 equal-ish columns */
+.bulk-modal-grid.has-meta-dex {
+    grid-template-columns: 200px minmax(350px, 420px) 300px;
+}
+
+.bulk-col-filter {
+    min-width: 0;
+}
+
+.bulk-col-dex {
+    min-width: 0;
+}
+
+.bulk-col-meta {
+    min-width: 0;
+}
+
+/* ─── Inner card ─────────────────────────────────────────────────────────── */
+.bulk-inner-card {
+    padding: 10px 12px !important;
+    box-sizing: border-box;
+}
+
+/* ─── DEX list — no internal scroll, content flows naturally ─────────────── */
+.bulk-dex-scroll {
+    overflow: visible;
+    padding-right: 2px;
+}
+
+/* ─── Typography helpers ─────────────────────────────────────────────────── */
+.bulk-section-title {
+    font-size: 11px !important;
+    font-weight: 700;
+    margin-bottom: 6px !important;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.bulk-field-label {
+    font-size: 10px;
+    display: block;
+    margin-bottom: 3px;
+    color: #64748b;
+}
+
+.bulk-meta-dex-header {
+    margin-bottom: 8px;
+}
+
+/* ─── CEX Filter labels ──────────────────────────────────────────────────── */
+#bulk-modal-editor #bulk-filter-cex {
+    font-size: 11px;
+}
+
+#bulk-modal-editor #bulk-filter-cex label {
+    font-size: 11px;
+    padding: 2px 0;
+    line-height: 1.4;
+}
+
+/* ─── DEX card rows — compact padding ───────────────────────────────────── */
+#bulk-modal-editor .uk-card-body {
+    padding: 10px 12px !important;
+}
+
+/* DEX cards inside bulk-dex-inputs: super compact */
+#bulk-dex-inputs .uk-card {
+    margin-bottom: 3px !important;
+}
+
+#bulk-dex-inputs .uk-card .uk-card-body {
+    padding: 4px 8px !important;
+}
+
+#bulk-dex-inputs .uk-card:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* ─── Inputs ─────────────────────────────────────────────────────────────── */
+#bulk-modal-editor .uk-input,
+#bulk-modal-editor .uk-select {
+    height: 26px;
+    font-size: 12px;
+    padding: 2px 6px;
+}
+
+#bulk-modal-editor .uk-checkbox {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+/* Narrow number inputs for KIRI/KANAN */
+#bulk-dex-inputs .uk-input[type="number"],
+#bulk-meta-dex-inputs .uk-input[type="number"] {
+    width: 65px !important;
+    text-align: center;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
+#bulk-modal-editor .uk-button {
+    padding: 3px 8px !important;
+    font-size: 11px !important;
+    height: auto !important;
+    min-height: 22px !important;
+    line-height: 1.4 !important;
+}
+
+#bulk-modal-editor .uk-button-small {
+    padding: 3px 8px;
+    font-size: 11px;
+}
+
+#bulk-modal-editor .uk-button [uk-icon] {
+    width: 11px !important;
+    height: 11px !important;
+}
+
+#bulk-modal-editor .uk-modal-footer {
+    padding: 8px 14px;
+}
+
+#bulk-modal-editor .uk-modal-footer .uk-button {
+    padding: 5px 12px !important;
+    font-size: 12px !important;
+}
+
+/* ─── Margin utilities ───────────────────────────────────────────────────── */
+#bulk-modal-editor .uk-margin-small {
+    margin-bottom: 5px !important;
+}
+
+#bulk-modal-editor .uk-margin-small-top {
+    margin-top: 6px !important;
+}
+
+#bulk-modal-editor h6 {
+    font-size: 12px;
+    margin-bottom: 5px !important;
+}
+
+/* ─── Profile select full width ──────────────────────────────────────────── */
+#bulk-modal-editor #profile-select {
+    width: 100%;
+}
+
+/* ─── Filter Scanner Modal Titles & Chips ────────────────────────────────── */
+.filter-section-title {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 12px;
+    border-bottom: 2px solid #e5e5e5;
+    padding-bottom: 4px;
+}
+
+.filter-chip {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    background: white;
+    border: 2px solid transparent;
+    transition: var(--transition-smooth);
+}
+
+.filter-chip:hover {
+    background: #f1f5f9;
+}
+
+.filter-chip input[type="checkbox"] {
+    width: 11px;
+    height: 11px;
+    margin: 0;
+}
+
+.filter-chip .chip-label {
+    font-weight: 600;
+    font-size: 10px;
+}
+
+.filter-chip .chip-count {
+    font-size: 9px;
+    opacity: 0.7;
+    color: #555;
+}
+
+/* ─── Dark mode additions ────────────────────────────────────────────────── */
+.dark-mode .bulk-dex-scroll::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+
+.dark-mode .bulk-section-title {
+    color: #f1f5f9 !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Override inline colors for specific headers in dark mode */
+.dark-mode .bulk-section-title[style*="color"] {
+    color: #f8fafc !important;
+}
+
+.dark-mode .bulk-field-label {
+    color: #cbd5e1;
+}
+
+.dark-mode #bulk-modal-editor .uk-alert-primary {
+    background: rgba(37, 99, 235, 0.2) !important;
+    border: 1px solid rgba(37, 99, 235, 0.4) !important;
+    color: #f1f5f9 !important;
+}
+
+.dark-mode #bulk-modal-editor .uk-alert-primary strong,
+.dark-mode #bulk-modal-editor .uk-alert-primary .uk-text-bold {
+    color: #bfdbfe !important;
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+.uk-background {
+    background-color: var(--surface-2) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.buy {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.sell {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   DARK MODE — Flat Solid Surfaces
+   Depth hierarchy (L = luminance %):
+     Layer 0  body              #14172a  L≈11%  deepest  (bukan hitam pekat)
+     Layer 1  container/scroll  #1a1d2e  L≈14%  above body
+     Layer 2  table even rows   #141720  L≈10%  darker stripe
+     Layer 3  table odd rows    #1e2136  L≈15%  lighter stripe
+     Layer 4  card / modal      #424450  L≈18%  elevated surface
+     Layer 5  thead / elevated  #2b2f4e  L≈22%  header — always above rows
+   ========================================================================== */
+body.dark-mode {
+    background-color: #14172a;
+    color: #e5e7eb;
+}
+
+.dark-mode a,
+.dark-mode .uk-link {
+    color: #60a5fa;
+}
+
+.dark-mode .uk-card-default,
+.dark-mode .header-card,
+.dark-mode #scanner-config,
+.dark-mode #filter-card,
+.dark-mode #token-management,
+.dark-mode .uk-modal-dialog {
+    background: #424450 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e5e7eb;
+    box-shadow: none;
+}
+
+.dark-mode .header-card {
+    border-top: 3px solid #60a5fa !important;
+}
+
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode h6,
+.dark-mode .uk-modal-title {
+    color: #f1f5f9 !important;
+}
+
+.dark-mode .uk-overflow-auto,
+.dark-mode #monitoring-scroll {
+    background: #1a1d2e !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none;
+}
+
+.dark-mode .uk-table thead th {
+    background: #2b2f4e !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.14) !important;
+    color: #e2e8f0 !important;
+    letter-spacing: 0.4px;
+}
+
+.dark-mode .th-orderbook {
+    background: #1e3464 !important;
+    color: #93c5fd !important;
+    border-left: 2px solid #3b82f6 !important;
+    border-right: 2px solid #3b82f6 !important;
+}
+
+.dark-mode .td-orderbook {
+    background: rgba(59, 130, 246, 0.07) !important;
+    border-left: 2px solid rgba(59, 130, 246, 0.22) !important;
+    border-right: 2px solid rgba(59, 130, 246, 0.22) !important;
+}
+
+.dark-mode .uk-table tbody tr {
+    background-color: #3c3c41;
+}
+
+.dark-mode .uk-table tbody tr:nth-child(even) {
+    background-color: #4b4b51;
+}
+
+.dark-mode .uk-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-left: 2px solid #959799;
+    box-shadow: none;
+}
+
+.dark-mode .uk-table tbody td {
+    border-color: rgba(255, 255, 255, 0.04);
+    color: #e2e8f0;
+}
+
+.dark-mode .uk-button-default {
+    background: #252840;
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+}
+
+.dark-mode .uk-button-default:hover {
+    background: #616269;
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+}
+
+.dark-mode .uk-button-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    box-shadow: none;
+}
+
+.dark-mode .uk-button-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+.dark-mode .uk-button-secondary {
+    background: #4b5563;
+    border-color: #4b5563;
+    box-shadow: none;
+}
+
+.dark-mode .uk-button-secondary:hover {
+    background: #374151;
+    border-color: #374151;
+}
+
+.dark-mode .signal-card {
+    background: #424450 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none;
+}
+
+.dark-mode .signal-card .uk-card-body {
+    background: #232638 !important;
+    color: #e2e8f0 !important;
+}
+
+.dark-mode .signal-card .uk-card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark-mode .signal-item .uk-text-success {
+    color: #4ade80 !important;
+}
+
+.dark-mode .signal-item .uk-text-danger {
+    color: #f87171 !important;
+}
+
+.dark-mode .signal-item .uk-text-muted {
+    color: #94a3b8 !important;
+}
+
+.dark-mode .filter-section-title {
+    color: #ffffff !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .filter-chip {
+    background: #334155 !important;
+    border-color: transparent;
+}
+
+.dark-mode .filter-chip:hover {
+    background: #475569 !important;
+}
+
+.dark-mode .filter-chip span[style*="color:#555"] {
+    color: #cbd5e1 !important;
+}
+
+.dark-mode .filter-chip[style*="background:#f8f8f8"],
+.dark-mode .filter-chip[style*="background:white"] {
+    background: #334155 !important;
+}
+
+/* ── Global text color overrides for dark mode ── */
+/* uk-text-dark dipakai di dom-renderer untuk counter badge & SW fee */
+.dark-mode .uk-text-dark {
+    color: #cbd5e1 !important;
+}
+
+/* Primary: #2563eb terlalu gelap di dark bg, ganti ke biru terang */
+.dark-mode .uk-text-primary {
+    color: #60a5fa !important;
+}
+
+/* Success: #16a34a kontras ~3.2:1 di dark, ganti ke hijau terang */
+.dark-mode .uk-text-success {
+    color: #4ade80 !important;
+}
+
+/* Danger: #ef4444 kontras OK, sedikit lebih terang agar konsisten */
+.dark-mode .uk-text-danger {
+    color: #f87171 !important;
+}
+
+/* Warning: #f59e0b OK tapi sedikit lebih terang */
+.dark-mode .uk-text-warning {
+    color: #fbbf24 !important;
+}
+
+/* Info: #0891b2 kontras ~2.5:1 di dark — terlalu gelap */
+.dark-mode .uk-text-info {
+    color: #22d3ee !important;
+}
+
+.dark-mode .uk-text-muted {
+    color: #94a3b8 !important;
+}
+
+.dark-mode span.uk-text-secondary,
+.dark-mode .uk-text-secondary {
+    color: #9ca3af !important;
+}
+
+.dark-mode .uk-badge {
+    background: #252840;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+}
+
+.dark-mode .uk-label.uk-label-warning {
+    background-color: #d97706;
+    color: #fff;
+}
+
+.dark-mode .uk-label.uk-label-danger {
+    background-color: #dc2626;
+    color: #fff;
+}
+
+.dark-mode .uk-label.uk-label-failed {
+    background-color: #6b7280;
+    color: #fff;
+}
+
+.dark-mode .dex-error {
+    background-color: #5a1515 !important;
+    border-left: 2px solid rgba(248, 113, 113, 0.5) !important;
+}
+
+.dark-mode .dex-skip {
+    background-color: #46401e !important;
+    border-left: 2px solid rgba(234, 179, 8, 0.4) !important;
+    color: #fbbf24;
+}
+
+.dark-mode .dex-slot-empty {
+    background-color: #1e2136;
+    color: #64748b;
+}
+
+.dark-mode .scanner-control:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.dark-mode .scanner-label {
+    color: #e2e8f0;
+}
+
+.dark-mode .dex-cell-highlight {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    color: #0f172a !important;
+    font-weight: 700;
+}
+
+.dark-mode #progress-container {
+    background: #1a1d2e;
+    box-shadow: none;
+}
+
+.dark-mode #progress-bar {
+    background: #3b82f6;
+    box-shadow: none;
+}
+
+.dark-mode .buy {
+    color: #4ade80;
+}
+
+.dark-mode .sell {
+    color: #f87171;
+}
+
+.dark-mode #infoAPP {
+    color: #fbbf24 !important;
+}
+
+.dark-mode .uk-background {
+    background-color: #424450 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .toggle-radio.active {
+    background-color: #3b82f6;
+    color: #fff;
+    box-shadow: none;
+}
+
+.dark-mode .run-dot {
+    border-color: #0d0f12;
+    box-shadow: none;
+}
+
+/* .dark-mode #pageLoadingOverlay - REMOVED: Using AppOverlay instead */
+
+.dark-mode .uk-modal-header {
+    background: #252840;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dark-mode input:not([type="checkbox"]):not([type="radio"]),
+.dark-mode textarea,
+.dark-mode select,
+.dark-mode .uk-input,
+.dark-mode .uk-select {
+    background: #1a1d2e;
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.dark-mode input:focus,
+.dark-mode textarea:focus,
+.dark-mode select:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+.dark-mode .td-orderbook .orderbook-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Form labels */
+.dark-mode .uk-form-label,
+.dark-mode label {
+    color: #cbd5e1;
+}
+
+/* Select option background (for OS-native dropdowns) */
+.dark-mode select option {
+    background: #1e2026;
+    color: #e2e8f0;
+}
+
+/* Nav & Tabs */
+.dark-mode .uk-nav-default>li>a,
+.dark-mode .uk-navbar-nav>li>a {
+    color: #cbd5e1;
+}
+
+.dark-mode .uk-nav-default>li>a:hover,
+.dark-mode .uk-navbar-nav>li>a:hover {
+    color: #f1f5f9;
+}
+
+.dark-mode .uk-tab>li>a {
+    color: #94a3b8;
+    border-bottom-color: transparent;
+}
+
+.dark-mode .uk-tab>li.uk-active>a {
+    color: #60a5fa;
+    border-bottom: 2px solid #60a5fa;
+}
+
+/* Horizontal rule */
+.dark-mode hr,
+.dark-mode .uk-divider-small::after,
+.dark-mode .uk-divider-icon::before,
+.dark-mode .uk-divider-icon::after {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Tooltip */
+.dark-mode .uk-tooltip {
+    background: #262830;
+    color: #e2e8f0;
+}
+
+/* Modal footer */
+.dark-mode .uk-modal-footer {
+    background: #424450;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Close button */
+.dark-mode .uk-modal-close-default,
+.dark-mode .uk-close {
+    color: #94a3b8;
+}
+
+.dark-mode .uk-modal-close-default:hover,
+.dark-mode .uk-close:hover {
+    color: #f1f5f9;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+#judul {
+    font-size: clamp(16px, 2.2vw, 20px) !important;
+}
+
+@media (max-width: 1600px) {
+    .td-orderbook {
+        width: 96px;
+        max-width: 106px;
+    }
+
+    .th-detail,
+    .td-detail {
+        width: 240px !important;
+        min-width: 240px !important;
+        max-width: 240px !important;
+    }
+}
+
+@media (max-width: 1366px) {
+    .td-orderbook {
+        width: 92px;
+        max-width: 100px;
+        font-size: 11.5px;
+    }
+
+    .th-detail,
+    .td-detail {
+        width: 215px !important;
+        min-width: 215px !important;
+        max-width: 215px !important;
+        font-size: 11.5px;
+    }
+
+    #tabel-monitoring td {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 960px) {
+    .uk-table tbody td {
+        font-size: 11px;
+        padding: 6px 8px;
+    }
+
+    .uk-table thead th {
+        font-size: 11px;
+    }
+
+    .signal-card__content {
+        font-size: 12.5px;
+    }
+
+    .signal-card__body {
+        padding: 6px 8px !important;
+    }
+
+    .uk-container {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    #iframe-container iframe {
+        height: 60vh;
+    }
+
+    .header-card {
+        padding: 6px 10px !important;
+    }
+
+    #tabel-monitoring thead th:nth-child(1),
+    #tabel-monitoring tbody td:nth-child(1),
+    #tabel-monitoring thead th:nth-child(11),
+    #tabel-monitoring tbody td:nth-child(11) {
+        display: table-cell !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .uk-table tbody td {
+        font-size: 10.5px;
+        padding: 5px 6px;
+    }
+
+    #progress-bar {
+        height: 14px;
+    }
+
+    #progress-text {
+        line-height: 14px;
+        font-size: 10px;
+    }
+
+    .signal-card__content {
+        font-size: 12px;
+    }
+
+    .signal-card__header {
+        padding: 6px 8px !important;
+    }
+}
+
+/* ==========================================================================
+   Toast Notifications
+   ========================================================================== */
+#toast-container.toast-top-right {
+    top: 12px !important;
+    right: 12px !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none;
+}
+
+/* History badge */
+.hist-badge-fail {
+    background-color: #b3261e !important;
+    color: #fff !important;
+    margin-left: 6px;
+}
+
+.dark-mode .hist-badge-fail {
+    background-color: #d32f2f !important;
+}
+
+/* ==========================================================================
+   Compact Filter Styles - Checkbox Inline Version
+   ========================================================================== */
+.filter-compact-container {
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-groups-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+/* Filter Group Sections */
+.filter-groups-inline>div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Filter Section Label (CHAIN, CEX, DEX, PAIR) */
+.filter-groups-inline>div>span:first-child,
+.filter-groups-inline>div>b:first-child {
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1.4;
+    margin-right: 2px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Separator */
+.filter-groups-inline .uk-text-muted {
+    color: #999;
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 0 4px;
+    vertical-align: middle;
+}
+
+/* Checkbox Label - More Compact */
+.filter-groups-inline label {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 2px 5px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.filter-groups-inline label:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--bs-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+/* Checkbox input */
+.filter-groups-inline label input[type="checkbox"] {
+    margin: 0;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+/* Label text and count */
+.filter-groups-inline label span {
+    font-weight: 600;
+    line-height: 1.4;
+    vertical-align: middle;
+}
+
+/* Checked state - Colors are now applied dynamically via JavaScript (Opsi 4) */
+.filter-groups-inline label:has(input:checked) {
+    /* Background and border colors are set by JS from config */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    /* font-weight: 700; */
+}
+
+.filter-groups-inline label:has(input:checked):hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Summary Section - Applied to JavaScript-injected elements */
+#filter-right-group {
+    padding: 4px 12px;
+    background: rgba(13, 110, 253, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(13, 110, 253, 0.2);
+    white-space: nowrap;
+}
+
+#filter-summary {
+    color: var(--bs-primary) !important;
+    font-size: 12px !important;
+    font-weight: bold !important;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .filter-groups-inline label {
+    background: #252840;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #e5e7eb;
+}
+
+body.dark-mode .filter-groups-inline label:hover {
+    background: #2e3254;
+    border-color: #60a5fa;
+}
+
+body.dark-mode .filter-groups-inline label:has(input:checked) {
+    /* Colors are set by JS from config */
+    box-shadow: none;
+}
+
+body.dark-mode #filter-right-group {
+    background: #172554;
+    border-color: #2563eb;
+}
+
+body.dark-mode #filter-summary {
+    color: #60a5fa !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+    .filter-compact-container {
+        gap: 8px;
+        padding: 5px 8px;
+    }
+
+    .filter-groups-inline {
+        gap: 6px;
+    }
+
+    .filter-groups-inline label {
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+
+    .filter-groups-inline label input[type="checkbox"] {
+        width: 12px;
+        height: 12px;
+    }
+
+    .filter-groups-inline>div>span:first-child,
+    .filter-groups-inline>div>b:first-child {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 640px) {
+    .filter-summary-inline {
+        flex: 1 1 100%;
+        margin-left: 0;
+        margin-top: 6px;
+        text-align: center;
+    }
+
+    .filter-groups-inline label {
+        font-size: 9px;
+        padding: 2px 5px;
+    }
+}
+
+/* ==========================================================================
+   Additional Refinements
+   ========================================================================== */
+#infoAPP {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+#infoAPP span {
+    vertical-align: middle;
+    line-height: inherit;
+}
+
+#sinyal-container .no-signal-placeholder {
+    border: 0;
+    background: transparent;
+}
+
+/* Unified panel borders */
+#menu-app,
+#filter-card,
+#scanner-config,
+#monitoring-scroll,
+.signal-card {
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+}
+
+body.dark-mode #menu-app,
+body.dark-mode #filter-card,
+body.dark-mode #scanner-config,
+body.dark-mode #monitoring-scroll,
+body.dark-mode .signal-card {
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ==========================================================================
+   Update Wallet Exchanger Section
+   ========================================================================== */
+#update-wallet-section {
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.wallet-cex-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.wallet-cex-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.wallet-cex-card.selected {
+    border: 2px solid var(--bs-primary);
+    background: rgba(13, 110, 253, 0.05);
+}
+
+.wallet-cex-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.wallet-cex-header:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.wallet-cex-name {
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wallet-cex-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.wallet-cex-grid-item {
+    display: flex;
+}
+
+.wallet-cex-grid-item>.wallet-cex-card {
+    width: 100%;
+}
+
+.wallet-cex-table-wrapper {
+    max-height: 420px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.wallet-cex-table {
+    width: 100%;
+    font-size: 12px;
+    margin: 0;
+}
+
+.wallet-cex-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    /* Background color akan diset oleh inline style dari JavaScript menggunakan warna chain */
+}
+
+.wallet-cex-table thead th {
+    background: inherit !important;
+    color: inherit !important;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.wallet-cex-table th {
+    padding: 6px 8px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.wallet-cex-table td {
+    padding: 6px 8px;
+    text-align: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.wallet-cex-table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.wallet-status-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.wallet-status-on {
+    background: #d4edda;
+    color: #155724;
+}
+
+.wallet-status-off {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.wallet-status-loading {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .wallet-cex-card {
+    background: #424450;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .wallet-cex-card.selected {
+    background: #172554;
+    border-color: var(--bs-primary);
+}
+
+body.dark-mode .wallet-cex-header {
+    background: #252840;
+}
+
+body.dark-mode .wallet-cex-header:hover {
+    background: #2e3252;
+}
+
+body.dark-mode .wallet-cex-table-wrapper {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+
+body.dark-mode .wallet-cex-table th,
+body.dark-mode .wallet-cex-table td {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .wallet-cex-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+#sync-overlay {
+    /* 1. Atur posisi untuk menutupi seluruh layar */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    /* 2. Pastikan berada di lapisan paling atas */
+    z-index: 9999;
+
+    /* 3. Beri background untuk menangkap klik (ini yang paling penting) */
+    /*    Gunakan warna semi-transparan untuk efek "freeze" */
+    background-color: rgba(0, 0, 0, 0.5);
+
+    /* 4. Pastikan pointer-events tidak diatur ke 'none' */
+    pointer-events: auto;
+
+    /* Styling tambahan untuk konten di tengah (sudah ada di kode Anda) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==========================================================================
+   DATABASE VIEWER - Refactored Styles
+   ========================================================================== */
+.db-viewer-header {
+    text-align: center;
+    padding: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 16px;
+}
+
+.db-viewer-header h2 {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--theme-accent, #5c9514);
+}
+
+.db-viewer-header p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.db-stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 12px;
+}
+
+.db-stat-item {
+    text-align: center;
+}
+
+.db-stat-item .label {
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    display: block;
+}
+
+.db-stat-item .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+}
+
+.db-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.db-toolbar-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.db-table-card {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    /* New: Add accent color from chain */
+    border-left: 4px solid var(--card-accent-color, #667eea);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.db-table-card.expanded {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.db-table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.02);
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+.expanded .db-table-header {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+    background: transparent;
+}
+
+.db-table-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--card-accent-color, #333);
+}
+
+.db-table-title strong {
+    text-transform: uppercase;
+}
+
+.db-table-title strong.multichain-highlight {
+    color: #16a34a;
+}
+
+.db-table-card.expanded .db-table-title strong.multichain-highlight {
+    color: #22c55e;
+}
+
+body.dark-mode .db-table-title strong.multichain-highlight {
+    color: #4ade80;
+}
+
+body.dark-mode .db-table-card.expanded .db-table-title strong.multichain-highlight {
+    color: #86efac;
+}
+
+.db-table-title .uk-badge {
+    background-color: var(--card-accent-color, #1e87f0);
+}
+
+.db-table-content {
+    padding: 14px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.db-table-summary {
+    display: flex;
+    gap: 16px;
+    padding: 8px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 13px;
+}
+
+.db-data-table {
+    font-size: 12px;
+}
+
+.db-data-table thead th {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.db-data-table thead th:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.db-data-table .sort-indicator {
+    font-size: 0.8em;
+    margin-left: 4px;
+    color: var(--card-accent-color, #333);
+}
+
+/* Dark Mode for Database Viewer */
+body.dark-mode .db-viewer-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .db-viewer-header p {
+    color: #aaa;
+}
+
+body.dark-mode .db-stat-item .label {
+    color: #999;
+}
+
+body.dark-mode .db-stat-item .value {
+    color: #eee;
+}
+
+body.dark-mode .db-toolbar {
+    background: #282828;
+}
+
+body.dark-mode .db-table-card {
+    background: #2c2c2e;
+    border-color: rgba(255, 255, 255, 0.1);
+    border-left-color: var(--card-accent-color, #667eea);
+}
+
+body.dark-mode .expanded .db-table-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .db-table-content {
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .db-table-summary {
+    background: #2a2a2c;
+}
+
+body.dark-mode .db-table-title {
+    color: var(--card-accent-color, #eee);
+}
+
+body.dark-mode .db-table-title .uk-badge {
+    background-color: var(--card-accent-color, #1e87f0);
+}
+
+/* ==========================================================================
+   DZAP Multi-DEX Styling
+   ========================================================================== */
+
+/* DZAP badge color */
+.bg-dzap {
+    background-color: #ff6b35 !important;
+    color: white !important;
+}
+
+/* LIFI badge color (JUMPER MetaDex) */
+.bg-lifi {
+    background-color: #bf0cff !important;
+    color: white !important;
+}
+
+/* LIFI DEX standalone badge color (via Temple API) */
+.bg-lifidex {
+    background-color: #e44be8 !important;
+    color: white !important;
+}
+
+/* Rango: definitive di bawah — duplikat dihapus */
+
+/* Relay badge color */
+.bg-relay {
+    background-color: #6c5ce7 !important;
+    color: white !important;
+}
+
+/* Rubic: definitive di bawah — duplikat dihapus */
+
+/* Jupiter badge color (Solana DEX) */
+.bg-jupiter {
+    background-color: #c7f284 !important;
+    color: #1a1a1a !important;
+}
+
+/* Kamino badge color (Solana Multi-DEX Aggregator) */
+.bg-kamino {
+    background-color: #7c3aed !important;
+    color: white !important;
+}
+
+/* Meta-Aggregator Badges */
+.bg-rubic {
+    background-color: #7c3aed !important;
+    color: white !important;
+}
+
+.bg-rango {
+    background-color: #00d4aa !important;
+    color: white !important;
+}
+
+/* LBank CEX badge color */
+.bg-lbank {
+    background-color: #3461ff !important;
+    color: white !important;
+}
+
+/* Sushi badge color */
+.bg-sushi {
+    background-color: #fa52a0 !important;
+    color: white !important;
+}
+
+/* Velora badge color */
+.bg-velora {
+    background-color: #1c64f2 !important;
+    color: white !important;
+}
+
+/* Warning button style (UIkit extension) */
+.uk-button-warning {
+    background-color: var(--bs-warning) !important;
+    color: #fff !important;
+    border: 1px solid var(--bs-warning) !important;
+}
+
+.uk-button-warning:hover,
+.uk-button-warning:focus {
+    background-color: #d97706 !important;
+    border-color: #d97706 !important;
+    color: #fff !important;
+}
+
+/* Solana chain badge color */
+.bg-solana {
+    background-color: #d483f4 !important;
+    color: #1a1a1a !important;
+}
+
+/* META-DEX cell dengan sub-kolom horizontal (LIFI, RANGO, METAX, dll) */
+.td-dex-multi {
+    min-width: 230px !important;
+    width: auto !important;
+    /* biarkan konten menentukan lebar */
+    padding: 4px !important;
+}
+
+/* Setiap sub-kolom META-DEX — lebar minimal sama dengan DEX biasa (115px) */
+.multi-sub {
+    min-width: 110px;
+    white-space: nowrap;
+}
+
+.dzap-header {
+    font-weight: bold;
+    font-size: 0.85em;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 2px;
+    text-align: center;
+}
+
+.dzap-subcols {
+    display: flex;
+    justify-content: space-around;
+    gap: 4px;
+    align-items: stretch;
+}
+
+.dzap-sub {
+    flex: 1;
+    min-width: 70px;
+    padding: 3px;
+    text-align: center;
+    font-size: 0.8em;
+    border-right: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+.dzap-sub:last-child {
+    border-right: none;
+}
+
+.dzap-sub:hover {
+    background-color: rgba(255, 107, 53, 0.1);
+}
+
+.sub-dex-name {
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-bottom: 2px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sub-dex-status {
+    font-size: 0.85em;
+    line-height: 1.2;
+}
+
+/* Dark mode support for DZAP */
+body.dark-mode .dzap-header {
+    border-bottom-color: #444;
+    color: #eee;
+}
+
+body.dark-mode .dzap-sub {
+    border-right-color: #444;
+}
+
+body.dark-mode .dzap-sub:hover {
+    background-color: rgba(255, 107, 53, 0.2);
+}
+
+body.dark-mode .sub-dex-name {
+    color: #ddd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+    .td-dex-multi {
+        min-width: 180px !important;
+        width: auto !important;
+    }
+
+    .multi-sub {
+        min-width: 90px;
+    }
+
+    .dzap-sub {
+        min-width: 60px;
+        font-size: 0.75em;
+    }
+}
+
+
+/* ==========================================================================
+   Scanner Filter Modal - Compact Styling
+   ========================================================================== */
+#scanner-filter-modal .uk-modal-dialog {
+    box-shadow: none;
+}
+
+#modal-filter-sections label {
+    font-size: 12px !important;
+    padding: 3px 6px;
+    margin: 2px;
+}
+
+#modal-filter-sections label span {
+    font-size: 12px !important;
+}
+
+#modal-filter-sections .uk-checkbox {
+    width: 14px;
+    height: 14px;
+}
+
+#modal-filter-sections>div {
+    gap: 6px !important;
+    margin-bottom: 10px;
+}
+
+/* ── Dark mode overrides for JS-generated inline styles ──────────────────── */
+
+/* Section titles: color:#333 hardcoded di JS → invisible on dark bg */
+.dark-mode #modal-filter-sections>div>div:first-child {
+    color: #93c5fd !important;
+    border-bottom-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* META-DEX title uses color:#7c3aed (purple) — brighten agar terbaca */
+.dark-mode #modal-filter-sections>div>div:first-child[style*="7c3aed"] {
+    color: #c4b5fd !important;
+}
+
+/* Chip labels: background:white hardcoded di JS → putih di dark mode */
+.dark-mode #modal-filter-sections label.fc-chain,
+.dark-mode #modal-filter-sections label.fc-cex,
+.dark-mode #modal-filter-sections label.fc-dex,
+.dark-mode #modal-filter-sections label.sc-cex,
+.dark-mode #modal-filter-sections label.sc-pair,
+.dark-mode #modal-filter-sections label.sc-dex {
+    background: #252840 !important;
+    border-width: 2px;
+    border-style: solid;
+}
+
+/* Chip label count "[n]": color:#555 borderline di dark */
+.dark-mode #modal-filter-sections label span:last-child {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+}
+
+#modal-summary-bar span {
+    font-size: 13px;
+}
+
+/* ==========================================================================
+   Calculator Icon - Always Accessible
+   ========================================================================== */
+
+#openCalculatorModal {
+    pointer-events: all !important;
+    cursor: pointer !important;
+    z-index: 100 !important;
+    opacity: 1 !important;
+}
+
+/* Prevent icon from being dimmed during scan */
+#openCalculatorModal.icon {
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+/* Override any global dimming during scan */
+.header-card #openCalculatorModal {
+    pointer-events: all !important;
+    opacity: 1 !important;
+}
+
+/* ==========================================================================
+   Calculator Modal Styles
+   ========================================================================== */
+
+#calculator-modal .uk-modal-dialog {
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(160deg, #f8f9fa, #e9ecef);
+}
+
+#calculator-modal .uk-modal-body {
+    padding: clamp(18px, 2vw, 28px);
+}
+
+#calculator-modal .uk-form-label {
+    font-weight: 600;
+    color: #495057;
+    min-width: 60px;
+    display: inline-block;
+}
+
+#calculator-modal .uk-input {
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+#calculator-modal .uk-input:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#calculator-modal .uk-input[readonly] {
+    background-color: #e9ecef !important;
+    cursor: not-allowed;
+}
+
+#calculator-modal .uk-input:not([readonly]):not([disabled]) {
+    background-color: #ffffff !important;
+}
+
+#calculator-modal .dynamic-input {
+    background: #ffffff;
+    padding: 8px 12px;
+}
+
+#calculator-modal .uk-button-group {
+    display: flex;
+    gap: 8px;
+}
+
+#calculator-modal .uk-heading-divider {
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding-bottom: 10px;
+}
+
+/* Responsive adjustments for calculator modal */
+@media (max-width: 768px) {
+    #calculator-modal .uk-form-label {
+        min-width: 50px;
+        font-size: 0.85rem;
+    }
+
+    #calculator-modal .uk-input {
+        font-size: 0.85rem;
+    }
+
+    #calculator-modal .uk-modal-dialog {
+        width: 95vw;
+        max-width: 95vw;
+    }
+}
+
+/* ==========================================================================
+   CEX Badge Colors (from config.js WARNA)
+   ========================================================================== */
+.bg-binance {
+    background-color: #e0a50c !important;
+    color: white !important;
+}
+
+.bg-mexc {
+    background-color: #1448ce !important;
+    color: white !important;
+}
+
+.bg-gateio {
+    background-color: #D5006D !important;
+    color: white !important;
+}
+
+.bg-bybit {
+    background-color: #f29900 !important;
+    color: white !important;
+}
+
+.bg-bitget {
+    background-color: #1aaaba !important;
+    color: white !important;
+}
+
+.bg-kucoin {
+    background-color: #29b3af !important;
+    color: white !important;
+}
+
+.bg-indodax {
+    background-color: #1285b5 !important;
+    color: white !important;
+}
+
+/* HTX — dari CONFIG_CEX.HTX.WARNA = #008cd6 */
+.bg-htx {
+    background-color: #008cd6 !important;
+    color: white !important;
+}
+
+/* ==========================================================================
+   DEX Badge Colors (from config.js WARNA)
+   ========================================================================== */
+.bg-kyberswap {
+    background-color: #0b7e18 !important;
+    color: white !important;
+}
+
+.bg-okxdex,
+.bg-okx {
+    background-color: #000000 !important;
+    color: white !important;
+}
+
+.bg-flytrade {
+    background-color: #7d2ff4 !important;
+    color: white !important;
+}
+
+.bg-matcha {
+    background-color: #61ee73 !important;
+    color: #1a1a1a !important;
+}
+
+.bg-odos {
+    background-color: #6e2006 !important;
+    color: white !important;
+}
+
+/* 1inch badge color */
+.bg-1inch {
+    background-color: #2f8af5 !important;
+    color: white !important;
+}
+
+.bg-dflow {
+    background-color: #00d4aa !important;
+    color: #1a1a1a !important;
+}
+
+/* ==========================================================================
+   Chain Badge Colors (from config.js WARNA)
+   ========================================================================== */
+.bg-bsc {
+    background-color: #f0af18 !important;
+    color: #1a1a1a !important;
+}
+
+.bg-polygon {
+    background-color: #cd72f4 !important;
+    color: white !important;
+}
+
+.bg-arbitrum {
+    background-color: #a6b0c3 !important;
+    color: #1a1a1a !important;
+}
+
+.bg-ethereum {
+    background-color: #8098ee !important;
+    color: white !important;
+}
+
+.bg-base {
+    background-color: #1e46f9 !important;
+    color: white !important;
+}
+
+/* ==========================================================================
+   Form Input Standardization - Consistent Sizing
+   ========================================================================== */
+input.uk-input,
+select.uk-select,
+textarea.uk-textarea,
+.uk-form-small {
+    height: 32px;
+    padding: 4px 10px;
+    font-size: 13px;
+    border-radius: var(--border-radius-sm) !important;
+    font-family: inherit;
+}
+
+textarea.uk-textarea {
+    height: auto;
+    min-height: 64px;
+}
+
+input[type="checkbox"].uk-checkbox,
+input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+input[type="radio"].uk-radio,
+input[type="radio"] {
+    width: 14px;
+    height: 14px;
+}
+
+.uk-button {
+    border-radius: var(--border-radius-sm) !important;
+    font-weight: 500;
+    font-family: inherit;
+}
+
+.uk-button-small {
+    height: 28px;
+    line-height: 26px;
+    padding: 0 12px;
+    font-size: 12px;
+}
+
+/* Cards and containers with rounded corners */
+.uk-card,
+.uk-modal-dialog,
+.header-card,
+#scanner-config,
+#filter-card {
+    border-radius: var(--border-radius) !important;
+}
+
+/* Table container rounded */
+#monitoring-scroll {
+    border-radius: var(--border-radius) !important;
+}
+
+/* ==========================================================================
+   Snapshot Status Styles
+   ========================================================================== */
+
+/* Status Bar Base */
+.sync-status-bar {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+/* Before Snapshot - Gray */
+.sync-status-before {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+}
+
+/* Processing Snapshot - Yellow/Orange */
+.sync-status-processing {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+}
+
+/* After Snapshot Success - Green */
+.sync-status-success {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    animation: pulse-success 0.5s ease-out;
+}
+
+/* Pulse animation for success (opacity-only = Composite, GPU-safe) */
+@keyframes pulse-success {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.75;
+    }
+}
+
+/* Snapshot button processing state */
+#refresh-snapshot-btn.processing {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+#refresh-snapshot-btn:not(.processing) {
+    opacity: 1;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   CEX Settings - Toggle Switch
+   ========================================================================== */
+.cex-toggle-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+}
+
+.cex-toggle-wrapper input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.cex-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.cex-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.cex-toggle-slider {
+    background-color: #22c55e;
+}
+
+input:focus+.cex-toggle-slider {
+    box-shadow: 0 0 1px #22c55e;
+}
+
+input:checked+.cex-toggle-slider:before {
+    transform: translateX(14px);
+}
+
+/* ==========================================================================
+   RPC CARDS - CEX Style (matching API Key Exchanger design)
+   ========================================================================== */
+
+.rpc-card-cex-style {
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    border-left-width: 3px;
+    border-left-style: solid;
+    transition: all 0.2s ease;
+}
+
+.rpc-default-label {
+    font-size: 10px;
+    color: #64748b;
+    margin: 0 0 3px 0;
+}
+
+.rpc-default-label span {
+    color: #0052ff;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   CEX TOOLBAR ICONS - Icon-based (like chain icons)
+   ========================================================================== */
+
+/* CEX Mode Variables */
+:root {
+    --cex-primary: #1448ce;
+    /* Default: MEXC blue */
+    --cex-primary-rgb: 20, 72, 206;
+    /* RGB for alpha values */
+}
+
+/* CEX Mode Background */
+body.cex-mode {
+    /* More dominant color: primary to dark variant of primary */
+    background: linear-gradient(135deg, var(--cex-primary) 20%, #1a1a1a 100%) !important;
+    transition: background 0.6s ease;
+}
+
+body.cex-mode .uk-card-default,
+body.cex-mode .header-card,
+body.cex-mode #scanner-config {
+    background: rgba(255, 255, 255, 0.98) !important;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Toolbar Visibility in CEX Mode */
+/* User requested multichain menu to remain visible */
+body.cex-mode .toolbar-left a,
+body.cex-mode .toolbar-right a {
+    display: inline-flex !important;
+    /* Force show all items */
+}
+
+/* Optional: Highlight active CEX mode in toolbar if needed */
+body.cex-mode .toolbar-container {
+    border-bottom: 2px solid var(--cex-primary, #ccc);
+}
+
+/* CEX icon links - identical styling to chain icons */
+.cex-link {
+    position: relative;
+}
+
+/* ==========================================================================
+   UNIFIED CEX MODE STYLES (Referenced by cex-mode-manager.js)
+   ========================================================================== */
+body.cex-mode-active {
+    background-color: var(--cex-bg, #f9fafb) !important;
+    background-image: none !important;
+    /* Override gradients */
+    transition: background-color 0.4s ease;
+}
+
+/* Scanner Export/Import icons — tersembunyi by default, tampil hanya di CEX mode */
+.scanner-cex-btn {
+    display: none !important;
+}
+
+body.cex-mode-active .scanner-cex-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Override inline styles neon pada Import/Export — konsisten dengan palet app */
+#scannerImportBtn {
+    background: var(--bs-success) !important;
+    border: 1px solid #15803d !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3) !important;
+    transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+#scannerImportBtn:hover {
+    opacity: 0.9;
+    transform: scale(1.08);
+}
+
+#scannerExportBtn {
+    background: var(--bs-primary) !important;
+    border: 1px solid #1d4ed8 !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+    transition: opacity 0.15s ease, transform 0.15s ease !important;
+}
+
+#scannerExportBtn:hover {
+    opacity: 0.9;
+    transform: scale(1.08);
+}
+
+/* Header customization in CEX mode */
+body.cex-mode-active .header-card {
+    border-top: 3px solid var(--cex-primary, #2563eb) !important;
+    background: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   UNIFIED TOOLBAR ICON STYLING
+   Applied to: Chain icons, CEX icons, Multichain icon
+   ========================================================================== */
+
+/* Base styling for all toolbar icon containers */
+.chain-link,
+.cex-icon-btn,
+#multichain_scanner {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    border-radius: 50%;
+    padding: 2px;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    opacity: 1;
+}
+
+/* All toolbar icon images */
+.chain-link img,
+.cex-icon-btn img,
+#multichain_scanner img {
+    border-radius: 50%;
+    display: block;
+    width: 24px;
+    height: 24px;
+}
+
+/* Hover effect — seragam untuk semua icon toolbar */
+.chain-link:hover,
+.cex-icon-btn:hover,
+#multichain_scanner:hover {
+    transform: scale(1.1);
+}
+
+/* Active state — unified for chain, CEX, multichain */
+.chain-link.active,
+.cex-icon-btn.active,
+#multichain_scanner.active-mode {
+    opacity: 1;
+    border: 2px solid var(--icon-color, #2563eb);
+    box-shadow: 0 0 0 2px var(--icon-shadow, rgba(37, 99, 235, 0.25));
+}
+
+/* CEX Mode Badge */
+.cex-mode-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+    background-color: var(--cex-primary);
+    margin-left: 8px;
+}

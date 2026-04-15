@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LP SCANNER KOIN</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/flat-dialog.js"></script>
+    <style>
+        :root {
+            --primary:    #2563eb;
+            --primary-dk: #1d4ed8;
+            --purple:     #7c3aed;
+            --teal:       #0d9488;
+            --orange:     #ea580c;
+            --green:      #16a34a;
+            --red:        #dc2626;
+            --amber:      #d97706;
+            --sky:        #0284c7;
+            --pink:       #db2777;
+            --bg:         #f1f5f9;
+            --card:       #ffffff;
+            --border:     #e2e8f0;
+            --border-dk:  #cbd5e1;
+            --text:       #1e293b;
+            --text-dim:   #64748b;
+            --text-light: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        .hdr {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+            padding: 14px 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 2px;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+        }
+        .hdr h1 { font-size: 1.1em; letter-spacing: 1px; color: #fff; font-weight: 700; }
+        .badge {
+            font-size: 0.65em;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+        .badge-codex { background: rgba(255,255,255,0.25); color: #fff; }
+        .badge-dex   { background: rgba(255,255,255,0.15); color: #e0f2fe; border: 1px solid rgba(255,255,255,0.3); }
+        .badge-count { background: #fbbf24; color: #78350f; }
+
+        /* ── PANEL ── */
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0 0 8px 8px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .panel.ctrl { border-top: 3px solid var(--primary); border-radius: 0 0 8px 8px; }
+        .panel-results { border-radius: 8px; }
+
+        /* ── CONTROLS ── */
+        .ctrl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+        input[type="file"] { display: none; }
+        .file-btn {
+            background: #eff6ff;
+            border: 2px dashed var(--primary);
+            color: var(--primary);
+            padding: 8px 14px;
+            font-size: 0.83em;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all .2s;
+        }
+        .file-btn:hover { background: #dbeafe; }
+        .file-btn.has-file { background: #dbeafe; border-style: solid; color: var(--primary-dk); }
+
+        select {
+            background: #fff;
+            border: 1px solid var(--border-dk);
+            color: var(--text);
+            padding: 8px 12px;
+            font-size: 0.83em;
+            border-radius: 6px;
+            outline: none;
+            cursor: pointer;
+        }
+        select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
+        button {
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            padding: 8px 18px;
+            font-size: 0.83em;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background .2s, transform .1s;
+        }
+        button:hover { background: var(--primary-dk); transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button:disabled { background: var(--border-dk); color: var(--text-light); cursor: not-allowed; transform: none; }
+
+        .btn-stop  { background: var(--red); }
+        .btn-stop:hover { background: #b91c1c; }
+        .btn-ghost {
+            background: #fff;
+            border: 1px solid var(--border-dk);
+            color: var(--text-dim);
+        }
+        .btn-ghost:hover { background: var(--bg); border-color: var(--text-dim); color: var(--text); transform: none; }
+        .btn-dl { background: var(--teal); }
+        .btn-dl:hover { background: #0f766e; }
+
+        /* ── SOURCE ROW ── */
+        .src-row {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .src-label { font-size: 0.78em; font-weight: 600; color: var(--text-dim); }
+        .src-check {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.78em;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text);
+        }
+        .src-check input { cursor: pointer; accent-color: var(--primary); width: 15px; height: 15px; }
+
+        .min-liq-wrap { display: flex; align-items: center; gap: 6px; font-size: 0.78em; color: var(--text-dim); margin-left: auto; }
+        .min-liq-wrap input[type="number"] {
+            width: 80px;
+            border: 1px solid var(--border-dk);
+            border-radius: 5px;
+            padding: 4px 8px;
+            font-size: 0.95em;
+            color: var(--text);
+            outline: none;
+        }
+        .min-liq-wrap input[type="number"]:focus { border-color: var(--primary); }
+
+        /* ── PROGRESS ── */
+        .prog-wrap { margin-top: 12px; }
+        .prog-bar-outer {
+            background: #e2e8f0;
+            border-radius: 99px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        .prog-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, var(--sky), var(--primary), var(--purple));
+            width: 0%;
+            transition: width .3s;
+            border-radius: 99px;
+        }
+        .prog-text { font-size: 0.73em; color: var(--text-dim); display: flex; justify-content: space-between; }
+
+        /* ── STATS ── */
+        .stats-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .stat-chip {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 0.75em;
+            color: var(--text-dim);
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .stat-chip span { font-weight: 700; color: var(--text); font-size: 1.05em; }
+        .stat-chip.c-blue  span { color: var(--primary); }
+        .stat-chip.c-teal  span { color: var(--teal); }
+        .stat-chip.c-red   span { color: var(--red); }
+        .stat-chip.c-amber span { color: var(--amber); }
+        .stat-chip.c-green span { color: var(--green); }
+
+        /* ── FILTER BAR ── */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .filter-bar input[type="text"] {
+            border: 1px solid var(--border-dk);
+            border-radius: 6px;
+            color: var(--text);
+            padding: 6px 12px;
+            font-size: 0.82em;
+            outline: none;
+            width: 220px;
+        }
+        .filter-bar input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .filter-bar label { font-size: 0.78em; color: var(--text-dim); display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: 500; }
+        .filter-bar input[type="checkbox"] { accent-color: var(--primary); cursor: pointer; }
+        .filter-strict {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 0.78em;
+            font-weight: 600;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .filter-strict input { accent-color: var(--amber); cursor: pointer; }
+        .filter-count { font-size: 0.75em; color: var(--text-light); margin-left: 4px; }
+
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--bg);
+            border: 1px solid var(--border-dk);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.75em;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+        .range-group.liq-range { border-left: 3px solid var(--amber); }
+        .range-group.vol-range { border-left: 3px solid var(--pink); }
+        .range-group input[type="number"] {
+            width: 80px;
+            border: 1px solid var(--border-dk);
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 0.95em;
+            color: var(--text);
+            outline: none;
+            background: #fff;
+        }
+        .range-group input[type="number"]:focus { border-color: var(--primary); }
+        .range-sep { color: var(--text-light); font-weight: 400; }
+
+        /* ── TABLE ── */
+        .tbl-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+
+        table.main-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.81em;
+            min-width: 1000px;
+        }
+
+        /* Header berwarna per grup kolom */
+        table.main-tbl thead tr { background: transparent; }
+        table.main-tbl th {
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 0.73em;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+            border-bottom: 2px solid var(--border);
+            border-right: 1px solid var(--border);
+        }
+        table.main-tbl th.grp-no    { background: #f8fafc; color: var(--text-dim); }
+        table.main-tbl th.grp-cex   { background: #f0fdf4; color: var(--green); }
+        table.main-tbl th.grp-a     { background: #eff6ff; color: var(--primary); }
+        table.main-tbl th.grp-b     { background: #faf5ff; color: var(--purple); }
+        table.main-tbl th.grp-dex   { background: #fff7ed; color: var(--orange); }
+        table.main-tbl th.grp-lp    { background: #f0fdfa; color: var(--teal); }
+        table.main-tbl th.grp-liq   { background: #fefce8; color: var(--amber); }
+        table.main-tbl th.grp-vol   { background: #fff1f2; color: var(--pink); }
+        table.main-tbl th.grp-src   { background: #f8fafc; color: var(--text-dim); }
+        table.main-tbl th:hover { filter: brightness(0.95); }
+        table.main-tbl th.sorted-asc::after  { content: " ▲"; font-size: 0.75em; opacity: 0.7; }
+        table.main-tbl th.sorted-desc::after { content: " ▼"; font-size: 0.75em; opacity: 0.7; }
+
+        table.main-tbl td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        table.main-tbl tr:hover td { background: #f8faff; }
+        table.main-tbl tr.both-in-csv td { background: #fffbeb; border-left: 3px solid var(--amber); }
+        table.main-tbl tr.both-in-csv:hover td { background: #fef9c3; }
+
+        .no-cell    { color: var(--text-light); font-size: 0.85em; text-align: center; }
+        .cex-cell   { font-weight: 700; color: var(--green); font-size: 0.85em; }
+        .sym-cell   { font-weight: 700; font-size: 0.9em; text-transform: uppercase; }
+        .sym-a      { color: var(--primary); }
+        .sym-b      { color: var(--purple); }
+        .dec-badge  { display: inline-block; background: #dbeafe; color: var(--primary-dk);
+                      font-size: 0.72em; font-weight: 700; padding: 1px 6px; border-radius: 10px; margin-left: 4px; }
+        .dec-badge.b { background: #ede9fe; color: var(--purple); }
+        .addr-cell  { font-family: 'Courier New', monospace; font-size: 0.78em; color: var(--sky); }
+        .addr-cell a { color: var(--sky); text-decoration: none; }
+        .addr-cell a:hover { text-decoration: underline; color: var(--primary-dk); }
+        .lp-cell    { font-family: 'Courier New', monospace; font-size: 0.78em; color: var(--teal); }
+        .lp-cell a  { color: var(--teal); text-decoration: none; }
+        .lp-cell a:hover { text-decoration: underline; }
+        .dex-cell   { font-weight: 600; color: var(--orange); font-size: 0.85em; }
+        .liq-cell   { font-weight: 700; color: var(--amber); }
+        .vol-cell   { font-weight: 600; color: var(--pink); }
+
+        .pill {
+            display: inline-block;
+            font-size: 0.72em;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .pill-codex { background: #dbeafe; color: var(--primary-dk); }
+        .pill-dex   { background: #dcfce7; color: #15803d; }
+        .pill-match { background: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 0.7em;
+            padding: 1px 5px;
+            border-radius: 4px;
+            vertical-align: middle;
+            transition: all .15s;
+        }
+        .copy-btn:hover { background: var(--bg); color: var(--text); border-color: var(--border-dk); transform: none; }
+
+        /* ── EMPTY / LOG ── */
+        .empty-msg {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.88em;
+        }
+
+        .log-panel {
+            max-height: 130px;
+            overflow-y: auto;
+            padding: 8px 14px;
+            background: #1e293b;
+            border-radius: 8px;
+            margin-top: 6px;
+        }
+        .log-line { font-size: 0.72em; font-family: 'Courier New', monospace; color: #94a3b8; margin: 2px 0; }
+        .log-line .ts   { color: #475569; margin-right: 6px; }
+        .log-line .ok   { color: #4ade80; }
+        .log-line .err  { color: #f87171; }
+        .log-line .warn { color: #fbbf24; }
+        .log-line .info { color: #7dd3fc; }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border-dk); border-radius: 99px; }
+    </style>
+</head>
+
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────── -->
+<div class="hdr">
+    <h1>🔍 LP BATCH SCANNER</h1>
+    <span class="badge badge-count" id="hdrCount">0 LP</span>
+</div>
+
+<!-- ── CONTROLS ────────────────────────────────────────────────────── -->
+<div class="panel ctrl">
+    <div class="ctrl-row">
+        <label class="file-btn" id="fileLbl" for="csvFile">📂 Pilih CSV</label>
+        <input type="file" id="csvFile" accept=".csv">
+
+        <select id="network" title="Pilih Network">
+            <option value="ethereum|1">Ethereum (ETH)</option>
+            <option value="bsc|56" selected>BNB Chain (BSC)</option>
+            <option value="polygon|137">Polygon</option>
+            <option value="arbitrum|42161">Arbitrum One</option>
+            <option value="base|8453">Base</option>
+            <option value="avalanche|43114">Avalanche</option>
+        </select>
+
+        <select id="concurrency" title="Request paralel per batch">
+            <option value="1">1 / batch</option>
+            <option value="2">2 / batch</option>
+            <option value="3" selected>3 / batch</option>
+            <option value="5">5 / batch</option>
+        </select>
+<span class="src-label">Sumber Data:</span>
+        <label class="src-check">
+            <input type="checkbox" id="useCodex" checked> CODEX.IO
+        </label>
+        <label class="src-check">
+            <input type="checkbox" id="useDex" checked> DEXSCREENER
+        </label>
+        <div class="min-liq-wrap">
+            Min Liq $
+            <input type="number" id="minLiq" value="0" min="0" title="Minimum Likuiditas USD">
+        </div>
+        <button id="scanBtn" type="button" onclick="startScan()">▶ SCAN</button>
+        <button type="button" class="btn-stop" onclick="stopScan()">⏹ STOP</button>
+        <button type="button" class="btn-dl" onclick="downloadCSV()" id="dlBtn" style="display:none">⬇ Export CSV</button>
+        <button type="button" class="btn-ghost" onclick="downloadSample()">Sample CSV</button>
+        
+    </div>
+
+    <div class="src-row">
+       
+    </div>
+
+    <div class="prog-wrap" id="progWrap" style="display:none">
+        <div class="prog-bar-outer"><div class="prog-bar-inner" id="progBar"></div></div>
+        <div class="prog-text">
+            <span id="progLabel">0 / 0</span>
+            <span id="progPct">0%</span>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="stat-chip">Token Unik: <span id="statTokens">0</span></div>
+        <div class="stat-chip c-blue">LP Rows: <span id="statRows">0</span></div>
+        <div class="stat-chip c-teal">CODEX: <span id="statCodex">0</span></div>
+        <div class="stat-chip c-green">DEXSCREENER: <span id="statDex">0</span></div>
+        <div class="stat-chip c-red">Error: <span id="statErr">0</span></div>
+        <div class="stat-chip">Liq=0 (skip): <span id="statHidden">0</span></div>
+        <div class="stat-chip c-amber">⚡ Kedua SC match: <span id="statBoth">0</span></div>
+    </div>
+</div>
+
+<!-- ── RESULTS ──────────────────────────────────────────────────────── -->
+<div class="panel panel-results">
+    <div class="filter-bar">
+        <input type="text" id="filterInput" placeholder="🔎 Cari symbol / address…" oninput="applyFilter()">
+        <label>
+            <input type="checkbox" id="onlyCodex" onchange="applyFilter()"> Hanya CODEX
+        </label>
+        <label>
+            <input type="checkbox" id="onlyDexs" onchange="applyFilter()"> Hanya DEXSCREENER
+        </label>
+        <label class="filter-strict" title="Hanya tampilkan pair dimana KEDUA SC ada di daftar CSV">
+            <input type="checkbox" id="bothInCsv" onchange="applyFilter()">
+            ⚡ Kedua SC ada di CSV
+        </label>
+        <div class="range-group liq-range">
+            💧 Liq $
+            <input type="number" id="filterLiqMin" placeholder="Min" min="0" oninput="applyFilter()">
+            <span class="range-sep">—</span>
+            <input type="number" id="filterLiqMax" placeholder="Max" min="0" oninput="applyFilter()">
+        </div>
+        <div class="range-group vol-range">
+            📊 Vol 24H $
+            <input type="number" id="filterVolMin" placeholder="Min" min="0" oninput="applyFilter()">
+            <span class="range-sep">—</span>
+            <input type="number" id="filterVolMax" placeholder="Max" min="0" oninput="applyFilter()">
+        </div>
+        <button type="button" class="btn-ghost" onclick="clearFilter()">Reset Filter</button>
+        <span class="filter-count" id="filterCount"></span>
+    </div>
+
+    <div class="tbl-wrap">
+        <table class="main-tbl" id="mainTable">
+            <thead>
+                <tr>
+                    <th class="grp-no"  data-col="no">No</th>
+                    <th class="grp-cex" data-col="cex">CEX</th>
+                    <th class="grp-a"   data-col="symA">Symbol A</th>
+                    <th class="grp-a"   data-col="scA">SC Token A</th>
+                    <th class="grp-a"   data-col="decA">Decimals A</th>
+                    <th class="grp-b"   data-col="symB">Symbol B</th>
+                    <th class="grp-b"   data-col="scB">SC Token B</th>
+                    <th class="grp-b"   data-col="decB">Decimals B</th>
+                    <th class="grp-dex" data-col="dex">DEX</th>
+                    <th class="grp-lp"  data-col="lp">LP Address</th>
+                    <th class="grp-liq" data-col="liq">Liquidity USD</th>
+                    <th class="grp-vol" data-col="vol">Volume 24H</th>
+                    <th class="grp-src" data-col="src">Source</th>
+                </tr>
+            </thead>
+            <tbody id="tbl">
+                <tr><td colspan="13" class="empty-msg">📂 Upload CSV dan klik SCAN untuk memulai.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── LOG ─────────────────────────────────────────────────────────── -->
+<div class="log-panel" id="logBox"></div>
+
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+//  KONFIGURASI
+// ══════════════════════════════════════════════════════════════════════
+const CODEX_KEY = "bb88a87e88253883398aac48db09d1d938367e21";
+const CODEX_URL = "https://graph.codex.io/graphql";
+
+const EXPLORER = {
+    1:     "https://etherscan.io/address/",
+    56:    "https://bscscan.com/address/",
+    137:   "https://polygonscan.com/address/",
+    42161: "https://arbiscan.io/address/",
+    8453:  "https://basescan.org/address/",
+    43114: "https://snowtrace.io/address/",
+};
+
+// ══════════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════════
+let allRows      = [];   // { cex, symbol, sc, scA, scB, symA, symB, dex, pair, lp, liq, vol, price, src, networkId }
+let csvScSet     = new Set(); // semua SC address dari CSV (lowercase) — untuk filter "kedua SC"
+let scDecimalMap = new Map(); // sc_address (lowercase) → decimals (dari kolom CSV)
+let stopFlag     = false;
+let statsCodex   = 0;
+let statsDex     = 0;
+let statsErr     = 0;
+let statsHidden  = 0;
+let sortCol      = "liq";
+let sortDir      = "desc";
+
+// ══════════════════════════════════════════════════════════════════════
+//  FILE PICKER
+// ══════════════════════════════════════════════════════════════════════
+$("#csvFile").on("change", function () {
+    const name = this.files[0]?.name;
+    if (name) {
+        $("#fileLbl").text("📄 " + name).addClass("has-file");
+    }
+});
+
+// ══════════════════════════════════════════════════════════════════════
+//  LOG
+// ══════════════════════════════════════════════════════════════════════
+function log(msg, type = "") {
+    const ts  = new Date().toLocaleTimeString("id-ID", { hour12: false });
+    const cls = type ? `class="${type}"` : "";
+    const el  = `<div class="log-line"><span class="ts">[${ts}]</span><span ${cls}>${msg}</span></div>`;
+    $("#logBox").prepend(el);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════════════
+function shortAddr(a) {
+    if (!a || a.length < 12) return a || "—";
+    return a.slice(0, 6) + "…" + a.slice(-4);
+}
+
+function addrLink(addr, networkId) {
+    const base = EXPLORER[networkId];
+    if (!base || !addr) return `<span class="addr-cell">${shortAddr(addr)}</span>`;
+    return `<a class="addr-cell" href="${base}${addr}" target="_blank">${shortAddr(addr)}</a>`;
+}
+
+function lpAddrLink(addr, networkId) {
+    const base = EXPLORER[networkId];
+    if (!base || !addr) return `<span class="lp-cell">${shortAddr(addr)}</span>`;
+    return `<a class="lp-cell" href="${base}${addr}" target="_blank">${shortAddr(addr)}</a>`;
+}
+
+function fmtLiq(n) {
+    if (n == null || isNaN(n) || n === 0) return "—";
+    const v = parseFloat(n);
+    if (v >= 1e9) return "$" + (v / 1e9).toFixed(2) + "B";
+    if (v >= 1e6) return "$" + (v / 1e6).toFixed(2) + "M";
+    if (v >= 1e3) return "$" + (v / 1e3).toFixed(1) + "K";
+    return "$" + v.toFixed(2);
+}
+
+function fmtPrice(n) {
+    if (!n || isNaN(n)) return "—";
+    const v = parseFloat(n);
+    if (v === 0) return "$0";
+    if (v >= 1)  return "$" + v.toFixed(4);
+    return "$" + v.toPrecision(4);
+}
+
+function fmtDate(ts) {
+    if (!ts) return "";
+    return new Date(ts * 1000).toLocaleDateString("id-ID");
+}
+
+function copyText(txt) {
+    navigator.clipboard.writeText(txt).catch(() => {});
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  CODEX QUERY
+// ══════════════════════════════════════════════════════════════════════
+const Q_PAIRS = `
+    query GetPairs($tokenAddress: String!, $networkId: Int!) {
+        listPairsWithMetadataForToken(
+            tokenAddress: $tokenAddress
+            networkId: $networkId
+            limit: 50
+        ) {
+            results {
+                pair {
+                    address
+                    token0
+                    token1
+                    createdAt
+                    token0Data { symbol name address }
+                    token1Data { symbol name address }
+                }
+                backingToken { address name symbol }
+                token        { address name symbol }
+                volume
+                liquidity
+                exchange { name address }
+                quoteToken
+            }
+        }
+    }`;
+
+const Q_PRICE = `
+    query GetPrice($address: String!, $networkId: Int!) {
+        getTokenPrices(inputs: [{ address: $address, networkId: $networkId }]) {
+            priceUsd
+        }
+    }`;
+
+async function queryCodex(gql, vars) {
+    const resp = await $.ajax({
+        url: CODEX_URL,
+        method: "POST",
+        headers: { "Authorization": CODEX_KEY, "Content-Type": "application/json" },
+        data: JSON.stringify({ query: gql, variables: vars }),
+        timeout: 15000
+    });
+    if (resp.errors && !resp.data) throw new Error(resp.errors[0].message);
+    return resp.data;
+}
+
+async function fetchCodex(sc, networkId, csvRow) {
+    const results = [];
+    try {
+        const [pairData, priceData] = await Promise.allSettled([
+            queryCodex(Q_PAIRS, { tokenAddress: sc, networkId }),
+            queryCodex(Q_PRICE, { address: sc, networkId })
+        ]);
+
+        const pairs = pairData.status === "fulfilled"
+            ? (pairData.value?.listPairsWithMetadataForToken?.results || [])
+            : [];
+        const priceUsd = priceData.status === "fulfilled"
+            ? (priceData.value?.getTokenPrices?.[0]?.priceUsd || 0)
+            : 0;
+
+        const minLiq = parseFloat($("#minLiq").val()) || 0;
+
+        pairs.forEach(item => {
+            const liq = parseFloat(item.liquidity || 0);
+            if (liq <= 0) { statsHidden++; return; }
+            if (liq < minLiq) { statsHidden++; return; }
+
+            const pair  = item.pair || {};
+            const ex    = item.exchange || {};
+            const isQ0  = item.quoteToken === "token0";
+            const t0    = pair.token0Data || {};
+            const t1    = pair.token1Data || {};
+            // quoteToken = token yang dicari (dari CSV), backingToken = pasangannya
+            const symA  = (isQ0 ? t0.symbol : t1.symbol) || item.token?.symbol       || "?";
+            const symB  = (isQ0 ? t1.symbol : t0.symbol) || item.backingToken?.symbol || "?";
+            const scA   = (isQ0 ? t0.address : t1.address) || item.token?.address       || sc;
+            const scB   = (isQ0 ? t1.address : t0.address) || item.backingToken?.address || "—";
+
+            results.push({
+                cex:       csvRow.cex,
+                symbol:    csvRow.symbol,
+                sc:        sc,
+                scA:       scA.toLowerCase(),
+                scB:       scB.toLowerCase(),
+                symA:      symA,
+                symB:      symB,
+                dex:       ex.name || "—",
+                pair:      symA + " / " + symB,
+                lp:        (pair.address && pair.address.length === 42) ? pair.address : "—",
+                liq:       liq,
+                vol:       parseFloat(item.volume || 0),
+                price:     priceUsd,
+                src:       "CODEX",
+                networkId: networkId,
+                created:   pair.createdAt || 0
+            });
+        });
+
+        if (pairs.length) log(`CODEX ✓ ${csvRow.symbol} → ${pairs.length} pair`, "ok");
+        else               log(`CODEX – ${csvRow.symbol} → tidak ada pair`, "warn");
+
+    } catch (e) {
+        log(`CODEX ✗ ${csvRow.symbol}: ${e.message || e}`, "err");
+        statsErr++;
+    }
+    return results;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  DEXSCREENER QUERY
+// ══════════════════════════════════════════════════════════════════════
+async function fetchDex(sc, dexNetwork, networkId, csvRow) {
+    const results = [];
+    try {
+        const url  = `https://api.dexscreener.com/token-pairs/v1/${dexNetwork}/${sc}`;
+        const resp = await $.ajax({ url, method: "GET", timeout: 15000 });
+        const data = Array.isArray(resp) ? resp : [];
+
+        const minLiq = parseFloat($("#minLiq").val()) || 0;
+
+        data.forEach(pair => {
+            const liq = pair.liquidity?.usd || 0;
+            if (liq <= 0) { statsHidden++; return; }
+            if (liq < minLiq) { statsHidden++; return; }
+
+            const symA = pair.baseToken?.symbol  || "?";
+            const symB = pair.quoteToken?.symbol || "?";
+            const scA  = (pair.baseToken?.address  || sc).toLowerCase();
+            const scB  = (pair.quoteToken?.address || "—").toLowerCase();
+
+            results.push({
+                cex:       csvRow.cex,
+                symbol:    csvRow.symbol,
+                sc:        sc,
+                scA:       scA,
+                scB:       scB,
+                symA:      symA,
+                symB:      symB,
+                dex:       pair.dexId || "—",
+                pair:      symA + " / " + symB,
+                lp:        pair.pairAddress || "—",
+                liq:       liq,
+                vol:       pair.volume?.h24 || 0,
+                price:     parseFloat(pair.priceUsd || 0),
+                src:       "DEXSCREENER",
+                networkId: networkId,
+                created:   0
+            });
+        });
+
+        if (data.length) log(`DEX ✓ ${csvRow.symbol} → ${data.length} pair`, "info");
+        else             log(`DEX – ${csvRow.symbol} → tidak ada pair`, "warn");
+
+    } catch (e) {
+        log(`DEX ✗ ${csvRow.symbol}: ${e.message || e}`, "err");
+        statsErr++;
+    }
+    return results;
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  SCAN MAIN
+// ══════════════════════════════════════════════════════════════════════
+async function startScan() {
+    const file = $("#csvFile")[0].files[0];
+    if (!file) {
+        await FlatDialog.alert("Pilih file CSV dulu!", "Peringatan", "warning");
+        return;
+    }
+
+    const netVal     = $("#network").val();                // e.g. "bsc|56"
+    const [dexNet, codexNetStr] = netVal.split("|");
+    const codexNetId = parseInt(codexNetStr);
+    const useCodex   = $("#useCodex").is(":checked");
+    const useDex     = $("#useDex").is(":checked");
+    const batchSize  = parseInt($("#concurrency").val());
+
+    if (!useCodex && !useDex) {
+        await FlatDialog.alert("Aktifkan minimal satu sumber data!", "Peringatan", "warning");
+        return;
+    }
+
+    // Reset
+    allRows      = [];
+    csvScSet     = new Set();
+    scDecimalMap = new Map();
+    stopFlag     = false;
+    statsCodex = statsDex = statsErr = statsHidden = 0;
+    updateStats();
+    $("#tbl").html(`<tr><td colspan="11" class="empty-msg">Memindai…</td></tr>`);
+    $("#scanBtn").prop("disabled", true).text("SCANNING…");
+    $("#progWrap").show();
+    $("#dlBtn").hide();
+    $("#logBox").html("");
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+        const lines   = e.target.result.split("\n").map(l => l.trim()).filter(l => l);
+        const tokens  = [];
+
+        // ── CSV PARSER ───────────────────────────────────────────────
+        // Menangani field yang dibungkus quote. Mendukung DUA format:
+        //   Format Input  : Cex, Symbol, SC, Decimals
+        //   Format Export : No, CEX, Symbol, Pair, Symbol A, SC Token A, Decimals A, ...
+        function parseCSVLine(line) {
+            const result = [];
+            let cur = "", inQ = false;
+            for (const c of line) {
+                if (c === '"') { inQ = !inQ; }
+                else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ""; }
+                else { cur += c; }
+            }
+            result.push(cur.trim());
+            return result.map(v => v.replace(/^"|"$/g, "").trim());
+        }
+
+        // Deteksi kolom dari header — case-insensitive, fleksibel
+        const headerParts = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+        function colIdx(...candidates) {
+            for (const name of candidates) {
+                const i = headerParts.indexOf(name);
+                if (i !== -1) return i;
+            }
+            return -1;
+        }
+
+        const iCex  = colIdx("cex", "exchange");
+        const iSym  = colIdx("symbol");                      // kolom symbol dari CSV asli
+        const iSc   = colIdx("sc token a", "sc", "address", "contract"); // SC utama
+        const iDec  = colIdx("decimals a", "decimals", "decimal");
+
+        // Fallback ke posisi default jika header tidak dikenali
+        const idxCex = iCex  !== -1 ? iCex  : 0;
+        const idxSym = iSym  !== -1 ? iSym  : 1;
+        const idxSc  = iSc   !== -1 ? iSc   : 2;
+        const idxDec = iDec  !== -1 ? iDec  : 3;
+
+        log(`CSV header terdeteksi → CEX[${idxCex}] Symbol[${idxSym}] SC[${idxSc}] Decimals[${idxDec}]`, "info");
+
+        for (let i = 1; i < lines.length; i++) {
+            const parts = parseCSVLine(lines[i]);
+            if (parts.length <= idxSc) continue;
+            const sc = parts[idxSc] || "";
+            if (!sc || sc.length < 10 || !sc.startsWith("0x")) continue;
+            const dec = parts[idxDec] || "";
+            tokens.push({
+                cex:      parts[idxCex] || "",
+                symbol:   parts[idxSym] || "",
+                sc:       sc.toLowerCase(),
+                decimals: dec && !isNaN(dec) ? parseInt(dec) : null
+            });
+        }
+
+        // De-duplikasi SC address (bisa ada duplikat jika import dari export)
+        const seen = new Set();
+        const uniqueTokens = tokens.filter(t => {
+            if (seen.has(t.sc)) return false;
+            seen.add(t.sc);
+            return true;
+        });
+        tokens.length = 0;
+        uniqueTokens.forEach(t => tokens.push(t));
+
+        // Bangun Set & Map dari CSV untuk filter dan lookup desimal
+        tokens.forEach(t => {
+            csvScSet.add(t.sc);
+            if (t.decimals !== null) scDecimalMap.set(t.sc, t.decimals);
+        });
+
+        const total = tokens.length;
+        log(`CSV: ${total} token ditemukan — network: ${dexNet} / codexId: ${codexNetId}`, "info");
+
+        // Process in batches
+        for (let i = 0; i < total; i += batchSize) {
+            if (stopFlag) { log("⏹ Dihentikan oleh user.", "warn"); break; }
+
+            const batch = tokens.slice(i, i + batchSize);
+
+            await Promise.all(batch.map(async (row) => {
+                const calls = [];
+                if (useCodex) calls.push(fetchCodex(row.sc, codexNetId, row));
+                if (useDex)   calls.push(fetchDex(row.sc, dexNet, codexNetId, row));
+
+                const settled = await Promise.allSettled(calls);
+                settled.forEach(r => {
+                    if (r.status === "fulfilled") {
+                        r.value.forEach(row => {
+                            if (row.src === "CODEX")      statsCodex++;
+                            else if (row.src === "DEXSCREENER") statsDex++;
+                            allRows.push(row);
+                        });
+                    }
+                });
+            }));
+
+            // Progress
+            const done = Math.min(i + batchSize, total);
+            const pct  = (done / total * 100).toFixed(1);
+            $("#progBar").css("width", pct + "%");
+            $("#progLabel").text(`${done} / ${total}`);
+            $("#progPct").text(pct + "%");
+            updateStats();
+            renderTable();
+
+            // Rate limit pause
+            await new Promise(r => setTimeout(r, 300));
+        }
+
+        log(`Selesai! ${allRows.length} LP row ditemukan dari ${total} token.`, "ok");
+        $("#scanBtn").prop("disabled", false).text("▶ SCAN");
+        if (allRows.length) $("#dlBtn").show();
+        updateStats();
+        renderTable();
+    };
+
+    reader.readAsText(file);
+}
+
+function stopScan() {
+    stopFlag = true;
+    $("#scanBtn").prop("disabled", false).text("▶ SCAN");
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════════════════════
+function updateStats() {
+    $("#statTokens").text(allRows.map(r => r.sc).filter((v,i,a)=>a.indexOf(v)===i).length);
+    $("#statRows").text(allRows.length);
+    $("#statCodex").text(statsCodex);
+    $("#statDex").text(statsDex);
+    $("#statErr").text(statsErr);
+    $("#statHidden").text(statsHidden);
+    const bothCount = allRows.filter(r => csvScSet.has(r.scA) && csvScSet.has(r.scB)).length;
+    $("#statBoth").text(bothCount);
+    $("#hdrCount").text(allRows.length + " LP ditemukan");
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  RENDER TABLE
+// ══════════════════════════════════════════════════════════════════════
+function getFilteredSorted() {
+    const search      = ($("#filterInput").val() || "").toLowerCase();
+    const onlyCodex   = $("#onlyCodex").is(":checked");
+    const onlyDexs    = $("#onlyDexs").is(":checked");
+    const bothInCsv   = $("#bothInCsv").is(":checked");
+
+    const liqMin = parseFloat($("#filterLiqMin").val());
+    const liqMax = parseFloat($("#filterLiqMax").val());
+    const volMin = parseFloat($("#filterVolMin").val());
+    const volMax = parseFloat($("#filterVolMax").val());
+
+    let rows = allRows.filter(r => {
+        if (onlyCodex && r.src !== "CODEX")       return false;
+        if (onlyDexs  && r.src !== "DEXSCREENER") return false;
+        // Filter ketat: kedua SC harus ada di daftar CSV
+        if (bothInCsv) {
+            const aInCsv = csvScSet.has(r.scA);
+            const bInCsv = csvScSet.has(r.scB);
+            if (!aInCsv || !bInCsv) return false;
+        }
+        // Range filter: Liquidity USD
+        if (!isNaN(liqMin) && r.liq < liqMin) return false;
+        if (!isNaN(liqMax) && r.liq > liqMax) return false;
+        // Range filter: Volume 24H
+        if (!isNaN(volMin) && r.vol < volMin) return false;
+        if (!isNaN(volMax) && r.vol > volMax) return false;
+        if (search) {
+            const haystack = [r.cex, r.symbol, r.sc, r.scA, r.scB, r.symA, r.symB, r.dex, r.pair, r.lp].join(" ").toLowerCase();
+            if (!haystack.includes(search)) return false;
+        }
+        return true;
+    });
+
+    // Deduplikasi: buang row yang LP address-nya sudah muncul sebelumnya
+    const seenLp = new Set();
+    rows = rows.filter(r => {
+        const key = r.lp.toLowerCase();
+        if (seenLp.has(key)) return false;
+        seenLp.add(key);
+        return true;
+    });
+
+    // Sort
+    rows.sort((a, b) => {
+        let av = a[sortCol] ?? 0;
+        let bv = b[sortCol] ?? 0;
+        if (typeof av === "string") av = av.toLowerCase();
+        if (typeof bv === "string") bv = bv.toLowerCase();
+        if (av < bv) return sortDir === "asc" ?  -1 : 1;
+        if (av > bv) return sortDir === "asc" ?   1 : -1;
+        return 0;
+    });
+
+    return rows;
+}
+
+function renderTable() {
+    const rows = getFilteredSorted();
+    $("#filterCount").text(rows.length + " row ditampilkan");
+
+    if (rows.length === 0) {
+        $("#tbl").html(`<tr><td colspan="13" class="empty-msg">Belum ada data LP dengan likuiditas &gt; 0.</td></tr>`);
+        return;
+    }
+
+    const html = rows.map((r, i) => {
+        const srcPill = r.src === "CODEX"
+            ? `<span class="pill pill-codex">CODEX</span>`
+            : `<span class="pill pill-dex">DEXSCREENER</span>`;
+
+        const decA = scDecimalMap.has(r.scA) ? scDecimalMap.get(r.scA) : "—";
+        const decB = scDecimalMap.has(r.scB) ? scDecimalMap.get(r.scB) : "—";
+
+        const scALink = addrLink(r.scA, r.networkId);
+        const scBLink = addrLink(r.scB, r.networkId);
+        const lpLink  = lpAddrLink(r.lp, r.networkId);
+
+        return `<tr>
+            <td class="no-cell">${i + 1}</td>
+            <td class="cex-cell">${r.cex || "—"}</td>
+            <td class="sym-cell sym-a">${r.symA}</td>
+            <td>${scALink} <button class="copy-btn" type="button" onclick="copyText('${r.scA}')" title="Copy">⧉</button></td>
+            <td style="text-align:center"><span class="dec-badge">${decA}</span></td>
+            <td class="sym-cell sym-b">${r.symB}</td>
+            <td>${scBLink} <button class="copy-btn" type="button" onclick="copyText('${r.scB}')" title="Copy">⧉</button></td>
+            <td style="text-align:center"><span class="dec-badge b">${decB}</span></td>
+            <td class="dex-cell">${r.dex}</td>
+            <td>${lpLink} <button class="copy-btn" type="button" onclick="copyText('${r.lp}')" title="Copy LP">⧉</button></td>
+            <td class="liq-cell">${fmtLiq(r.liq)}</td>
+            <td class="vol-cell">${fmtLiq(r.vol)}</td>
+            <td>${srcPill}</td>
+        </tr>`;
+    }).join("");
+
+    $("#tbl").html(html);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  FILTER & SORT
+// ══════════════════════════════════════════════════════════════════════
+function applyFilter() { renderTable(); }
+function clearFilter() {
+    $("#filterInput").val("");
+    $("#onlyCodex").prop("checked", false);
+    $("#onlyDexs").prop("checked", false);
+    $("#bothInCsv").prop("checked", false);
+    $("#filterLiqMin").val("");
+    $("#filterLiqMax").val("");
+    $("#filterVolMin").val("");
+    $("#filterVolMax").val("");
+    renderTable();
+}
+
+// Column sort
+$("table.main-tbl").on("click", "th[data-col]", function () {
+    const col = $(this).data("col");
+    if (col === sortCol) {
+        sortDir = sortDir === "asc" ? "desc" : "asc";
+    } else {
+        sortCol = col;
+        sortDir = "desc";
+    }
+    $("th").removeClass("sorted-asc sorted-desc");
+    $(this).addClass(sortDir === "asc" ? "sorted-asc" : "sorted-desc");
+    renderTable();
+});
+
+// ══════════════════════════════════════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════════════════════════════════════
+function downloadCSV() {
+    const rows = getFilteredSorted();
+    let csv = "No,CEX,Symbol A,SC Token A,Decimals A,Symbol B,SC Token B,Decimals B,DEX,LP Address,Liquidity USD,Volume 24H,Source\n";
+    rows.forEach((r, i) => {
+        const decA = scDecimalMap.has(r.scA) ? scDecimalMap.get(r.scA) : "";
+        const decB = scDecimalMap.has(r.scB) ? scDecimalMap.get(r.scB) : "";
+        csv += [
+            i + 1, r.cex,
+            r.symA.toUpperCase(), r.scA, decA,
+            r.symB.toUpperCase(), r.scB, decB,
+            r.dex, r.lp,
+            r.liq.toFixed(2), r.vol.toFixed(2),
+            r.src
+        ].join(",") + "\n";
+    });
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = "lp_scan_" + Date.now() + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+function downloadSample() {
+    const s = "Cex,Symbol,SC,Decimals\nBINANCE,NEAR,0x1fa4a73a3f0133f0025378af00236f3abdee5d63,24\nBINANCE,FDUSD,0xc5f0f7b66764f6ec8c8dff7ba683102295e16409,18\nBYBIT,KNC,0xfe56d5892bdffc7bf58f2e84be1b2c32d21c308b,18\n";
+    const blob = new Blob([s], { type: "text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = "sample_lp_scan.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+</script>
+
+</body>
+</html>
