@@ -1,8 +1,8 @@
 const CONFIG_APP = {
     APP: {
-        NAME: "PENCARI SELISIH",
+        //NAME: "PENCARI SELISIH",
         // NAME: "WATCHMARKET",
-        // NAME: "PRIVATE_NOCORS",
+         NAME: "PRIVATE_NOCORS",
         VERSION: "04.16",
         SCAN_LIMIT: false,
         AUTORUN: true,
