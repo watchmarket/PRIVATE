@@ -1366,11 +1366,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const viaName = (function () {
                                         try {
                                             const routeTool = String(finalDexRes?.routeTool || '').trim();
-                                            if (routeTool && routeTool.length > 0) {
-                                                const viaMatch = routeTool.match(/via\s+(.+)/i);
-                                                if (viaMatch && viaMatch[1]) return viaMatch[1].trim().toUpperCase();
-                                                return routeTool.toUpperCase();
-                                            }
+                                            if (routeTool && routeTool.length > 0) return routeTool.toUpperCase();
                                             if (isFallback === true) return 'SWOOP';
                                         } catch (_) { }
                                         return dx;
@@ -1379,7 +1375,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const headerBlock = [
                                         '======================================',
                                         `Time: ${nowStr}`,
-                                        `PROSES : ${isKiri ? `${ce} => ${dx}` : `${dx} => ${ce}`} (VIA ${viaName})`,
+                                        `PROSES : ${isKiri ? `${ce} => ${dx}` : `${dx} => ${ce}`} (SOURCE: ${viaName})`,
                                         'STATUS DEX : OK'
                                     ].join('\n');
 
@@ -1512,8 +1508,8 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     }
 
                                     const prosesLine = (direction === 'TokentoPair')
-                                        ? `PROSES : ${ceName} => ${dxName} (VIA ${providerInfo})`
-                                        : `PROSES : ${dxName} => ${ceName} (VIA ${providerInfo})`;
+                                        ? `PROSES : ${ceName} => ${dxName} (SOURCE: ${providerInfo})`
+                                        : `PROSES : ${dxName} => ${ceName} (SOURCE: ${providerInfo})`;
 
                                     let s = 'FAILED';
                                     try {
@@ -1574,8 +1570,8 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
 
                                     // PROSES mengikuti arah
                                     const prosesLine = (direction === 'TokentoPair')
-                                        ? `PROSES : ${ceName} => ${dxName} (VIA ${providerInfo})`
-                                        : `PROSES : ${dxName} => ${ceName} (VIA ${providerInfo})`;
+                                        ? `PROSES : ${ceName} => ${dxName} (SOURCE: ${providerInfo})`
+                                        : `PROSES : ${dxName} => ${ceName} (SOURCE: ${providerInfo})`;
 
                                     // STATUS
                                     let s = 'FAILED';

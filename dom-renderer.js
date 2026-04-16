@@ -24,11 +24,11 @@ function getMetaDexBadge(dexKey, size = '9px', style = 'solid') {
 
   // Per-provider badge definition
   const BADGES = {
-    metax:    { label: 'MT', color: '#ec7506' },  // MetaMask orange
-    lifi:     { label: 'JM', color: '#7c3aed' },  // Jumper purple
-    dzap:     { label: 'DZ', color: '#d9dc36' },  // DZAP yellow
-    rubic:    { label: 'RB', color: '#24cc59' },  // Rubic green
-    onekey:   { label: 'KY', color: '#00b812' },  // OneKey green
+    metax: { label: 'MT', color: '#ec7506' },  // MetaMask orange
+    lifi: { label: 'JM', color: '#7c3aed' },  // Jumper purple
+    dzap: { label: 'DZ', color: '#d9dc36' },  // DZAP yellow
+    rubic: { label: 'RB', color: '#24cc59' },  // Rubic green
+    onekey: { label: 'KY', color: '#00b812' },  // OneKey green
     debridge: { label: 'DB', color: '#d7ca0e' },  // deBridge
   };
 
@@ -485,17 +485,19 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const linkSCpair = createHoverLink(urlScOut, '[SC]', 'uk-text-primary');
 
       const linkOKDEX = createHoverLink(`https://www.okx.com/web3/dex-swap?inputChain=${chainConfig.Kode_Chain}&inputCurrency=${data.sc_in}&outputChain=${chainConfig.Kode_Chain}&outputCurrency=${data.sc_out}`, '#OKX', 'uk-text-success');
-      const linkDLX = createHoverLink(`https://app.1delta.io/swap?chain=${chainConfig.Nama_Chain}&inputCurrency=${data.sc_in}&outputCurrency=${data.sc_out}`, '#DLT', 'uk-text-warning');
+      const linkDLX = createHoverLink(`https://app.1delta.io/swap?chain=${chainConfig.Nama_Chain}&inputCurrency=${data.sc_in}&outputCurrency=${data.sc_out}`, '#DLT', 'uk-text-secondary');
 
-       const linkDBX = createHoverLink(`https://app.debridge.com/?inputChain=${chainConfig.Kode_Chain}&outputChain=${chainConfig.Kode_Chain}&inputCurrency=${data.sc_in}&outputCurrency=${data.sc_out}&dlnMode=simple&referralCode=32935`, '#DBX', 'uk-text-primary');
+      const linkDBX = createHoverLink(`https://app.debridge.com/?inputChain=${chainConfig.Kode_Chain}&outputChain=${chainConfig.Kode_Chain}&inputCurrency=${data.sc_in}&outputCurrency=${data.sc_out}&dlnMode=simple&referralCode=32935`, '#DBX', 'uk-text-secondary');
       const linkDEFIL = createHoverLink(`https://swap.defillama.com/?chain=${chainConfig.Nama_Chain}&from=${data.sc_in}&to=${data.sc_out}`, '#DFL', 'uk-text-danger');
       // DZAP: Solana uses chain ID 7565164
       const dzapChainId = String(data.chain || '').toLowerCase() === 'solana' ? 7565164 : chainConfig.Kode_Chain;
       const linkDZAP = createHoverLink(`https://app.dzap.io/trade?referral=d0d7E9b4&fromChain=${dzapChainId}&fromToken=${data.sc_in}&toChain=${dzapChainId}&toToken=${data.sc_out}`, '#DZP', 'uk-text-secondary');
       // Jumper (LIFI): Solana uses chain ID 1151111081099710
       const jumperChainId = String(data.chain || '').toLowerCase() === 'solana' ? 1151111081099710 : chainConfig.Kode_Chain;
-      const linkJumper = createHoverLink(`https://jumper.exchange/?fromChain=${jumperChainId}&fromToken=${data.sc_in}&toChain=${jumperChainId}&toToken=${data.sc_out}`, '#JMX', 'uk-text-secondary');
+      const linkJumper = createHoverLink(`https://jumper.exchange/?fromChain=${jumperChainId}&fromToken=${data.sc_in}&toChain=${jumperChainId}&toToken=${data.sc_out}`, '#JMX', 'uk-text-warning');
 
+      // Oku: https://oku.trade/swap?inputChain=ethereum&inToken=0x...&outToken=0x...
+      const linkOKU = createHoverLink(`https://oku.trade/swap?inputChain=${chainConfig.Nama_Chain}&inToken=${data.sc_in}&outToken=${data.sc_out}`, '#OKU', 'uk-text-primary');
       // Rango: Multi-chain aggregator (requires blockchain name mapping)
       const rangoChainMap = { 'bsc': 'BSC', 'ethereum': 'ETH', 'polygon': 'POLYGON', 'arbitrum': 'ARBITRUM', 'base': 'BASE', 'optimism': 'OPTIMISM', 'avalanche': 'AVAX_CCHAIN', 'solana': 'SOLANA' };
       const rangoChain = rangoChainMap[String(data.chain || '').toLowerCase()] || String(data.chain || '').toUpperCase();
@@ -570,8 +572,8 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                 <span class="detail-line uk-text-bolder">${WD_TOKEN}~ ${DP_TOKEN} | ${WD_PAIR}~ ${DP_PAIR}</span>
                 <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_in || '').toUpperCase()}</span> ${linkSCtoken} : ${linkStokToken}</span>
                 <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_out || '').toUpperCase()}</span> ${linkSCpair} : ${linkStokPair}</span>
-                <span class="detail-line"> ${linkDLX} ${linkDBX} ${linkDEFIL} ${linkOKDEX} </span>
-                <span class="detail-line"> ${linkRango} ${linkJumper} ${linkRBX} ${linkDZAP}</span>
+                <span class="detail-line">${linkJumper} ${linkOKU} ${linkDEFIL} ${linkOKDEX} </span>
+                <span class="detail-line"> ${linkRango} ${linkDBX} ${linkDLX} ${linkRBX} ${linkDZAP}</span>
             </td>`;
 
       // refactor: render slot DEX kanan via helper
@@ -1293,6 +1295,7 @@ function DisplayPNL(data) {
     rates,
     isFallback, fallbackSource,  // REFACTORED: Tambahkan info sumber alternatif
     subResults, isMultiDex,  // NEW: untuk SWING/KAMINO/RANGO/RUBIC multi-DEX aggregators
+    dexTitle, routeTool, // ✅ NEW: Provider name from strategy response (LIFI, SWOOP, etc)
     feeSource  // ✅ NEW: Fee data origin from API response ('api'|'calc'|'fallback')
   } = data;
 
@@ -1626,34 +1629,34 @@ function DisplayPNL(data) {
         // ⬇ Sell link: arah & harga + fee info (sama seperti tipSell reguler)
 
         // Sumber fee — definisikan lebih awal agar bisa dipakai di seluruh tooltip
-        const subFeeRaw    = n(subRes.FeeSwap || subRes.fee);
-        const subFeeSrc    = String(subRes.feeSource || 'fallback').toLowerCase();
-        const subFeeSrcLbl = subFeeSrc === 'api'  ? '✅ dari API'
-                           : subFeeSrc === 'calc' ? 'dari kalkulasi gas'
-                           :                        '⚠️ estimasi fallback';
+        const subFeeRaw = n(subRes.FeeSwap || subRes.fee);
+        const subFeeSrc = String(subRes.feeSource || 'fallback').toLowerCase();
+        const subFeeSrcLbl = subFeeSrc === 'api' ? '✅ dari API'
+          : subFeeSrc === 'calc' ? 'dari kalkulasi gas'
+            : '⚠️ estimasi fallback';
 
         // ✅ Build titleLog IDENTIK PERSIS dengan format scanner.js untuk DEX reguler
         // Semua field sama: Time, PROSES, STATUS DEX, Token IN/OUT, Modal, Beli/Jual, Fee, PNL, idCELL
         const _toIDR = (v) => { try { return (typeof formatIDRfromUSDT === 'function') ? formatIDRfromUSDT(Number(v) || 0) : ''; } catch (_) { return ''; } };
         const _nowStr = (new Date()).toLocaleTimeString();
-        const isKiri  = direction === 'tokentopair';
+        const isKiri = direction === 'tokentopair';
 
         // Provider info untuk PROSES line
         const _routeTool = String(subRes.routeTool || subRes.via || '').trim();
         const _viaName = _routeTool.length > 0 ? _routeTool.toUpperCase() : providerName;
 
         // Contract address dari data token (field sc_input/sc_output dari DisplayPNL data object)
-        const _scIn  = String(data?.sc_input  || data?.sc_in  || data?.tokenIn  || '').substring(0, 10);
+        const _scIn = String(data?.sc_input || data?.sc_in || data?.tokenIn || '').substring(0, 10);
         const _scOut = String(data?.sc_output || data?.sc_out || data?.tokenOut || '').substring(0, 10);
-        const _tokenInAddr  = _scIn  ? `(${_scIn}...)` : '';
+        const _tokenInAddr = _scIn ? `(${_scIn}...)` : '';
         const _tokenOutAddr = _scOut ? `(${_scOut}...)` : '';
 
         // ✅ FIX: Harga efektif DEX (USDT per token) — logika IDENTIK dengan calculateResult() di dom-renderer.js
         // Menggunakan stableSet → baseSym/baseUsd → priceBuyPair (bukan sellPairCEX) agar konsisten dengan kolom DEX
         const _mStableSet = (typeof getStableSymbols === 'function') ? getStableSymbols() : ['USDT', 'USDC', 'DAI'];
-        const _mBaseSym   = (typeof getBaseTokenSymbol === 'function') ? getBaseTokenSymbol(nameChain) : '';
-        const _mBaseUsd   = (typeof getBaseTokenUSD === 'function') ? getBaseTokenUSD(nameChain) : 0;
-        const _mRateT2P   = amtIn > 0 ? (amtOut / amtIn) : 0;  // raw swap rate
+        const _mBaseSym = (typeof getBaseTokenSymbol === 'function') ? getBaseTokenSymbol(nameChain) : '';
+        const _mBaseUsd = (typeof getBaseTokenUSD === 'function') ? getBaseTokenUSD(nameChain) : 0;
+        const _mRateT2P = amtIn > 0 ? (amtOut / amtIn) : 0;  // raw swap rate
         let _effDexPerToken = 0;
         if (isKiri) {
           // CEX→DEX (TokentoPair): USD per 1 token_in
@@ -1692,18 +1695,18 @@ function DisplayPNL(data) {
         const _profit = _bruto - subTotalFee;
 
         // Nama token di setiap arah
-        const _nameIn  = upper(Name_in);
+        const _nameIn = upper(Name_in);
         const _nameOut = upper(Name_out);
-        const _ceName  = upper(cex);
-        const _dxName  = providerName;  // Nama DEX spesifik (OKX, MATCHA, KYBER, dll.)
+        const _ceName = upper(cex);
+        const _dxName = providerName;  // Nama DEX spesifik (OKX, MATCHA, KYBER, dll.)
 
         // idCELL = idPrefix + baseId (sama seperti regular DEX di scanner.js)
         const _idCell = String((idPrefix || '') + (baseId || ''));
 
         // ── Header Block (identik dengan scanner.js) ──
         const _prosesLine = isKiri
-          ? `PROSES : ${_ceName} => ${_dxName} (VIA ${_viaName})`
-          : `PROSES : ${_dxName} => ${_ceName} (VIA ${_viaName})`;
+          ? `PROSES : ${_ceName} => ${_dxName} (SOURCE: ${_viaName})`
+          : `PROSES : ${_dxName} => ${_ceName} (SOURCE: ${_viaName})`;
 
         const _headerBlock = [
           '======================================',
@@ -1713,7 +1716,7 @@ function DisplayPNL(data) {
         ].join('\n');
 
         // ── Token info ──
-        const _tokenInLine  = isKiri
+        const _tokenInLine = isKiri
           ? `    📥 Token IN  : ${_nameIn} ${_tokenInAddr}`
           : `    📥 Token IN  : ${_nameIn} ${_tokenInAddr}`;
         const _tokenOutLine = isKiri
@@ -1734,15 +1737,15 @@ function DisplayPNL(data) {
         // ── Fee breakdown (identik dengan scanner.js per arah) ──
         const _feeBreakdown = isKiri
           ? [
-              `    🏦 Fee WD (CEX): $${subFeeWD.toFixed(4)}`,
-              `    🛒 Fee Swap (DEX): $${subFeeRaw.toFixed(4)} (${subFeeSrcLbl})`,
-              `    💼 Fee Trade (CEX): $${baseFeeTrade.toFixed(4)}`,
-            ]
+            `    🏦 Fee WD (CEX): $${subFeeWD.toFixed(4)}`,
+            `    🛒 Fee Swap (DEX): $${subFeeRaw.toFixed(4)} (${subFeeSrcLbl})`,
+            `    💼 Fee Trade (CEX): $${baseFeeTrade.toFixed(4)}`,
+          ]
           : [
-              `    🛒 Fee Swap (DEX): $${subFeeRaw.toFixed(4)} (${subFeeSrcLbl})`,
-              `    📤 Fee Transfer (Gas): $${subFeeTransfer.toFixed(4)}`,
-              `    💼 Fee Trade (CEX): $${baseFeeTrade.toFixed(4)}`,
-            ];
+            `    🛒 Fee Swap (DEX): $${subFeeRaw.toFixed(4)} (${subFeeSrcLbl})`,
+            `    📤 Fee Transfer (Gas): $${subFeeTransfer.toFixed(4)}`,
+            `    💼 Fee Trade (CEX): $${baseFeeTrade.toFixed(4)}`,
+          ];
 
         // ── Build full titleLog (SAMA PERSIS dengan scanner.js) ──
         const divTitle = [
@@ -1773,16 +1776,14 @@ function DisplayPNL(data) {
         const isSubProfit = subPnl > 0;
         const subBgStyle = isSubProfit ? 'background-color: rgba(188, 233, 97, 0.9);' : '';
 
-        // ✅ FIX: Display fee dengan link WD/DP (format sama seperti regular DEX)
-        const _wdText = (metaWdFlag === false) ? '🈳 WX' : '🈳 WD';
-        const _dpText = (metaDpFlag === false) ? `🈷️ DX[${metaDpTokenName}]` : `🈷️ DP[${metaDpTokenName}]`;
-        const _wdCls = (metaWdFlag === false) ? 'uk-text-danger' : 'uk-text-primary';
-        const _dpCls = (metaDpFlag === false) ? 'uk-text-danger' : 'uk-text-primary';
+        // ✅ FIX: Gunakan linkifyStatus agar format IDENTIK dengan DEX reguler
+        // Token for DP is always Name_out in both directions when we end up with the pair token
+        const dpTokenName = upper(Name_out);
         const feeLabel1 = direction === 'tokentopair'
-          ? `<a class="${_wdCls}" href="${metaWdUrl}" target="_blank" rel="noopener" title="FEE WITHDRAW">${_wdText}: ${subFeeWD.toFixed(4)}$</a>`
-          : `<a class="${_dpCls}" href="${metaDpUrl}" target="_blank" rel="noopener">${_dpText}</a>`;
+          ? linkifyStatus(metaWdFlag, 'WD', metaWdUrl, upper(Name_in))
+          : linkifyStatus(metaDpFlag, 'DP', metaDpUrl, dpTokenName);
 
-    
+
         // ✅ link ⬆/⬇ pakai divTitle penuh — IDENTIK dengan DEX reguler (tipBuy = tipSell = __titleLog)
         const tipFull = divTitle;
 
@@ -1866,7 +1867,7 @@ function DisplayPNL(data) {
       }
 
       // Icon multi-tab untuk sel Multi-DEX yang hijau
-      try { el.querySelector('.multi-tab-btn') && el.querySelector('.multi-tab-btn').remove(); } catch(_) {}
+      try { el.querySelector('.multi-tab-btn') && el.querySelector('.multi-tab-btn').remove(); } catch (_) { }
       if (hasSignal) {
         try {
           const _mTkSym = (direction === 'tokentopair') ? upper(Name_in) : upper(Name_out);
@@ -1876,13 +1877,13 @@ function DisplayPNL(data) {
             ? (GeturlExchanger(upper(cex), _mTkSym, _mPrSym) || {}) : {};
           const _mUrlsP = (!_mIsStd && typeof GeturlExchanger === 'function')
             ? (GeturlExchanger(upper(cex), _mPrSym, _mTkSym) || {}) : {};
-          const _mWdToken  = _mUrlsT.withdrawTokenUrl || _mUrlsT.withdrawUrl || '#';
-          const _mWdPair   = _mUrlsP.withdrawTokenUrl || _mUrlsP.withdrawUrl || '#';
-          const _mDpToken  = _mUrlsT.depositTokenUrl  || _mUrlsT.depositUrl  || '#';
-          const _mDpPair   = _mUrlsP.depositTokenUrl  || _mUrlsP.depositUrl  || '#';
-          const _mTradeTk  = _mUrlsT.tradeToken || _mUrlsT.tradeUrl || '#';
-          const _mTradePr  = _mUrlsP.tradeToken || _mUrlsP.tradeUrl || '#';
-          const _mSwap     = dexLink;
+          const _mWdToken = _mUrlsT.withdrawTokenUrl || _mUrlsT.withdrawUrl || '#';
+          const _mWdPair = _mUrlsP.withdrawTokenUrl || _mUrlsP.withdrawUrl || '#';
+          const _mDpToken = _mUrlsT.depositTokenUrl || _mUrlsT.depositUrl || '#';
+          const _mDpPair = _mUrlsP.depositTokenUrl || _mUrlsP.depositUrl || '#';
+          const _mTradeTk = _mUrlsT.tradeToken || _mUrlsT.tradeUrl || '#';
+          const _mTradePr = _mUrlsP.tradeToken || _mUrlsP.tradeUrl || '#';
+          const _mSwap = dexLink;
           let _mTabs;
           if (_mIsStd) {
             _mTabs = direction === 'tokentopair'
@@ -1914,10 +1915,10 @@ function DisplayPNL(data) {
           _mIcon.title = `${_mDirLbl} · ${_mTypLbl} ${_mTkSym}/${_mPrSym}`;
           _mIcon.style.cssText = 'cursor:pointer;display:inline-block;margin-right:3px;font-size:11px;user-select:none;border:1px solid #0a0;border-radius:3px;padding:0 3px;background:#e8fde8;color:#080;line-height:1.4;vertical-align:middle;';
           _mIcon.textContent = '⚡';
-          _mIcon.onclick = function(e) { if (window.openMultiTabs) window.openMultiTabs(this, e); };
+          _mIcon.onclick = function (e) { if (window.openMultiTabs) window.openMultiTabs(this, e); };
           // Taruh di depan (sebelum flex container sub-kolom)
           el.insertAdjacentElement('afterbegin', _mIcon);
-        } catch(_me) { /* ignore */ }
+        } catch (_me) { /* ignore */ }
       }
 
       // *** SIGNAL untuk DZAP/LIFI - kirim sinyal untuk SETIAP provider yang profit ***
@@ -1938,13 +1939,13 @@ function DisplayPNL(data) {
         let signalCount = 0;
         for (let i = 0; i < Math.min(subResults.length, maxProviders); i++) {
           const subRes = subResults[i];
-          
+
           // ✅ Re-calculate PNL untuk provider ini (SAMA LOGIC seperti di subColsHtml loop)
           const amtIn_sig = direction === 'tokentopair'
             ? (buyTokenCEX > 0 ? baseModal / buyTokenCEX : 0)
             : baseModal;
           const amtOut_sig = n(subRes.amount_out || subRes.amountOut || 0);
-          
+
           // Calculate exchange rate & total value
           let subTotalValue_sig = 0;
           if (direction === 'tokentopair') {
@@ -1954,7 +1955,7 @@ function DisplayPNL(data) {
           } else {
             subTotalValue_sig = amtOut_sig * sellTokenCEX;
           }
-          
+
           // Calculate fees
           const feeSwap_sig = n(subRes.FeeSwap || subRes.fee || 0);
           const subFeeTransfer_sig = direction === 'pairtotoken'
@@ -1962,7 +1963,7 @@ function DisplayPNL(data) {
             : 0;
           const subFeeWD_sig = direction === 'tokentopair' ? baseFeeWD : 0;
           const subTotalFee_sig = feeSwap_sig + subFeeWD_sig + subFeeTransfer_sig + baseFeeTrade;
-          
+
           // Calculate PNL
           const subBruto_sig = subTotalValue_sig - baseModal;
           const subPnlValue_sig = subBruto_sig - subTotalFee_sig;
@@ -1973,7 +1974,7 @@ function DisplayPNL(data) {
 
             // Provider name dari dexTitle (untuk badge display)
             const providerName = subRes.dexTitle ? String(subRes.dexTitle) : `Provider_${i}`;
-            
+
             // ✅ FIX CRITICAL: Route signal ke CARD METADEX (aggregatorSourceLower), bukan ke provider card
             // Provider info (providerName) akan ditampilkan sebagai badge di card MetaDEX
             const signalTargetDex = aggregatorSourceLower;  // ← Routing: card MetaDEX (METAX, LIFI, DZAP)
@@ -2118,7 +2119,7 @@ function DisplayPNL(data) {
   // dexUsdRate = displayRate dari calculateResult() yang SAMA PERSIS dengan nilai kolom DEX.
   // Sebelumnya logika candA/candB bisa menghasilkan nilai berbeda → tooltip tidak konsisten.
   const dexRateRaw = n(dexUsdRate);
-  const refCexBuy  = n(displayPriceBuyToken);
+  const refCexBuy = n(displayPriceBuyToken);
   const refCexSell = n(displayPriceSellToken);
 
   // dexUsdtPerToken = rate USDT/Token yang IDENTIK dengan angka di kolom DEX
@@ -2133,7 +2134,11 @@ function DisplayPNL(data) {
   let buyPrice, sellPrice, buyLink, sellLink, tipBuy, tipSell;
 
   // REFACTORED: Tambahkan info sumber alternatif ke label DEX
-  const dexLabel = isFallback && fallbackSource ? `${DEX} via ${fallbackSource}` : DEX;
+  const dexLabel = (() => {
+    if (routeTool) return String(routeTool).toUpperCase();
+    if (isFallback && fallbackSource) return `${DEX} VIA ${String(fallbackSource).toUpperCase()}`;
+    return DEX;
+  })();
 
   // ✅ Fee info label for tooltip — tampilkan nilai fee dan sumbernya
   const _feeVal = n(FeeSwap);
@@ -2146,22 +2151,22 @@ function DisplayPNL(data) {
   const _feeInfo = `💸 Fee Swap: $${_feeVal.toFixed(4)} (${_feeSrcLabel})`;
 
   if (direction === 'tokentopair') {
-    buyPrice  = refCexBuy;
+    buyPrice = refCexBuy;
     sellPrice = dexUsdtPerToken;
-    buyLink   = cexLinks.trade;   // TOKEN
-    sellLink  = linkDEX || '#';
+    buyLink = cexLinks.trade;   // TOKEN
+    sellLink = linkDEX || '#';
 
     // ✅ Tooltip konsisten: fmtUSD(sellPrice) = angka yang sama dengan kolom DEX ⬇
-    tipBuy  = `USDT -> ${Name_in} | ${CEX} | ${fmtIDR(buyPrice)} | ${fmtUSD(buyPrice)} USDT/${Name_in}`;
+    tipBuy = `USDT -> ${Name_in} | ${CEX} | ${fmtIDR(buyPrice)} | ${fmtUSD(buyPrice)} USDT/${Name_in}`;
     tipSell = `${Name_in} -> ${Name_out} | ${dexLabel} | ${fmtIDR(sellPrice)} | ${fmtUSD(sellPrice)} USDT/${Name_in}\n${_feeInfo}`;
   } else {
-    buyPrice  = dexUsdtPerToken;
+    buyPrice = dexUsdtPerToken;
     sellPrice = refCexSell;
-    buyLink   = linkDEX || '#';
-    sellLink  = cexLinks.trade;   // PAIR
+    buyLink = linkDEX || '#';
+    sellLink = cexLinks.trade;   // PAIR
 
     // ✅ Tooltip konsisten: fmtUSD(buyPrice) = angka yang sama dengan kolom DEX ⬆
-    tipBuy  = `${Name_in} -> ${Name_out} | ${dexLabel} | ${fmtIDR(buyPrice)} | ${fmtUSD(buyPrice)} USDT/${Name_in}\n${_feeInfo}`;
+    tipBuy = `${Name_in} -> ${Name_out} | ${dexLabel} | ${fmtIDR(buyPrice)} | ${fmtUSD(buyPrice)} USDT/${Name_in}\n${_feeInfo}`;
     tipSell = `${Name_out} -> USDT | ${CEX} | ${fmtIDR(sellPrice)} | ${fmtUSD(sellPrice)} USDT/${Name_out}`;
   }
 
@@ -2305,8 +2310,8 @@ function DisplayPNL(data) {
     try {
       // Tentukan TOKEN dan PAIR berdasarkan arah transaksi
       const _tokenSym = (direction === 'tokentopair') ? upper(Name_in) : upper(Name_out);
-      const _pairSym  = (direction === 'tokentopair') ? upper(Name_out) : upper(Name_in);
-      const _isStd    = _pairSym === 'USDT';
+      const _pairSym = (direction === 'tokentopair') ? upper(Name_out) : upper(Name_in);
+      const _isStd = _pairSym === 'USDT';
 
       // Ambil URL CEX untuk TOKEN dan PAIR
       const _urlsT = (typeof GeturlExchanger === 'function')
@@ -2314,13 +2319,13 @@ function DisplayPNL(data) {
       const _urlsP = (!_isStd && typeof GeturlExchanger === 'function')
         ? (GeturlExchanger(upper(cex), _pairSym, _tokenSym) || {}) : {};
 
-      const _tradeToken   = _urlsT.tradeToken  || _urlsT.tradeUrl  || '#';
-      const _tradePair    = _urlsP.tradeToken  || _urlsP.tradeUrl  || '#';
-      const _wdToken      = _urlsT.withdrawTokenUrl || _urlsT.withdrawUrl || '#';
-      const _wdPair       = _urlsP.withdrawTokenUrl || _urlsP.withdrawUrl || '#';
-      const _dpToken      = _urlsT.depositTokenUrl  || _urlsT.depositUrl  || '#';
-      const _dpPair       = _urlsP.depositTokenUrl  || _urlsP.depositUrl  || '#';
-      const _swap         = linkDEX || '#';
+      const _tradeToken = _urlsT.tradeToken || _urlsT.tradeUrl || '#';
+      const _tradePair = _urlsP.tradeToken || _urlsP.tradeUrl || '#';
+      const _wdToken = _urlsT.withdrawTokenUrl || _urlsT.withdrawUrl || '#';
+      const _wdPair = _urlsP.withdrawTokenUrl || _urlsP.withdrawUrl || '#';
+      const _dpToken = _urlsT.depositTokenUrl || _urlsT.depositUrl || '#';
+      const _dpPair = _urlsP.depositTokenUrl || _urlsP.depositUrl || '#';
+      const _swap = linkDEX || '#';
 
       let _tabs;
       if (_isStd) {
@@ -2344,8 +2349,8 @@ function DisplayPNL(data) {
       }
 
       const _validTabs = _tabs.filter(u => u && u !== '#');
-      const _tabData   = _tabs.join('|||');
-      const _dirLabel  = (direction === 'tokentopair') ? 'CEX→DEX' : 'DEX→CEX';
+      const _tabData = _tabs.join('|||');
+      const _dirLabel = (direction === 'tokentopair') ? 'CEX→DEX' : 'DEX→CEX';
       const _typeLabel = _isStd ? 'Standar' : 'Triangular';
 
       // Label deskriptif tiap link
@@ -2532,7 +2537,7 @@ function determineSignalRouting(dexKey, aggregatorKey) {
    * │    → no badge, langsung tampil sebagai signal DEX biasa                 │
    * └─────────────────────────────────────────────────────────────────────────┘
    */
-  
+
   const dexKeyLower = String(dexKey).toLowerCase();
   const dexConfig = (typeof window !== 'undefined' && window.CONFIG_DEXS)
     ? window.CONFIG_DEXS[dexKeyLower]
@@ -2567,7 +2572,7 @@ function InfoSinyal(DEXPLUS, TokenPair, PNL, totalFee, cex, NameToken, NamePair,
   // Output:
   // Determine routing berdasarkan isMetaDex dari CONFIG_DEXS
   // ═══════════════════════════════════════════════════════════════════
-  
+
   const routing = determineSignalRouting(DEXPLUS, aggregatorKey);
   const dexLowerKey = routing.targetCard;
   const isMetaDex = routing.isMetaDex;
@@ -2832,6 +2837,7 @@ function calculateResult(baseId, tableBodyId, amount_out, FeeSwap, sc_input, sc_
 
   // ✅ FIX: Extract dexTitle from DataDEX (provider name from strategy response)
   const dexTitle = DataDEX && DataDEX.dexTitle ? String(DataDEX.dexTitle) : null;
+  const routeTool = DataDEX && DataDEX.routeTool ? String(DataDEX.routeTool) : null;
 
   // ✅ NEW: Extract fee source label from DataDEX for tooltip display
   // feeSource: 'api' = dari response API langsung, 'calc' = kalkulasi gas units, 'fallback' = estimasi hardcoded
@@ -2850,7 +2856,7 @@ function calculateResult(baseId, tableBodyId, amount_out, FeeSwap, sc_input, sc_
     nameChain, codeChain, trx, profitLossPercent, vol,
     isFallback, fallbackSource,  // REFACTORED: Tambahkan info sumber alternatif
     subResults, isMultiDex,  // NEW: untuk DZAP multi-DEX
-    dexTitle,  // ✅ NEW: Provider name from strategy response (LIFI, SWOOP, etc)
+    dexTitle, routeTool, // ✅ NEW: Provider name from strategy response (LIFI, SWOOP, etc)
     feeSource  // ✅ NEW: Fee data origin label for tooltip annotation
   };
 }
@@ -2877,14 +2883,14 @@ if (typeof window !== 'undefined') {
 // Membuka semua URL yang tersimpan di data-tabs (dipisah oleh |||).
 // =================================================================================
 if (typeof window !== 'undefined') {
-  window.openMultiTabs = function(el, evt) {
+  window.openMultiTabs = function (el, evt) {
     try {
       if (evt) { evt.stopPropagation(); evt.preventDefault(); }
       const tabs = String(el.dataset.tabs || '').split('|||')
-        .map(function(u) { return (u || '').trim(); })
-        .filter(function(u) { return u && u !== '#'; });
+        .map(function (u) { return (u || '').trim(); })
+        .filter(function (u) { return u && u !== '#'; });
       if (!tabs.length) return;
-      tabs.forEach(function(url) { window.open(url, '_blank'); });
+      tabs.forEach(function (url) { window.open(url, '_blank'); });
     } catch (e) {
       console.error('[openMultiTabs] Error:', e);
     }

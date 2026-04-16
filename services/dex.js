@@ -482,7 +482,7 @@
           amount_out,
           FeeSwap,
           dexTitle: 'ODOS',
-          routeTool: 'HINKAL-ODOS1'  // Track that it came via Hinkal proxy
+          routeTool: 'HINKAL-ODOS'  // Track that it came via Hinkal proxy
         };
       }
     },
@@ -542,7 +542,7 @@
           amount_out,
           FeeSwap,
           dexTitle: 'ODOS',
-          routeTool: 'HINKAL-ODOS2'
+          routeTool: 'HINKAL-ODOS'
         };
       }
     },
@@ -613,7 +613,7 @@
       buildRequest: ({ codeChain, sc_input, sc_output, amount_in_big, SavedSettingData }) => {
         const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
         const nativeAddresses = ['0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', '0x0000000000000000000000000000000000000000'];
-        
+
         const srcToken = nativeAddresses.includes(sc_input.toLowerCase()) ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : sc_input.toLowerCase();
         const dstToken = nativeAddresses.includes(sc_output.toLowerCase()) ? '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' : sc_output.toLowerCase();
 
@@ -645,10 +645,10 @@
 
         let gasEstimate = 350000;
         if (response.tx && response.tx.gas) {
-            gasEstimate = parseFloat(response.tx.gas);
+          gasEstimate = parseFloat(response.tx.gas);
         }
-        
-        const gweiOverride = 0.1; 
+
+        const gweiOverride = 0.1;
         const calculatedFee = typeof calculateGasFeeUSD === 'function' ? calculateGasFeeUSD(chainName, gasEstimate, gweiOverride) : 0;
         const FeeSwap = (Number.isFinite(calculatedFee) && calculatedFee > 0)
           ? calculatedFee
@@ -693,10 +693,10 @@
             0
           );
           if (!(_zeroDirectUsd > 0 && _zeroDirectUsd < 100)) _zeroDirectUsd = 0;
-        } catch (_) {}
+        } catch (_) { }
         const { FeeSwap: _zFee, feeSource: _zSrc } = resolveFeeSwap(_zeroDirectUsd, 0, chainName);
 
-        return { amount_out, FeeSwap: _zFee, feeSource: _zSrc, dexTitle: 'KYBER' };
+        return { amount_out, FeeSwap: _zFee, feeSource: _zSrc, dexTitle: 'KYBER', routeTool: 'ZEROSWAP' };
       }
     },
     matcha: {
@@ -821,7 +821,7 @@
             amount_out,
             FeeSwap,
             dexTitle: 'MATCHA',
-            routeTool: 'MATCHA SOLANA'
+            routeTool: 'MATCHA'
           };
         }
 
@@ -848,7 +848,7 @@
         const amount_out = buyAmount / Math.pow(10, des_output);
 
         let _mDirectUsd = 0;
-        let _mCalcUsd   = 0;
+        let _mCalcUsd = 0;
         try {
           if (response.fees?.gasFee) {
             _mDirectUsd = parseFloat(response.fees.gasFee.amount || 0) || 0;
@@ -929,7 +929,7 @@
         } catch (e) { console.warn('[1Delta] Could not parse gas fee, using default'); }
         const { FeeSwap, feeSource } = resolveFeeSwap(_dDirectUsd, 0, chainName);
 
-        return { amount_out, FeeSwap, feeSource, dexTitle: 'MATCHA', routeTool: 'MATCHA via 1DELTA' };
+        return { amount_out, FeeSwap, feeSource, dexTitle: 'MATCHA', routeTool: '1DELTA' };
       }
     },
 
@@ -937,16 +937,16 @@
       buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, SavedSettingData }) => {
         const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
         const params = new URLSearchParams({
-          allowFallback:       'true',
-          buyToken:            sc_output_in,
-          chainId:             String(codeChain),
-          currency:            'USD',
+          allowFallback: 'true',
+          buyToken: sc_output_in,
+          chainId: String(codeChain),
+          currency: 'USD',
           enableNewChainSwaps: 'true',
-          fromAddress:         userAddr,
-          sellToken:           sc_input_in,
-          slippage:            getSlippageValue(),
-          source:              '0x',
-          sellAmount:          String(amount_in_big)
+          fromAddress: userAddr,
+          sellToken: sc_input_in,
+          slippage: getSlippageValue(),
+          source: '0x',
+          sellAmount: String(amount_in_big)
         });
         return {
           url: `https://swap.p.rainbow.me/v1/quote?${params.toString()}`,
@@ -976,7 +976,7 @@
         } catch (e) { console.warn('[Rainbow-Matcha] Could not parse gas fee, using default'); }
         const { FeeSwap, feeSource } = resolveFeeSwap(_rDirectUsd, _rCalcUsd, chainName);
 
-        return { amount_out, FeeSwap, feeSource, dexTitle: 'MATCHA', routeTool: 'MATCHA via RAINBOW' };
+        return { amount_out, FeeSwap, feeSource, dexTitle: 'MATCHA', routeTool: 'RAINBOW' };
       }
     },
 
@@ -984,16 +984,16 @@
       buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, SavedSettingData }) => {
         const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
         const params = new URLSearchParams({
-          allowFallback:       'true',
-          buyToken:            sc_output_in,
-          chainId:             String(codeChain),
-          currency:            'USD',
+          allowFallback: 'true',
+          buyToken: sc_output_in,
+          chainId: String(codeChain),
+          currency: 'USD',
           enableNewChainSwaps: 'true',
-          fromAddress:         userAddr,
-          sellToken:           sc_input_in,
-          slippage:            getSlippageValue(),
-          source:              '1inch',
-          sellAmount:          String(amount_in_big)
+          fromAddress: userAddr,
+          sellToken: sc_input_in,
+          slippage: getSlippageValue(),
+          source: '1inch',
+          sellAmount: String(amount_in_big)
         });
         return {
           url: `https://swap.p.rainbow.me/v1/quote?${params.toString()}`,
@@ -1015,7 +1015,7 @@
         } catch (e) { console.warn('[Rainbow-1inch] Could not parse gas fee, using default'); }
         const { FeeSwap, feeSource } = resolveFeeSwap(_r1DirectUsd, 0, chainName);
 
-        return { amount_out, FeeSwap, feeSource, dexTitle: '1INCH', routeTool: '1INCH via RAINBOW' };
+        return { amount_out, FeeSwap, feeSource, dexTitle: '1INCH', routeTool: 'RAINBOW' };
       }
     },
 
@@ -1034,8 +1034,9 @@
         };
       },
       parseResponse: (response, { des_output, chainName }) => {
-        if (!response?.data?.[0]?.toTokenAmount) throw new Error("Invalid OKX response structure");
-        const data = response.data[0];
+        const d0 = (Array.isArray(response?.data)) ? response.data[0] : (Array.isArray(response?.data?.data) ? response.data.data[0] : null);
+        if (!d0 || (!d0.toTokenAmount && !d0.routerResult?.toTokenAmount)) throw new Error("Invalid OKX response structure: amount not found");
+        const data = d0;
         const amount_out = parseFloat(data.toTokenAmount) / Math.pow(10, des_output);
 
         let _oCalcUsd = 0;
@@ -1051,7 +1052,7 @@
               }
             }
           }
-        } catch (e) {}
+        } catch (e) { }
         const { FeeSwap, feeSource } = resolveFeeSwap(0, _oCalcUsd, chainName);
 
         return { amount_out, FeeSwap, feeSource, dexTitle: 'OKX', routeTool: 'OKX' };
@@ -1088,7 +1089,7 @@
               }
             }
           }
-        } catch (e) {}
+        } catch (e) { }
         const { FeeSwap, feeSource } = resolveFeeSwap(0, _sCalcUsd, chainName);
 
         return { amount_out, FeeSwap, feeSource, dexTitle: 'SUSHI', routeTool: 'SUSHI' };
@@ -1117,7 +1118,7 @@
         const amount_out = parseFloat(outputRaw) / Math.pow(10, des_output);
 
         let _ftDirectUsd = 0;
-        let _ftCalcUsd   = 0;
+        let _ftCalcUsd = 0;
         try {
           _ftDirectUsd = parseFloat(response?.gasCostUSD || response?.gasEstimateUSD || response?.gasFeeUsd || response?.feeUsd || response?.gas?.usdValue || 0) || 0;
           if (!(_ftDirectUsd > 0 && _ftDirectUsd < 100)) _ftDirectUsd = 0;
@@ -1132,10 +1133,95 @@
               }
             }
           }
-        } catch (e) {}
+        } catch (e) { }
         const { FeeSwap, feeSource } = resolveFeeSwap(_ftDirectUsd, _ftCalcUsd, chainName);
 
         return { amount_out, FeeSwap, feeSource, dexTitle: 'FLYTRADE', routeTool: 'FLYTRADE' };
+      }
+    },
+    'dexview-okx': {
+      proxy: true,  // ✅ Proxy required — CORS restriction on api.dexview.com
+      buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, SavedSettingData }) => {
+        const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+        const params = new URLSearchParams({
+          chainIndex: String(codeChain),
+          amount: String(amount_in_big),
+          fromTokenAddress: sc_input_in,
+          toTokenAddress: sc_output_in,
+          userWalletAddress: userAddr,
+          slippagePercent: String(getSlippageValue())
+        });
+        return {
+          url: `https://api.dexview.com/okx-swap/v6/swap?${params.toString()}`,
+          method: 'GET',
+          headers: {
+            'secret': '5ff3a258-2700-11ed-a261-0242ac120002',
+            'Content-Type': 'application/json'
+          }
+        };
+      },
+      parseResponse: (response, { des_output, chainName }) => {
+        // Log response asli untuk debug (hapus setelah confirmed working)
+        console.log('[DEXVIEW-OKX] raw response:', JSON.stringify(response)?.substring(0, 400));
+
+        // Coba semua kemungkinan struktur response DexView/OKX:
+        // 1. /swap   → response.data[0].routerResult.toTokenAmount
+        // 2. /quote  → response.data[0].toTokenAmount
+        // 3. proxy wrapper berbeda → response.result / response.toTokenAmount langsung
+        let toAmount = null;
+        let gasEstimate = 0;
+
+        const d0 = (Array.isArray(response?.data)) ? response.data[0] : (Array.isArray(response?.data?.data) ? response.data.data[0] : null);
+        if (d0) {
+          // Struktur /swap (routerResult nested)
+          if (d0.routerResult?.toTokenAmount) {
+            toAmount = d0.routerResult.toTokenAmount;
+            gasEstimate = d0.routerResult.estimateGasFee || 0;
+          }
+          // Struktur /quote (flat di data[0])
+          else if (d0.toTokenAmount) {
+            toAmount = d0.toTokenAmount;
+            gasEstimate = d0.estimateGasFee || 0;
+          }
+        }
+        // Fallback: toTokenAmount langsung di root response
+        if (!toAmount && response?.toTokenAmount) {
+          toAmount = response.toTokenAmount;
+          gasEstimate = response.estimateGasFee || 0;
+        }
+        // Fallback: nested di response.result
+        if (!toAmount && response?.result?.toTokenAmount) {
+          toAmount = response.result.toTokenAmount;
+          gasEstimate = response.result.estimateGasFee || 0;
+        }
+
+        if (!toAmount) {
+          console.warn('[DEXVIEW-OKX] toTokenAmount not found. Keys:', Object.keys(response || {}), '| data[0] keys:', Object.keys(d0 || {}));
+          throw new Error("DexView-OKX: toTokenAmount not found in response");
+        }
+
+        const amount_out = parseFloat(toAmount) / Math.pow(10, des_output);
+        if (!Number.isFinite(amount_out) || amount_out <= 0) {
+          throw new Error(`DexView-OKX: invalid amount_out=${amount_out}`);
+        }
+
+        let _dvCalcUsd = 0;
+        try {
+          const gasUnitsRaw = parseFloat(gasEstimate || 0);
+          if (gasUnitsRaw > 0) {
+            const gasUnits = capGasUnits(gasUnitsRaw, chainName);
+            const allGasData = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage("ALL_GAS_FEES") : null;
+            if (allGasData) {
+              const gasInfo = allGasData.find(g => String(g.chain || '').toLowerCase() === String(chainName || '').toLowerCase());
+              if (gasInfo?.gwei && gasInfo?.tokenPrice) {
+                _dvCalcUsd = (parseFloat(gasInfo.gwei) * gasUnits / 1e9) * parseFloat(gasInfo.tokenPrice);
+              }
+            }
+          }
+        } catch (e) { }
+        const { FeeSwap, feeSource } = resolveFeeSwap(0, _dvCalcUsd, chainName);
+
+        return { amount_out, FeeSwap, feeSource, dexTitle: 'OKX', routeTool: 'DEXVIEW' };
       }
     },
     temple: {
@@ -1161,7 +1247,7 @@
         if (!response || !response.toAmount) throw new Error("Invalid Temple/LIFI response - missing toAmount");
         const amount_out = parseFloat(response.toAmount) / Math.pow(10, des_output);
         let _tDirectUsd = 0;
-        try { _tDirectUsd = parseFloat(response.gasCostUSD || 0); } catch (_) {}
+        try { _tDirectUsd = parseFloat(response.gasCostUSD || 0); } catch (_) { }
         const { FeeSwap, feeSource } = resolveFeeSwap(_tDirectUsd, 0, chainName);
         let routeTool = 'LIFI';
         try {
@@ -1170,7 +1256,7 @@
             if (toolName) routeTool = String(toolName).toUpperCase();
           }
         } catch (_) { }
-        return { amount_out, FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: `LIFIDEX (${routeTool})` };
+        return { amount_out, FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: String(routeTool).toUpperCase() };
       }
     },
   };
@@ -1239,7 +1325,7 @@
           const amount_out = parseFloat(quoteInfo.destAmount) / Math.pow(10, des_output);
           const feeUsd = parseFloat(quoteInfo.fee?.gasFee?.[0]?.amountUSD || 0);
           const { FeeSwap, feeSource } = resolveFeeSwap(feeUsd, 0, chainName);
-          allProviders.push({ amount_out, FeeSwap, feeSource, dexTitle: String(dexId).toUpperCase() });
+          allProviders.push({ amount_out, FeeSwap, feeSource, dexTitle: String(dexId).toUpperCase(), routeTool: String(dexId).toUpperCase() });
         } catch (e) { continue; }
       }
       if (allProviders.length === 0) throw new Error("No valid DZAP quotes found");
@@ -1248,11 +1334,11 @@
       if (filteredProviders.length === 0) throw new Error('DZAP: Semua provider terfilter oleh offDexResultScan');
       filteredProviders.sort((a, b) => b.amount_out - a.amount_out);
       const topN = filteredProviders.slice(0, 3);
-      return { amount_out: topN[0].amount_out, FeeSwap: topN[0].FeeSwap, feeSource: topN[0].feeSource, dexTitle: 'DZAP', subResults: topN, isMultiDex: true };
+      return { amount_out: topN[0].amount_out, FeeSwap: topN[0].FeeSwap, feeSource: topN[0].feeSource, dexTitle: 'DZAP', routeTool: topN[0].routeTool, subResults: topN, isMultiDex: true };
     }
   };
 
-  dexStrategies.lifi = {
+  dexStrategies['brave-lifi'] = {
     buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
       const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
       const lifiChainId = chainConfig?.LIFI_CHAIN_ID || Number(codeChain);
@@ -1268,7 +1354,7 @@
         toChainId: lifiChainId,
         toTokenAddress: toToken,
         options: {
-          integrator: 'jumper.exchange',
+          integrator: 'brave',
           order: 'CHEAPEST',
           slippage: parseFloat(getSlippageValue()) / 100,  // USER-CONFIGURABLE (fraction)
           maxPriceImpact: 0.4,
@@ -1289,20 +1375,21 @@
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(route.gasCostUSD || 0), 0, chainName);
         let dexTitle = 'LIFI';
         try { dexTitle = String(route.steps?.[0]?.toolDetails?.name || 'LIFI').toUpperCase(); } catch (_) { }
-        subResults.push({ amount_out, FeeSwap, feeSource, dexTitle });
+        subResults.push({ amount_out, FeeSwap, feeSource, dexTitle, routeTool: 'BRAVE-LIFI' });
         if (subResults.length >= 3) break;
       }
       // ✅ Filter blacklisted providers dari config offDexResultScan
       const filtered = filterOffDexResults(subResults);
       if (filtered.length === 0) throw new Error('LIFI: Semua provider terfilter oleh offDexResultScan');
       filtered.sort((a, b) => b.amount_out - a.amount_out);
-      return { amount_out: filtered[0].amount_out, FeeSwap: filtered[0].FeeSwap, feeSource: filtered[0].feeSource, dexTitle: 'JUMPER', subResults: filtered, isMultiDex: true };
+      return { amount_out: filtered[0].amount_out, FeeSwap: filtered[0].FeeSwap, feeSource: filtered[0].feeSource, dexTitle: 'JUMPER', routeTool: filtered[0].routeTool, subResults: filtered, isMultiDex: true };
     }
   };
 
-  dexStrategies['lifi-odos'] = {
+  dexStrategies['lifi-odos'] = createFilteredLifiStrategy('odos', 'ODOS');
+
+  dexStrategies['zapper-lifi'] = {
     buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
-      const apiKey = (typeof getRandomApiKeyLIFI === 'function') ? getRandomApiKeyLIFI() : '';
       const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
       const lifiChainId = chainConfig?.LIFI_CHAIN_ID || Number(codeChain);
       const isSolana = String(chainName || '').toLowerCase() === 'solana';
@@ -1316,25 +1403,38 @@
         toToken: toToken,
         fromAmount: amount_in_big.toString(),
         fromAddress: userAddr,
-        allowExchanges: 'odos',
-        slippage: String(parseFloat(getSlippageValue()) / 100),  // USER-CONFIGURABLE (fraction)
-        order: 'RECOMMENDED'
+        slippage: String(parseFloat(getSlippageValue()) / 100),
+        integrator: 'brave',
+        fee: '0.004'
       });
-      return { url: `https://li.quest/v1/quote?${params.toString()}`, method: 'GET', headers: { 'x-lifi-api-key': apiKey } };
+      return { url: `https://zapper.xyz/api/lifi/quote?${params.toString()}`, method: 'GET' };
     },
     parseResponse: (response, { des_output, chainName }) => {
-      if (!response?.estimate?.toAmount) throw new Error("LIFI-ODOS: No valid quote received");
+      if (!response?.estimate?.toAmount) throw new Error("ZAPPER-LIFI: No valid quote received");
       const amount_out = parseFloat(response.estimate.toAmount) / Math.pow(10, des_output);
       let gasCostUsd = 0;
       if (response.estimate.gasCosts) gasCostUsd = response.estimate.gasCosts.reduce((sum, gc) => sum + parseFloat(gc.amountUSD || 0), 0);
       const { FeeSwap, feeSource } = resolveFeeSwap(gasCostUsd, 0, chainName);
-      return { amount_out, FeeSwap, feeSource, dexTitle: 'ODOS', routeTool: 'ODOS via LIFI' };
+
+      let dexTitle = 'LIFI';
+      try {
+        dexTitle = String(response.toolDetails?.name || response.tool || 'ZAPPER').toUpperCase();
+      } catch (_) { }
+
+      const result = { amount_out, FeeSwap, feeSource, dexTitle };
+      return {
+        ...result,
+        routeTool: 'ZAPPER-LIFI',
+        subResults: [result],
+        isMultiDex: true
+      };
     }
   };
 
-  function createFilteredLifiStrategy(dexKey, dexTitle) {
+  function createFilteredLifiStrategy(dexKey, dexTitle, customLabel = null) {
     return {
       buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
+        const apiKey = (typeof getRandomApiKeyLIFI === 'function') ? getRandomApiKeyLIFI() : '';
         const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
         const lifiChainId = chainConfig?.LIFI_CHAIN_ID || Number(codeChain);
         const isSolana = String(chainName || '').toLowerCase() === 'solana';
@@ -1349,7 +1449,7 @@
           toChainId: lifiChainId,
           toTokenAddress: toToken,
           options: {
-            integrator: 'jumper.exchange',
+            integrator: 'brave',
             order: 'CHEAPEST',
             slippage: parseFloat(getSlippageValue()) / 100,  // USER-CONFIGURABLE (fraction)
             maxPriceImpact: 0.4,
@@ -1359,7 +1459,7 @@
             allowExchanges: [dexKey]
           }
         };
-        return { url: 'https://lifi.wallet.brave.com/v1/advanced/routes', method: 'POST', data: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } };
+        return { url: 'https://li.quest/v1/advanced/routes', method: 'POST', data: JSON.stringify(body), headers: { 'Content-Type': 'application/json', 'x-lifi-api-key': apiKey } };
       },
       parseResponse: (response, { des_output, chainName }) => {
         const routes = response?.routes;
@@ -1368,7 +1468,17 @@
         if (!bestRoute?.toAmount) throw new Error(`LIFI-${dexTitle}: Invalid route structure`);
         const amount_out = parseFloat(bestRoute.toAmount) / Math.pow(10, des_output);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(bestRoute.gasCostUSD || 0), 0, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `${dexTitle} via LIFI` };
+
+        // Dynamic Label logic
+        let routeTool = customLabel || `LIFI-${dexTitle}`;
+        if (dexTitle === 'OKX') routeTool = 'BRAVE-LIFI';
+        if (dexTitle === 'LIFIDX') {
+          let toolUsed = 'LIFI';
+          try { toolUsed = String(bestRoute.steps?.[0]?.toolDetails?.name || bestRoute.steps?.[0]?.tool || 'LIFI').toUpperCase(); } catch (_) { }
+          routeTool = `LIFI-${toolUsed}`;
+        }
+
+        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool };
       }
     };
   }
@@ -1400,7 +1510,7 @@
         if (!bestRoute?.toAmount) throw new Error('LIFI-RELAY: Invalid route structure');
         const amount_out = parseFloat(bestRoute.toAmount) / Math.pow(10, des_output);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(bestRoute.gasCostUSD || 0), 0, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle: 'RELAY', routeTool: 'RELAY via LIFI' };
+        return { amount_out, FeeSwap, feeSource, dexTitle: 'RELAY', routeTool: 'LIFI-RELAY' };
       }
     };
   }
@@ -1413,37 +1523,7 @@
   dexStrategies['lifi-1inch'] = createFilteredLifiStrategy('1inch', '1INCH');
   dexStrategies['lifi-relay'] = createFilteredLifiRelayStrategy();
 
-  dexStrategies['lifi-lifidex'] = {
-    buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
-      const apiKey = (typeof getRandomApiKeyLIFI === 'function') ? getRandomApiKeyLIFI() : '';
-      const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
-      const lifiChainId = chainConfig?.LIFI_CHAIN_ID || Number(codeChain);
-      const isSolana = String(chainName || '').toLowerCase() === 'solana';
-      const fromToken = isSolana ? sc_input_in : sc_input.toLowerCase();
-      const toToken = isSolana ? sc_output_in : sc_output.toLowerCase();
-      const userAddr = isSolana ? (SavedSettingData?.walletSolana || 'So11111111111111111111111111111111111111112') : (SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000');
-      const params = new URLSearchParams({
-        fromChain: lifiChainId.toString(),
-        toChain: lifiChainId.toString(),
-        fromToken: fromToken,
-        toToken: toToken,
-        fromAmount: amount_in_big.toString(),
-        fromAddress: userAddr,
-        slippage: String(parseFloat(getSlippageValue()) / 100),  // USER-CONFIGURABLE (fraction)
-        order: 'RECOMMENDED'
-      });
-      return { url: `https://li.quest/v1/quote?${params.toString()}`, method: 'GET', headers: { 'x-lifi-api-key': apiKey } };
-    },
-    parseResponse: (response, { des_output, chainName }) => {
-      if (!response?.estimate?.toAmount) throw new Error('LIFI-LIFIDEX: No valid quote received');
-      const amount_out = parseFloat(response.estimate.toAmount) / Math.pow(10, des_output);
-      let gasCostUsd = 0;
-      if (response.estimate.gasCosts) gasCostUsd = response.estimate.gasCosts.reduce((sum, gc) => sum + parseFloat(gc.amountUSD || 0), 0);
-      const { FeeSwap, feeSource } = resolveFeeSwap(gasCostUsd, 0, chainName);
-      const toolUsed = String(response.tool || response.toolDetails?.name || 'LIFI').toUpperCase();
-      return { amount_out, FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: `LIFIDEX (${toolUsed} via LIFI)` };
-    }
-  };
+  dexStrategies['lifi-lifidex'] = createFilteredLifiStrategy('lifi', 'LIFIDX');
 
   function createFilteredSwoopStrategy(aggregatorSlug, dexTitle) {
     return {
@@ -1466,7 +1546,7 @@
         if (!response || !response.amountOutWei) throw new Error(`SWOOP-${dexTitle}: Invalid response`);
         const amount_out = parseFloat(response.amountOutWei) / Math.pow(10, des_output);
         let _swDirectUsd = 0;
-        let _swCalcUsd   = 0;
+        let _swCalcUsd = 0;
         try {
           _swDirectUsd = parseFloat(response?.gasCostUsd || response?.gasUsdAmount || response?.gasEstimateUSD || response?.gasFeeUsd || response?.feeUsd || response?.gas?.usdValue || 0) || 0;
           if (!(_swDirectUsd > 0 && _swDirectUsd < 100)) _swDirectUsd = 0;
@@ -1481,9 +1561,10 @@
               }
             }
           }
-        } catch (_) {}
+        } catch (_) { }
         const { FeeSwap, feeSource } = resolveFeeSwap(_swDirectUsd, _swCalcUsd, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `${dexTitle} via SWOOP` };
+        const label = 'SWOOP';
+        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: label };
       }
     };
   }
@@ -1494,7 +1575,7 @@
   dexStrategies['swoop-matcha'] = createFilteredSwoopStrategy('0x', 'MATCHA');
   dexStrategies['swoop-okx'] = createFilteredSwoopStrategy('okx', 'OKX');
   dexStrategies['swoop-sushi'] = createFilteredSwoopStrategy('sushiswap', 'SUSHI');
-  dexStrategies['swoop-lifi']  = createFilteredSwoopStrategy('lifi', 'LIFIDEX');
+  dexStrategies['swoop-lifi'] = createFilteredSwoopStrategy('lifi', 'LIFIDEX');
 
   function createFilteredRabbyStrategy(rabbyDexId, dexTitle) {
     return {
@@ -1506,13 +1587,13 @@
         const nativeAddresses = ['0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', '0x0000000000000000000000000000000000000000'];
         let payTokenId = nativeAddresses.includes(sc_input.toLowerCase()) ? chainSlug : sc_input.toLowerCase();
         let receiveTokenId = nativeAddresses.includes(sc_output.toLowerCase()) ? chainSlug : sc_output.toLowerCase();
-        
+
         // Add prefix for non-ETH chains
         let actualDexId = rabbyDexId;
         if (chainSlug !== 'eth') {
-            actualDexId = `${chainSlug}_${rabbyDexId}`;
+          actualDexId = `${chainSlug}_${rabbyDexId}`;
         }
-        
+
         const params = new URLSearchParams({ id: userAddr, chain_id: chainSlug, dex_id: actualDexId, pay_token_id: payTokenId, pay_token_raw_amount: String(amount_in_big), receive_token_id: receiveTokenId, slippage: getSlippageValue(), fee: 'true', no_pre_exec: 'true' });
         return { url: `https://api.rabby.io/v1/wallet/swap_quote?${params.toString()}`, method: 'GET', headers: {} };
       },
@@ -1526,15 +1607,16 @@
         else if (receiveToken.raw_amount) amount_out = parseFloat(receiveToken.raw_amount) / Math.pow(10, des_output);
         else throw new Error(`RABBY-${dexTitle}: Cannot parse output amount`);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(response?.gas?.usd_value || response?.gas_price_usd || 0), 0, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `${dexTitle} via RABBY` };
+        const label = 'RABBY';
+        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: label };
       }
     };
   }
 
-  dexStrategies['rabby-kyber']    = createFilteredRabbyStrategy('kyberswap', 'KYBER');
-  dexStrategies['rabby-matcha']   = createFilteredRabbyStrategy('matcha_v2', 'MATCHA');
-  dexStrategies['rabby-flytrade'] = createFilteredRabbyStrategy('magpie',    'FLYTRADE');
-  dexStrategies['rabby-1inch']    = createFilteredRabbyStrategy('1inch_v6',  '1INCH');
+  dexStrategies['rabby-kyber'] = createFilteredRabbyStrategy('kyberswap', 'KYBER');
+  dexStrategies['rabby-matcha'] = createFilteredRabbyStrategy('matcha_v2', 'MATCHA');
+  dexStrategies['rabby-flytrade'] = createFilteredRabbyStrategy('magpie', 'FLYTRADE');
+  dexStrategies['rabby-1inch'] = createFilteredRabbyStrategy('1inch_v6', '1INCH');
 
   function createFilteredC98Strategy(backerName, dexTitle) {
     const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
@@ -1558,13 +1640,14 @@
         const quote = response.data[0];
         const amount_out = parseFloat(quote.amount);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(quote.additionalData?.gas?.amountUSD || 0), 0, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `${dexTitle} via C98` };
+        const label = 'C98';
+        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: label };
       }
     };
   }
 
-  dexStrategies['c98-okx']    = createFilteredC98Strategy('okx', 'OKX');
-  dexStrategies['c98-matcha'] = createFilteredC98Strategy('0x',  'MATCHA');
+  dexStrategies['c98-okx'] = createFilteredC98Strategy('okx', 'OKX');
+  dexStrategies['c98-matcha'] = createFilteredC98Strategy('0x', 'MATCHA');
 
   dexStrategies['c98-lifidex'] = {
     buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, des_input, des_output, SavedSettingData }) => {
@@ -1588,7 +1671,8 @@
       if (sorted.length === 0) throw new Error('C98-LIFIDEX: No valid quotes');
       const best = sorted[0];
       const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(best.additionalData?.gas?.amountUSD || 0), 0, chainName);
-      return { amount_out: parseFloat(best.amount), FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: `LIFIDEX (${String(best.id || best.name || 'C98').toUpperCase()} via C98)` };
+      const toolName = String(best.id || best.name || 'C98').toUpperCase();
+      return { amount_out: parseFloat(best.amount), FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: `C98-${toolName}` };
     }
   };
 
@@ -1615,13 +1699,14 @@
           }
         }
         const { FeeSwap, feeSource } = resolveFeeSwap(0, _kCalcUsd, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `${dexTitle} via KRYSTAL` };
+        const label = 'KRYSTAL';
+        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: label };
       }
     };
   }
 
   dexStrategies['krystal-kyber'] = createFilteredKrystalStrategy('KyberSwap', 'KYBER');
-  dexStrategies['krystal-okx']   = createFilteredKrystalStrategy('OKX Dex',   'OKX');
+  dexStrategies['krystal-okx'] = createFilteredKrystalStrategy('OKX Dex', 'OKX');
 
   function createFilteredBungeeStrategy(routeName, dexTitle) {
     return {
@@ -1637,13 +1722,13 @@
         if (!match) throw new Error(`Bungee-${dexTitle}: Route "${routeName}" not found`);
         const amount_out = parseFloat(match.output?.amount) / Math.pow(10, des_output);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(match.gasFee?.feeInUsd || 0), 0, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `${dexTitle} via BUNGEE` };
+        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: 'BUNGEE' };
       }
     };
   }
 
-  dexStrategies['bungee-matcha'] = createFilteredBungeeStrategy('0x',        'MATCHA');
-  dexStrategies['bungee-kyber']  = createFilteredBungeeStrategy('Kyberswap', 'KYBER');
+  dexStrategies['bungee-matcha'] = createFilteredBungeeStrategy('0x', 'MATCHA');
+  dexStrategies['bungee-kyber'] = createFilteredBungeeStrategy('Kyberswap', 'KYBER');
 
   function createFilteredDzapStrategy(dexKey, dexTitle) {
     return {
@@ -1660,7 +1745,8 @@
         if (!filteredQuote?.toTokenAmount) throw new Error(`DZAP-${dexTitle}: No ${dexTitle} quote found`);
         const amount_out = parseFloat(filteredQuote.toTokenAmount) / Math.pow(10, des_output);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(filteredQuote.estimatedGas || filteredQuote.gasCostUSD || 0), 0, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `${dexTitle} via DZAP` };
+        const label = 'DZAP';
+        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: label };
       }
     };
   }
@@ -1682,7 +1768,7 @@
         let toToken = wrappedNativeAddresses[sc_output.toLowerCase()] || sc_output.toLowerCase();
         const params = new URLSearchParams({ fromChain: chainSlug, toChain: chainSlug, fromToken: fromToken, toToken: toToken, amount: amount_in_big.toString(), type: 'swap', fromWallet: '', toWallet: '' });
         let selectedProjectId = 'galaxy-exchange';
-        try { if (typeof root !== 'undefined' && root.SWING_PROJECT_IDS) selectedProjectId = root.SWING_PROJECT_IDS[Math.floor(Math.random() * root.SWING_PROJECT_IDS.length)]; } catch (e) {}
+        try { if (typeof root !== 'undefined' && root.SWING_PROJECT_IDS) selectedProjectId = root.SWING_PROJECT_IDS[Math.floor(Math.random() * root.SWING_PROJECT_IDS.length)]; } catch (e) { }
         return { url: `https://platform.swing.xyz/api/v1/projects/${selectedProjectId}/quote?${params.toString()}`, method: 'GET', headers: {} };
       },
       parseResponse: (response, { des_output, chainName }) => {
@@ -1690,7 +1776,8 @@
         if (!filteredRoute?.quote?.amount) throw new Error(`SWING-${dexTitle}: No ${dexTitle} route found`);
         const amount_out = parseFloat(filteredRoute.quote.amount) / Math.pow(10, des_output);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(filteredRoute.gasUSD || 0), 0, chainName);
-        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `${dexTitle} via SWING` };
+        const label = 'SWING';
+        return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: label };
       }
     };
   }
@@ -1716,7 +1803,7 @@
           if (!best || amount_out > best.amount_out) best = { amount_out, FeeSwap, feeSource };
         }
         if (!best) throw new Error(`ROCKETX-${dexTitle}: No valid ${dexTitle} quotes parsed`);
-        return { amount_out: best.amount_out, FeeSwap: best.FeeSwap, feeSource: best.feeSource, dexTitle, routeTool: `${dexTitle} via ROCKETX` };
+        return { amount_out: best.amount_out, FeeSwap: best.FeeSwap, feeSource: best.feeSource, dexTitle, routeTool: 'ROCKETX' };
       }
     };
   }
@@ -2099,7 +2186,7 @@
         try {
           const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
           if (v > 0) return v;
-        } catch (_) {}
+        } catch (_) { }
         return (typeof window !== 'undefined' && window.CONFIG_DEXS?.rango?.maxProviders) || 3;
       })();
       filteredRango.sort((a, b) => b.amount_out - a.amount_out);
@@ -2209,7 +2296,8 @@
       return {
         amount_out: amount_out,
         FeeSwap: FeeSwap,
-        dexTitle: 'JUPITER'
+        dexTitle: 'JUPITER',
+        routeTool: 'JUPITER'
       };
     }
   };
@@ -2415,7 +2503,7 @@
         try {
           const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
           if (v > 0) return v;
-        } catch (_) {}
+        } catch (_) { }
         return 3;
       })();
       const top3 = quotes.slice(0, maxN).map(quote => {
@@ -2638,7 +2726,7 @@
         try {
           const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
           if (v > 0) return v;
-        } catch (_) {}
+        } catch (_) { }
         return 3;
       })();
       const top3 = routes.slice(0, maxN).map((route, idx) => {
@@ -2721,6 +2809,7 @@
         amount_out: top3[0].amount_out,
         FeeSwap: top3[0].FeeSwap,
         dexTitle: 'RUBIC',
+        routeTool: 'RUBIC',
         subResults: top3,
         isMultiDex: true
       };
@@ -2823,7 +2912,8 @@
       return {
         amount_out: best.amount_out,
         FeeSwap: best.FeeSwap,
-        dexTitle: 'ROCKETX'
+        dexTitle: 'ROCKETX',
+        routeTool: 'ROCKETX'
       };
     }
   };
@@ -2857,7 +2947,7 @@
 
         const walletAddr = (SavedSettingData?.walletMeta) || '0x0000000000000000000000000000000000000000';
         const fromToken = String(sc_input_in || '').toLowerCase();
-        const toToken   = String(sc_output_in || '').toLowerCase();
+        const toToken = String(sc_output_in || '').toLowerCase();
         const srcAmount = amount_in_big.toString();
 
         const url = `https://bridge.api.cx.metamask.io/getQuoteStream` +
@@ -2874,7 +2964,7 @@
         const finish = () => {
           if (settled) return;
           settled = true;
-          try { es.close(); } catch (_) {}
+          try { es.close(); } catch (_) { }
 
           if (quotes.length === 0) return reject(new Error('MetaX: Tidak ada quote diterima'));
 
@@ -2898,14 +2988,14 @@
                 const gasEstUSD = parseFloat(
                   q.feeData?.gas?.amount
                     ? (parseFloat(q.feeData.gas.amount) / Math.pow(10, q.feeData.gas?.asset?.decimals ?? 18))
-                      * parseFloat(q.feeData.gas.asset?.priceUSD ?? 0)
+                    * parseFloat(q.feeData.gas.asset?.priceUSD ?? 0)
                     : 0
                 );
                 if (Number.isFinite(gasEstUSD) && gasEstUSD > 0 && gasEstUSD < 100) {
                   FeeSwap = gasEstUSD;
                   feeSource = 'api';
                 }
-              } catch (_) {}
+              } catch (_) { }
               // 2️⃣ Fallback ke RPC gas estimate (akurat, dari ALL_GAS_FEES)
               if (FeeSwap <= 0) { FeeSwap = (typeof getFeeSwap === 'function') ? getFeeSwap(chainName) : 0; feeSource = 'fallback'; }
               // 3️⃣ Terakhir: pakai platform fee metabridge hanya jika semua gagal
@@ -2918,7 +3008,7 @@
                     FeeSwap = (parseFloat(mb.amount) / Math.pow(10, feeDecimals)) * feePriceUSD;
                     if (FeeSwap > 0) feeSource = 'calc';
                   }
-                } catch (_) {}
+                } catch (_) { }
               }
 
 
@@ -2928,7 +3018,7 @@
                 const swapStep = (q.steps || []).find(s => s.action === 'swap');
                 const proto = swapStep?.protocol?.displayName || swapStep?.protocol?.name;
                 if (proto) providerName = String(proto).toUpperCase();
-              } catch (_) {}
+              } catch (_) { }
 
               subResults.push({ amount_out, FeeSwap, feeSource, dexTitle: providerName });
             } catch (_) { continue; }
@@ -2952,7 +3042,7 @@
             try {
               const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
               if (v > 0) return v;
-            } catch (_) {}
+            } catch (_) { }
             return (typeof window !== 'undefined' && window.CONFIG_DEXS?.metax?.maxProviders) || 3;
           })();
 
@@ -2991,7 +3081,7 @@
             try {
               const data = JSON.parse(event.data);
               quotes.push(data);
-            } catch (_) {}
+            } catch (_) { }
           });
 
           es.onerror = () => {
@@ -3026,7 +3116,7 @@
 
         const onekeyChainMap = {
           'ethereum': 1, 'eth': 1,
-          'bsc': 56,     'bnb': 56,
+          'bsc': 56, 'bnb': 56,
           'polygon': 137, 'matic': 137,
           'arbitrum': 42161, 'arb': 42161,
           'base': 8453,
@@ -3036,9 +3126,9 @@
 
         // Provider OneKey → dexTitle mapping (skip SwapLifi = meta-of-meta)
         const PROVIDER_MAP = {
-          'swapokx':   'OKX',
+          'swapokx': 'OKX',
           'swap1inch': '1INCH',
-          'swap0x':    'MATCHA'
+          'swap0x': 'MATCHA'
         };
 
         const chain = String(chainName || '').toLowerCase();
@@ -3049,37 +3139,37 @@
         const NATIVE = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
         // OneKey pakai empty string untuk native token
         const fromAddr = String(sc_input_in || '').toLowerCase() === NATIVE ? '' : sc_input_in;
-        const toAddr   = sc_output_in;
+        const toAddr = sc_output_in;
         const networkId = `evm--${chainId}`;
 
         // fromTokenAmount dalam human-readable (bukan wei)
         const fromAmountHuman = (parseFloat(amount_in_big.toString()) / Math.pow(10, des_input)).toString();
 
         const params = new URLSearchParams({
-          fromTokenAddress:      fromAddr,
-          toTokenAddress:        toAddr,
-          fromTokenAmount:       fromAmountHuman,
-          fromNetworkId:         networkId,
-          toNetworkId:           networkId,
-          protocol:              'Swap',
-          userAddress:           walletAddr,
-          slippagePercentage:    getSlippageValue(),
-          autoSlippage:          'true',
-          receivingAddress:      walletAddr,
-          kind:                  'sell',
+          fromTokenAddress: fromAddr,
+          toTokenAddress: toAddr,
+          fromTokenAmount: fromAmountHuman,
+          fromNetworkId: networkId,
+          toNetworkId: networkId,
+          protocol: 'Swap',
+          userAddress: walletAddr,
+          slippagePercentage: getSlippageValue(),
+          autoSlippage: 'true',
+          receivingAddress: walletAddr,
+          kind: 'sell',
           denySingleSwapProvider: ''
         });
 
         const url = `https://swap.onekeycn.com/swap/v1/quote/events?${params.toString()}`;
 
         const quotes = [];
-        let settled   = false;
+        let settled = false;
         let es;
 
         const finish = () => {
           if (settled) return;
           settled = true;
-          try { es.close(); } catch (_) {}
+          try { es.close(); } catch (_) { }
 
           if (quotes.length === 0) return reject(new Error('OneKey: Tidak ada quote diterima'));
 
@@ -3112,10 +3202,10 @@
                     }
                   }
                 }
-              } catch (_) {}
+              } catch (_) { }
 
               const providerKey = String(item.info?.provider || '').toLowerCase();
-              const dexTitle    = PROVIDER_MAP[providerKey] || String(item.info?.providerName || providerKey).toUpperCase();
+              const dexTitle = PROVIDER_MAP[providerKey] || String(item.info?.providerName || providerKey).toUpperCase();
 
               subResults.push({ amount_out, FeeSwap, feeSource, dexTitle });
             } catch (_) { continue; }
@@ -3140,7 +3230,7 @@
             try {
               const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
               if (v > 0) return v;
-            } catch (_) {}
+            } catch (_) { }
             return (typeof window !== 'undefined' && window.CONFIG_DEXS?.onekey?.maxProviders) || 3;
           })();
 
@@ -3154,13 +3244,13 @@
           });
 
           resolve({
-            amount_out:  topN[0].amount_out,
-            FeeSwap:     topN[0].FeeSwap,
-            feeSource:   topN[0].feeSource,
-            dexTitle:    'ONEKEY',
-            subResults:  topN,
-            isMultiDex:  true,
-            routeTool:   'ONEKEY'
+            amount_out: topN[0].amount_out,
+            FeeSwap: topN[0].FeeSwap,
+            feeSource: topN[0].feeSource,
+            dexTitle: 'ONEKEY',
+            subResults: topN,
+            isMultiDex: true,
+            routeTool: 'ONEKEY'
           });
         };
 
@@ -3190,7 +3280,7 @@
                 clearTimeout(timer);
                 finish();
               }
-            } catch (_) {}
+            } catch (_) { }
           };
 
           es.onerror = () => {
@@ -3223,7 +3313,7 @@
 
           const onekeyChainMap = {
             'ethereum': 1, 'eth': 1,
-            'bsc': 56,     'bnb': 56,
+            'bsc': 56, 'bnb': 56,
             'polygon': 137, 'matic': 137,
             'arbitrum': 42161, 'arb': 42161,
             'base': 8453,
@@ -3238,30 +3328,30 @@
           const walletAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
           const NATIVE = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
           const fromAddr = String(sc_input_in || '').toLowerCase() === NATIVE ? '' : sc_input_in;
-          const toAddr   = sc_output_in;
+          const toAddr = sc_output_in;
           const networkId = `evm--${chainId}`;
 
           const fromAmountHuman = (parseFloat(amount_in_big.toString()) / Math.pow(10, des_input)).toString();
 
           const params = new URLSearchParams({
-            fromTokenAddress:       fromAddr,
-            toTokenAddress:         toAddr,
-            fromTokenAmount:        fromAmountHuman,
-            fromNetworkId:          networkId,
-            toNetworkId:            networkId,
-            protocol:               'Swap',
-            userAddress:            walletAddr,
-            slippagePercentage:     getSlippageValue(),
-            autoSlippage:           'true',
-            receivingAddress:       walletAddr,
-            kind:                   'sell',
+            fromTokenAddress: fromAddr,
+            toTokenAddress: toAddr,
+            fromTokenAmount: fromAmountHuman,
+            fromNetworkId: networkId,
+            toNetworkId: networkId,
+            protocol: 'Swap',
+            userAddress: walletAddr,
+            slippagePercentage: getSlippageValue(),
+            autoSlippage: 'true',
+            receivingAddress: walletAddr,
+            kind: 'sell',
             denySingleSwapProvider: ''
           });
 
           const url = `https://swap.onekeycn.com/swap/v1/quote/events?${params.toString()}`;
 
-          let bestQuote     = null;
-          let settled       = false;
+          let bestQuote = null;
+          let settled = false;
           let es;
           let totalExpected = 0;   // dari totalQuoteCount event
           let receivedCount = 0;   // jumlah data provider yang sudah masuk
@@ -3269,7 +3359,7 @@
           const finish = () => {
             if (settled) return;
             settled = true;
-            try { es.close(); } catch (_) {}
+            try { es.close(); } catch (_) { }
 
             if (!bestQuote) return reject(new Error(`OneKey-${dexTitle}: Tidak ada quote dari provider ${providerKey}`));
 
@@ -3299,7 +3389,7 @@
                   }
                 }
               }
-            } catch (_) {}
+            } catch (_) { }
 
             console.log(`[ONEKEY-${dexTitle}] Quote dari provider ${providerKey}: ${amount_out}`);
 
@@ -3308,8 +3398,8 @@
               FeeSwap,
               feeSource,
               dexTitle,
-              isMultiDex:  false,
-              routeTool:   `ONEKEY-${dexTitle}`
+              isMultiDex: false,
+              routeTool: `ONEKEY-${dexTitle}`
             });
           };
 
@@ -3345,7 +3435,7 @@
                     }
                   }
                 }
-              } catch (_) {}
+              } catch (_) { }
             };
 
             es.onerror = () => {
@@ -3363,8 +3453,8 @@
   }
 
   // ✅ OneKey filtered strategies — alternatif untuk 1inch dan LiFi DEX
-  dexStrategies['onekey-1inch']   = createFilteredOnekeyStrategy('swap1inch', '1INCH');    // OneKey → hanya provider 1inch
-  dexStrategies['onekey-lifidex'] = createFilteredOnekeyStrategy('swaplifi',  'LIFIDX');  // OneKey → hanya provider LiFi/Jumper
+  dexStrategies['onekey-1inch'] = createFilteredOnekeyStrategy('swap1inch', '1INCH');    // OneKey → hanya provider 1inch
+  dexStrategies['onekey-lifidex'] = createFilteredOnekeyStrategy('swaplifi', 'LIFIDX');  // OneKey → hanya provider LiFi/Jumper
 
   // =============================
   // RANGO Filtered Strategy Factory - Rango as REST API Provider
@@ -3435,7 +3525,7 @@
             const simpleFee = parseFloat(matchedRoute?.feeUsd || matchedRoute?.fee?.amount || 0);
             if (Number.isFinite(simpleFee) && simpleFee > 0) _rgTotalFeeUSD = simpleFee;
           }
-        } catch (_) {}
+        } catch (_) { }
         const { FeeSwap: _rgFee, feeSource } = resolveFeeSwap(_rgTotalFeeUSD, 0, params.chainName);
 
         console.log(`[RANGO-${dexTitle}] Using ${dexTitle} via RANGO: ${amount_out.toFixed(6)} output, gas: $${_rgFee.toFixed(4)} (${feeSource})`);
@@ -3445,7 +3535,7 @@
           FeeSwap: _rgFee,
           feeSource,
           dexTitle,
-          routeTool: `${dexTitle} via RANGO`
+          routeTool: 'RANGO'
         };
       }
     };
@@ -3518,7 +3608,7 @@
           amount_out,
           FeeSwap,
           dexTitle: dexTitle,  // ✅ Show DEX name in title (user selected this DEX)
-          routeTool: `${dexTitle} via RUBIC`  // ✅ Show provider in tooltip
+          routeTool: 'RUBIC'  // ✅ Show provider in tooltip
         };
       }
     };
@@ -3728,17 +3818,17 @@
       const walletAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
       const slippage = isAutoSlippage() ? '0.3' : getSlippageValue();
       const params = new URLSearchParams({
-        chainId:               chainId.toString(),
-        tokenIn:               sc_input.toLowerCase(),
-        tokenInAmount:         amount_in_big.toString(),
-        slippage:              slippage,
+        chainId: chainId.toString(),
+        tokenIn: sc_input.toLowerCase(),
+        tokenInAmount: amount_in_big.toString(),
+        slippage: slippage,
         srcChainPriorityLevel: 'normal',
-        tokenOut:              sc_output.toLowerCase(),
-        tokenOutRecipient:     walletAddr,
-        tab:                   Date.now().toString()
+        tokenOut: sc_output.toLowerCase(),
+        tokenOutRecipient: walletAddr,
+        tab: Date.now().toString()
       });
       return {
-        url:    `https://deswap.debridge.finance/v1.0/chain/transaction?${params.toString()}`,
+        url: `https://deswap.debridge.finance/v1.0/chain/transaction?${params.toString()}`,
         method: 'GET'
       };
     },
@@ -3761,7 +3851,7 @@
         amount_out,
         FeeSwap,
         feeSource,
-        dexTitle:   'DEBRIDGE',
+        dexTitle: 'DEBRIDGE',
         isMultiDex: false
       };
     }

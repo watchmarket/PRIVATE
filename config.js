@@ -1,9 +1,9 @@
 const CONFIG_APP = {
     APP: {
-       // NAME: "PENCARI SELISIH",
+        NAME: "PENCARI SELISIH",
         // NAME: "WATCHMARKET",
-        NAME: "PRIVATE_NOCORS",
-        VERSION: "99.01",
+        // NAME: "PRIVATE_NOCORS",
+        VERSION: "04.16",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,  // cek volume otomatis untuk filter dan alert
@@ -538,7 +538,7 @@ const CONFIG_UI = {
     DEXES: [
         { key: 'kyber', label: 'KyberSwap', badgeClass: 'bg-kyberswap', fallbackSlug: 'kyberswap' },
         //  { key: 'sushi', label: 'SUSHI', badgeClass: 'bg-sushi', fallbackSlug: 'sushi' },
-        { key: 'lifi', label: 'JUMPER', badgeClass: 'bg-lifi', fallbackSlug: 'lifi' },
+        { key: 'brave-lifi', label: 'JUMPER', badgeClass: 'bg-lifi', fallbackSlug: 'lifi' },
         { key: 'lifidex', label: 'LIFIDX', badgeClass: 'bg-lifidex', fallbackSlug: 'lifidex' },
         { key: 'okx', label: 'OKX', badgeClass: 'bg-okx', fallbackSlug: 'okx' },
         //  { key: 'relay', label: 'Relay', badgeClass: 'bg-relay', fallbackSlug: 'relay' },
@@ -607,7 +607,7 @@ const CONFIG_UI = {
 
             // ========== Filtered Strategies (Wildcard) ==========
             // Meta-aggregators filtered for specific DEX
-            'lifi-*': 5000,          // LIFI filtered: 6s (cross-chain, needs time)
+            'brave-lifi-*': 5000,          // LIFI filtered: 6s (cross-chain, needs time)
             'rabby-*': 5000,         // RABBY filtered: 6s (api.rabby.io, stable)
             'rainbow-*': 5000,       // RAINBOW filtered: 5s (swap.p.rainbow.me, fast)
             'swoop-*': 7000,        // SWOOP filtered: 10s (railway.app slower, prevent cancel)
@@ -619,7 +619,7 @@ const CONFIG_UI = {
 
             // ========== Multi-DEX Aggregators ==========
             // Direct calls to meta-aggregators (not filtered)
-            'lifi': 6000,            // LIFI multi-quote: 6s
+            'brave-lifi': 6000,            // LIFI multi-quote: 6s
             'temple': 5000,          // Temple API (LIFI proxy): 5s — standalone LIFI DEX
             'swoop': 10000,          // SWOOP multi-quote: 10s (railway.app needs more time)
             'swing': 6000,           // SWING multi-quote: 6s
@@ -899,7 +899,6 @@ const CONFIG_DEXS = {
         warna: "#0b7e18ff", // hijau tosca KyberSwap
         builder: ({ chainName, tokenAddress, pairAddress }) =>
             `https://kyberswap.com/swap/${chainName}/${tokenAddress}-to-${pairAddress}`,
-        // ⚡ ROTATION STRATEGY: Alternate between official API and filtered aggregators
         fetchdex: {
             primary: {
                 tokentopair: 'kyber',          // CEX→DEX: Official KyberSwap API
@@ -947,11 +946,11 @@ const CONFIG_DEXS = {
         fetchdex: {
             primary: {
                 tokentopair: 'okx',           // CEX→DEX: Official OKX DEX API
-                pairtotoken: 'c98-okx'        // DEX→CEX: Coin98 Superlink filtered for OKX
+                pairtotoken: 'dexview-okx'        // DEX→CEX: Coin98 Superlink filtered for OKX
             },
             secondary: {
                 tokentopair: 'krystal-okx',   // CEX→DEX: Krystal allRates filtered OKX
-                pairtotoken: 'krystal-okx'    // DEX→CEX: Krystal allRates filtered OKX
+                pairtotoken: 'c98-okx'    // DEX→CEX: Krystal allRates filtered OKX
             },
             alternative: {
                 tokentopair: 'okx',       // CEX→DEX: Coin98 Superlink filtered for OKX
@@ -1053,11 +1052,11 @@ const CONFIG_DEXS = {
         fetchdex: {
             primary: {
                 tokentopair: 'odos3',
-                pairtotoken: 'lifi-odos'
+                pairtotoken: 'hinkal2-odos'
             },
             secondary: {
-                tokentopair: 'hinkal2-odos',
-                pairtotoken: 'hinkal1-odos'
+                tokentopair: 'lifi-odos',
+                pairtotoken: 'lifi-odos'
             },
             alternative: {
                 tokentopair: 'swoop-odos',
@@ -1136,10 +1135,10 @@ const CONFIG_DEXS = {
                 tokentopair: 'c98-lifidex',        // CEX→DEX: C98 best-quote (isAuto:true, no backer filter)
                 pairtotoken: 'c98-lifidex'         // DEX→CEX: C98 best-quote (isAuto:true, no backer filter)
             },
-            secondary: {
-                tokentopair: 'swoop-lifi',         // CEX→DEX: SWOOP filtered → LIFI aggregator (rotation)
-                pairtotoken: 'temple'              // DEX→CEX: Temple API (LIFI proxy)
-            },
+            // secondary: {
+            //     tokentopair: 'swoop-lifi',         // CEX→DEX: SWOOP filtered → LIFI aggregator (rotation)
+            //     pairtotoken: 'temple'              // DEX→CEX: Temple API (LIFI proxy)
+            // },
             alternative: {
                 tokentopair: 'onekey-lifidex',      // CEX→DEX: OneKey filtered → LiFi/SwapLifi provider (fallback)
                 pairtotoken: 'onekey-lifidex'       // DEX→CEX: OneKey filtered → LiFi/SwapLifi provider (fallback)
@@ -1231,7 +1230,7 @@ const CONFIG_DEXS = {
     // Dual-role LIFI:
     //   - 'lifi' (standalone)  → Meta-DEX, multi-route, kolom sendiri
     //   - 'lifi-odos', 'lifi-velora' (filtered) → backend transport untuk DEX Regular
-    lifi: {
+    'lifi': {
         label: 'JUMPER',
         badgeClass: 'bg-lifi',
         disabled: false,
@@ -1246,9 +1245,13 @@ const CONFIG_DEXS = {
         },
         fetchdex: {
             primary: {
-                tokentopair: 'lifi',
-                pairtotoken: 'lifi'
-            }
+                tokentopair: 'brave-lifi',
+                pairtotoken: 'zapper-lifi'
+            },
+            secondary: {
+                tokentopair: 'zapper-lifi',  // Sebaliknya jika primary gagal
+                pairtotoken: 'brave-lifi'
+            },
         },
         allowFallback: false,
     },
@@ -1409,6 +1412,7 @@ const CONFIG_DEXS = {
 
 
 
+
 };
 
 try {
@@ -1426,7 +1430,7 @@ const CHAIN_SYNONYMS = {
     bsc: ['BSC', 'BEP20', 'BINANCE SMART CHAIN', 'BNB SMART CHAIN', 'BEP-20', 'BSCMAINNET',
         'BNB', 'BSCBEP20', 'BNB CHAIN', 'BNBCHAIN'],
     polygon: ['POLYGON', 'MATIC', 'POLYGON POS', 'POLYGON \\(MATIC\\)', 'POL', 'POLYGONPOS',
-        'POLYGON_POS', 'POLYGONEVM', 'Polygon PoS','polygon'],
+        'POLYGON_POS', 'POLYGONEVM', 'Polygon PoS', 'polygon'],
     arbitrum: ['ARBITRUM', 'ARB', 'ARBITRUM ONE', 'ARBEVM', 'ARBITRUMONE', 'ARB-ETH', 'ARBMAINNET',
         'ARBONE', 'ARBITRUMEVM', 'ARBI'],
     base: ['BASE', 'Base', 'BASE MAINNET', 'BASEEVM', 'BASEMAINNET',
