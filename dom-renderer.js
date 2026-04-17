@@ -1774,7 +1774,7 @@ function DisplayPNL(data) {
 
         // Highlight hanya sub-kolom yang profit (PNL > 0)
         const isSubProfit = subPnl > 0;
-        const subBgStyle = isSubProfit ? 'background-color: rgba(188, 233, 97, 0.9);' : '';
+        const subBgStyle = isSubProfit ? 'background-color: #ddf0b7ff;' : '';
 
         // ✅ FIX: Gunakan linkifyStatus agar format IDENTIK dengan DEX reguler
         // Token for DP is always Name_out in both directions when we end up with the pair token
@@ -1858,8 +1858,8 @@ function DisplayPNL(data) {
       const shouldHighlight = hasSignal;  // Background hijau saat ada sinyal
 
       if (shouldHighlight) {
-        const multiDexGreen = 'rgba(188, 233, 97, 0.9)';
-        el.style.cssText = `text-align:center;vertical-align:middle;background-color:${multiDexGreen}!important;font-weight:bolder!important;`;
+        const multiDexGreen = '#ddf0b7ff';
+        el.style.cssText = `text-align:center;vertical-align:middle;background-color:${multiDexGreen}!important;font-weight:bolder!important;border:2px solid black !important`;
         el.classList.add('dex-cell-highlight');
       } else {
         el.style.cssText = 'text-align:center;vertical-align:middle;';
@@ -2260,10 +2260,10 @@ function DisplayPNL(data) {
       dpFlag = hit.depositToken;
     }
   } catch (_) { }
-  const wdText = (wdFlag === false) ? '🈳 WX' : '🈳 WD';
+  const wdText = (wdFlag === false) ? 'WX' : 'WD';
   // Nama token untuk label DP Token (arah-sensitive: TokenToPair → Name_in, PairToToken → Name_out)
   const dpTokenName = (direction === 'tokentopair') ? upper(Name_in) : upper(Name_out);
-  const dpText = (dpFlag === false) ? `🈷️ DX[${dpTokenName}]` : `🈷️ DP[${dpTokenName}]`;
+  const dpText = (dpFlag === false) ? `DX[${dpTokenName}]` : `DP[${dpTokenName}]`;
   const wdCls = (wdFlag === false) ? 'uk-text-danger' : 'uk-text-primary';
   const dpCls = (dpFlag === false) ? 'uk-text-danger' : 'uk-text-primary';
   const wdLine = `<a class="${wdCls}" href="${wdUrl}" target="_blank" rel="noopener" title="FEE WITHDRAW">${wdText}: ${n(FeeWD).toFixed(4)}$</a>`;
@@ -2282,7 +2282,7 @@ function DisplayPNL(data) {
   const modeNowHL = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
   const isMultiModeHL = String(modeNowHL.type).toLowerCase() !== 'single';
   // Multichain: gunakan hijau muda agar konsisten
-  const multiLightGreen = 'rgba(188, 233, 97, 0.9)';
+  const multiLightGreen = '#ddf0b7ff';
   const hlBg = isMultiModeHL
     ? multiLightGreen
     : (isDarkMode() ? '#87db0bff' : '#ddf0b7ff');
@@ -2290,7 +2290,7 @@ function DisplayPNL(data) {
   // Apply highlight class dan background hanya jika profit melewati filter threshold
   if (shouldHighlight) {
     try { $mainCell.addClass('dex-cell-highlight'); } catch (_) { }
-    $mainCell.attr('style', `background-color:${hlBg}!important;font-weight:bolder!important;vertical-align:middle!important;text-align:center!important;border:2px solid black!important;`);
+    $mainCell.attr('style', `background-color:${hlBg}!important;font-weight:bolder!important;vertical-align:middle!important;text-align:center!important;border:2px solid black !important;`);
   } else {
     try { $mainCell.removeClass('dex-cell-highlight'); } catch (_) { }
     $mainCell.attr('style', 'text-align:center;vertical-align:middle;');

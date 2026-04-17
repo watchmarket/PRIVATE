@@ -11,11 +11,22 @@
  */
 function getCorsProxyUrl() {
   try {
-    if (typeof window !== 'undefined' && window.APP_DEV_CONFIG?.corsProxy) {
-      return window.APP_DEV_CONFIG.corsProxy;
+    if (typeof window !== 'undefined') {
+      // 1. Prioritas: Proxy spesifik di APP_DEV_CONFIG
+      if (window.APP_DEV_CONFIG?.corsProxy) return window.APP_DEV_CONFIG.corsProxy;
+      
+      // 2. Prioritas: Gunakan getRandomProxy() dari config.js (mengambil acak dari LIST)
+      if (typeof window.getRandomProxy === 'function') {
+        const p = window.getRandomProxy();
+        if (p) return p;
+      }
+      
+      // 3. Prioritas: Ambil langsung dari CONFIG_PROXY.PREFIX
+      if (window.CONFIG_PROXY?.PREFIX) return window.CONFIG_PROXY.PREFIX;
     }
   } catch (_) { }
-  // Fallback ke proxy Cloudflare Workers
+  
+  // Fallback terakhir: proxy Cloudflare Workers (jika semua di atas gagal)
   return 'https://proxykanan.awokawok.workers.dev/?';
 }
 
@@ -39,7 +50,13 @@ async function fetchWithProxy(url, opts = {}) {
   // Tentukan apakah perlu proxy:
   // - Bypass jika URL sudah menggunakan proxy, atau jika bypassProxy=true
   // - Otherwise wrap dengan proxy untuk CORS-safe
-  const alreadyProxied = String(url).startsWith('https://proxyk');
+  const urlLower = String(url).toLowerCase();
+  const alreadyProxied = urlLower.startsWith('https://proxy') || 
+                         urlLower.startsWith('https://server') || 
+                         urlLower.startsWith('https://worker') ||
+                         urlLower.startsWith('https://new') ||
+                         urlLower.startsWith('https://my');
+  
   const needsProxy = !alreadyProxied && !bypassProxy && String(url).startsWith('https://');
 
   const finalUrl = needsProxy

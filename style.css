@@ -127,8 +127,8 @@ body {
 
 .uk-container {
     max-width: 100%;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 4px;
+    padding-right: 4px;
 }
 
 a,
@@ -3390,4 +3390,165 @@ body.cex-mode-active .header-card {
     color: white;
     background-color: var(--cex-primary);
     margin-left: 8px;
+}
+
+/* ==========================================================================
+   COMPACT LAYOUT OVERRIDES — rapatkan margin & padding global
+   ========================================================================== */
+
+/* UIKit margin overrides */
+.uk-margin {
+    margin-bottom: 6px !important;
+}
+
+.uk-margin-top {
+    margin-top: 6px !important;
+}
+
+.uk-margin-bottom {
+    margin-bottom: 6px !important;
+}
+
+.uk-margin-left {
+    margin-left: 6px !important;
+}
+
+.uk-margin-right {
+    margin-right: 6px !important;
+}
+
+.uk-margin-small {
+    margin-bottom: 4px !important;
+}
+
+.uk-margin-small-top {
+    margin-top: 4px !important;
+}
+
+.uk-margin-small-bottom {
+    margin-bottom: 4px !important;
+}
+
+.uk-margin-small-left {
+    margin-left: 4px !important;
+}
+
+.uk-margin-small-right {
+    margin-right: 4px !important;
+}
+
+.uk-margin-large {
+    margin-bottom: 12px !important;
+}
+
+.uk-margin-large-top {
+    margin-top: 12px !important;
+}
+
+.uk-margin-large-bottom {
+    margin-bottom: 12px !important;
+}
+
+/* UIKit padding overrides */
+.uk-padding {
+    padding: 10px !important;
+}
+
+.uk-padding-small {
+    padding: 6px !important;
+}
+
+.uk-padding-large {
+    padding: 16px !important;
+}
+
+/* Card body padding */
+.uk-card-body {
+    padding: 8px 10px !important;
+}
+
+.uk-card-small .uk-card-body {
+    padding: 6px 8px !important;
+}
+
+/* Modal padding */
+.uk-modal-body {
+    padding: 8px 10px !important;
+}
+
+.uk-modal-header {
+    padding: 6px 10px !important;
+}
+
+.uk-modal-footer {
+    padding: 6px 10px !important;
+}
+
+/* Header card — lebih ramping */
+.header-card {
+    padding: 5px 10px !important;
+}
+
+/* Scanner config card */
+#scanner-config {
+    padding: 6px 8px !important;
+}
+
+/* Progress bar margin */
+#progress-container {
+    margin-top: 4px !important;
+}
+
+/* Container top gap */
+.uk-container.uk-margin-small-top {
+    margin-top: 4px !important;
+}
+
+/* UIKit grid gap */
+.uk-grid-small {
+    margin-left: -6px !important;
+}
+
+.uk-grid-small>* {
+    padding-left: 6px !important;
+}
+
+/* Table cell padding lebih rapat */
+.uk-table thead th {
+    padding: 5px 7px !important;
+}
+
+.uk-table tbody td {
+    padding: 4px 6px !important;
+}
+
+/* Form inputs height */
+.uk-form-small.uk-input,
+.uk-form-small.uk-select,
+.uk-input.uk-form-small,
+.uk-select.uk-form-small {
+    height: 26px !important;
+    padding: 2px 6px !important;
+}
+
+/* Button small height */
+.uk-button-small {
+    height: 26px !important;
+    line-height: 26px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+}
+
+/* Scanner control gap */
+#FormScanner .uk-width-expand {
+    gap: 4px !important;
+}
+
+.scanner-actions .uk-button {
+    height: 26px !important;
+    line-height: 26px !important;
+}
+
+#monitoring-scroll {
+    margin-top: 4px !important;
 }

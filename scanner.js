@@ -1365,9 +1365,19 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const nowStr = (new Date()).toLocaleTimeString();
                                     const viaName = (function () {
                                         try {
+                                            // 1. Prioritas: routeTool metadata (sudah standar provider-prefix)
                                             const routeTool = String(finalDexRes?.routeTool || '').trim();
                                             if (routeTool && routeTool.length > 0) return routeTool.toUpperCase();
-                                            if (isFallback === true) return 'SWOOP';
+
+                                            // 2. Fallback: isFallback flag
+                                            if (isFallback === true) {
+                                                const fbSrc = String(finalDexRes?.fallbackSource || '').toUpperCase();
+                                                return fbSrc === 'SWOOP' ? 'SWOOP' : 'DZAP';
+                                            }
+
+                                            // 3. Last Resort: dexTitle dari response atau label kolom
+                                            const dTitle = String(finalDexRes?.dexTitle || '').toUpperCase();
+                                            if (dTitle && dTitle !== dx) return dTitle;
                                         } catch (_) { }
                                         return dx;
                                     })();

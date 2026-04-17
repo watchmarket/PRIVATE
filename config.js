@@ -1,9 +1,8 @@
 const CONFIG_APP = {
     APP: {
         //NAME: "PENCARI SELISIH",
-        // NAME: "WATCHMARKET",
-         NAME: "PRIVATE_NOCORS",
-        VERSION: "04.16",
+        NAME: "PRIVATE_NOCORS",
+        VERSION: "04.18",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,  // cek volume otomatis untuk filter dan alert
@@ -41,7 +40,8 @@ const CONFIG_APP = {
             //rocketx: { enabled: true, evmOnly: false, jedaDex: 600, label: 'ROCKET' },    // EVM + Solana multi-quote
             metax: { enabled: true, evmOnly: true, jedaDex: 800, label: 'METAX' },       // EVM only (no Solana support)
             onekey: { enabled: true, evmOnly: true, jedaDex: 800, label: 'ONEKEY' },       // EVM only — SSE streaming (OKX, 1inch, 0x)
-            debridge: { enabled: true, evmOnly: true, jedaDex: 800, label: 'DEBRIDGE' },  // EVM only — deBridge DLN swap
+            //debridge: { enabled: true, evmOnly: true, jedaDex: 800, label: 'DEBRIDGE' },  // EVM only — deBridge DLN swap
+            // okutrade: { enabled: true, evmOnly: true, jedaDex: 800, label: 'OKUTRADE' }, // EVM only — Oku Trade multi-aggregator (3-step REST)
         },
 
         // Chain yang didukung semua META-DEX aggregators (EVM + Solana)
@@ -631,8 +631,10 @@ const CONFIG_UI = {
             'metax': 7500,          // MetaMask Bridge: SSE stream, collect all quotes
             'onekey': 7000,         // OneKey Swap: SSE stream (OKX, 1inch, 0x) — 10s
             'debridge': 8000,       // deBridge DLN: REST GET single route
+            'okutrade': 12000,      // Oku Trade: 3-step REST (Create → UpdateQuoteParams → GetNewQuotes)
             'onekey-1inch': 7000,   // OneKey filtered → 1inch provider only
             'onekey-lifidex': 8000, // OneKey filtered → LiFi/SwapLifi provider only
+            'birdeye-1inch': 5000,  // Birdeye 1inch proxy → 1inch v6 Quote API
 
             // ========== Default Fallback ==========
             'default': 5000          // Default: 5s (balanced)
@@ -906,10 +908,10 @@ const CONFIG_DEXS = {
             },
             secondary: {
                 tokentopair: 'krystal-kyber',   // CEX→DEX: Bungee filtered KyberSwap (rotation)
-                pairtotoken: 'bungee-kyber'    // DEX→CEX: Bungee filtered KyberSwap (rotation)
+                pairtotoken: 'lifi-kyber'    // DEX→CEX: Bungee filtered KyberSwap (rotation)
             },
             alternative: {
-                tokentopair: 'lifi-kyber',  // CEX→DEX: Krystal allRates filtered KyberSwap (fallback)
+                tokentopair: 'bungee-kyber',  // CEX→DEX: Krystal allRates filtered KyberSwap (fallback)
                 pairtotoken: 'rabby-kyber'   // DEX→CEX: Krystal allRates filtered KyberSwap (fallback)
             }
         },
@@ -1024,7 +1026,7 @@ const CONFIG_DEXS = {
         fetchdex: {
             primary: {
                 tokentopair: 'delta-matcha',    // CEX→DEX: 1Delta proxy (fast, free) - EVM only
-                pairtotoken: 'bungee-matcha'       // DEX→CEX: Coin98 Superlink filtered - EVM only
+                pairtotoken: 'rabby-matcha'       // DEX→CEX: Coin98 Superlink filtered - EVM only
             },
             secondary: {
                 tokentopair: 'c98-matcha',   // CEX→DEX: Bungee filtered 0x/Matcha (rotation)
@@ -1032,7 +1034,7 @@ const CONFIG_DEXS = {
             },
             alternative: {
                 tokentopair: 'rabby-matcha',  // CEX→DEX: Rainbow proxy 0x/Matcha (fallback)
-                pairtotoken: 'rabby-matcha'   // DEX→CEX: Rainbow proxy 0x/Matcha (fallback)
+                pairtotoken: 'bungee-matcha'   // DEX→CEX: Rainbow proxy 0x/Matcha (fallback)
             },
             // ✅ SOLANA OVERRIDE: For Solana chain, always use direct matcha endpoint
             solana: {
@@ -1052,11 +1054,11 @@ const CONFIG_DEXS = {
         fetchdex: {
             primary: {
                 tokentopair: 'odos3',
-                pairtotoken: 'hinkal2-odos'
+                pairtotoken: 'lifi-odos'
             },
             secondary: {
                 tokentopair: 'lifi-odos',
-                pairtotoken: 'lifi-odos'
+                pairtotoken: 'hinkal2-odos'
             },
             alternative: {
                 tokentopair: 'swoop-odos',
@@ -1104,18 +1106,19 @@ const CONFIG_DEXS = {
         // ⚠️ lifi-1inch: Only works for swaps >$10000 on some chains
         fetchdex: {
             primary: {
-                tokentopair: 'rabby-1inch',      // CEX→DEX: Hinkal 1inch proxy (no API key)
-                pairtotoken: 'rainbow-1inch'      // DEX→CEX: Rainbow API (source=1inch)
+                tokentopair: 'birdeye-1inch',      // CEX→DEX: Rabby 1inch proxy (no API key)
+                pairtotoken: 'rainbow-1inch'     // DEX→CEX: Rainbow API (source=1inch)
             },
             secondary: {
-                tokentopair: 'lifi-1inch',    // CEX→DEX: Enkrypt 1inch proxy
+                tokentopair: 'lifi-1inch',       // CEX→DEX: LiFi filtered → 1inch route
                 pairtotoken: 'enkrypt-1inch'     // DEX→CEX: Enkrypt 1inch proxy
             },
             alternative: {
-                tokentopair: 'onekey-1inch',        // CEX→DEX: OneKey filtered → 1inch provider
-                pairtotoken: 'hinkal-1inch'         // DEX→CEX: OneKey filtered → 1inch provider
+                tokentopair: 'rabby-1inch',     // CEX→DEX: OneKey filtered → 1inch provider
+                pairtotoken: 'onekey-1inch'      // DEX→CEX: Hinkal 1inch proxy
             }
         },
+
         allowFallback: true,  // ✅ Enable fallback on error
     },
     // ============ STANDALONE LIFI DEX (via Temple API) ============
@@ -1132,16 +1135,17 @@ const CONFIG_DEXS = {
             `https://jumper.exchange/?fromChain=${chainCode}&fromToken=${tokenAddress}&toChain=${chainCode}&toToken=${pairAddress}`,
         fetchdex: {
             primary: {
-                tokentopair: 'c98-lifidex',        // CEX→DEX: C98 best-quote (isAuto:true, no backer filter)
-                pairtotoken: 'c98-lifidex'         // DEX→CEX: C98 best-quote (isAuto:true, no backer filter)
+                tokentopair: 'onekey-lifidex',     // CEX→DEX: OneKey (using LiFi/SwapLifi API)
+                pairtotoken: 'c98-lifidex'         // DEX→CEX: C98 (using Superlink/LiFi API)
             },
-            // secondary: {
-            //     tokentopair: 'swoop-lifi',         // CEX→DEX: SWOOP filtered → LIFI aggregator (rotation)
-            //     pairtotoken: 'temple'              // DEX→CEX: Temple API (LIFI proxy)
-            // },
+
+            secondary: {
+                tokentopair: 'c98-lifidex',        // CEX→DEX: C98 (using Superlink/LiFi API)
+                pairtotoken: 'onekey-lifidex'      // DEX→CEX: OneKey (using LiFi/SwapLifi API)
+            },
             alternative: {
-                tokentopair: 'onekey-lifidex',      // CEX→DEX: OneKey filtered → LiFi/SwapLifi provider (fallback)
-                pairtotoken: 'onekey-lifidex'       // DEX→CEX: OneKey filtered → LiFi/SwapLifi provider (fallback)
+                tokentopair: 'swoop-lifidex',        // CEX→DEX: OneKey filtered → 1inch provider
+                pairtotoken: 'swoop-lifidex'         // DEX→CEX: OneKey filtered → 1inch provider
             }
         },
         allowFallback: true,   // ✅ Fallback ke alternative jika primary/secondary gagal
@@ -1253,7 +1257,7 @@ const CONFIG_DEXS = {
                 pairtotoken: 'brave-lifi'
             },
         },
-        allowFallback: false,
+        allowFallback: true,
     },
 
     dzap: {
@@ -1403,6 +1407,28 @@ const CONFIG_DEXS = {
             primary: {
                 tokentopair: 'debridge',
                 pairtotoken: 'debridge'
+            }
+        },
+        allowFallback: false
+    },
+
+    okutrade: {
+        label: 'OKUTRADE',
+        badgeClass: 'bg-okutrade',
+        disabled: false,
+        proxy: true,
+        warna: "#1a6fd4ff",  // Oku blue
+        isMetaDex: true,     // ✅ Meta-DEX: multi-aggregator (3-step REST)
+        evmOnly: true,       // EVM only
+        delay: 800,
+        isMultiDex: true,
+        maxProviders: 3,
+        builder: ({ tokenAddress, pairAddress, codeChain }) =>
+            `https://oku.trade/app/swap?inputCurrency=${tokenAddress}&outputCurrency=${pairAddress}&chainId=${codeChain}`,
+        fetchdex: {
+            primary: {
+                tokentopair: 'okutrade',
+                pairtotoken: 'okutrade'
             }
         },
         allowFallback: false

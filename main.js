@@ -920,9 +920,9 @@ function renderSettingsForm() {
         // Options: top-N routes
         const topN = savedMetaDexNow.topRoutes ?? 2;
         metaDexHtml += `
-            <div style="margin-top:8px;padding:6px 8px;background:#f8f9fa;border-radius:4px;border:1px solid #e2e8f0;">
+            <div style="margin-top:8px;padding:6px 8px;border-radius:4px;border:1px solid #e2e8f0;">
                 <div class="uk-flex uk-flex-middle" style="gap:8px;">
-                    <span style="font-size:11px;font-weight:600;">Max Route:</span>
+                    <span style="font-size:14px;font-weight:700;">Max Route:</span>
                     <input type="number" id="meta-dex-topN" class="uk-input uk-form-small"
                            value="${topN}" min="1" max="4"
                            style="width:50px;text-align:center;padding:2px 4px;">
@@ -4628,7 +4628,7 @@ async function deferredInit() {
                                     const symbolIn = String(walletItem.tokenName || '').toUpperCase();
 
                                     // Cari existing token di remoteRaw
-                                    const existing = remoteRaw.find(t => 
+                                    const existing = remoteRaw.find(t =>
                                         String(t.cex || '').toUpperCase() === cexUp &&
                                         String(t.symbol_in || '').toUpperCase() === symbolIn
                                     );
@@ -4637,13 +4637,13 @@ async function deferredInit() {
                                         // Update HANYA WD|DP status (bukan SC, harga, dll)
                                         const oldWd = existing.withdraw;
                                         const oldDp = existing.deposit;
-                                        
+
                                         existing.withdraw = walletItem.withdrawEnable ? '1' : '0';
                                         existing.deposit = walletItem.depositEnable ? '1' : '0';
                                         existing.withdrawEnable = walletItem.withdrawEnable;
                                         existing.depositEnable = walletItem.depositEnable;
                                         existing.feeWD = walletItem.feeWDs || existing.feeWD || 0;
-                                        
+
                                         totalUpdated++;
                                         console.log(`[WalletFilter] Updated ${cexUp}/${symbolIn}: WD=${existing.withdraw}(was ${oldWd}), DP=${existing.deposit}(was ${oldDp})`);
                                     }
@@ -4904,14 +4904,14 @@ async function deferredInit() {
                             if ($walletFilter.length) {
                                 const walletFilterEnabled = hasTableData && syncSnapshotFetched;
                                 $walletFilter.prop('disabled', !walletFilterEnabled);
-                                
+
                                 // Visual feedback: opacity untuk label
                                 $walletFilter.closest('label').css({
                                     opacity: walletFilterEnabled ? '1' : '0.5',
                                     pointerEvents: walletFilterEnabled ? 'auto' : 'none',
                                     cursor: walletFilterEnabled ? 'pointer' : 'not-allowed'
                                 });
-                                
+
                                 console.log('[Refresh Snapshot] Wallet filter checkbox:', walletFilterEnabled ? 'ENABLED ✅' : 'DISABLED', '- Data:', hasTableData, '- FetchedFlag:', syncSnapshotFetched);
                             }
                         } catch (e) {
@@ -5085,7 +5085,7 @@ async function deferredInit() {
             }
 
             // Cari token dari array asli menggunakan identitas (CEX + SYMBOL)
-            const tok = remoteTokens.find(t => 
+            const tok = remoteTokens.find(t =>
                 String(t.cex || '').toUpperCase().trim() === cexUpper &&
                 String(t.symbol_in || '').toUpperCase().trim() === symbolIn
             );
@@ -5203,9 +5203,9 @@ async function deferredInit() {
 
         // ========== DEBUG: Validasi hasil pengambilan data ==========
         console.log('[Save] Total selected tokens:', selectedTokens.length);
-        console.log('[Save] First 3 tokens:', selectedTokens.slice(0, 3).map(t => ({ 
-            cex: t.cex, 
-            symbol_in: t.symbol_in, 
+        console.log('[Save] First 3 tokens:', selectedTokens.slice(0, 3).map(t => ({
+            cex: t.cex,
+            symbol_in: t.symbol_in,
             symbol_out: t.symbol_out,
             sc_in: t.sc_in ? `${t.sc_in.slice(0, 6)}...` : '-'
         })));

@@ -1431,7 +1431,7 @@
     }
   };
 
-  function createFilteredLifiStrategy(dexKey, dexTitle, customLabel = null) {
+  function createFilteredLifiStrategy(dexKey, dexTitle, providerPrefix = 'LIFI') {
     return {
       buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
         const apiKey = (typeof getRandomApiKeyLIFI === 'function') ? getRandomApiKeyLIFI() : '';
@@ -1451,7 +1451,7 @@
           options: {
             integrator: 'brave',
             order: 'CHEAPEST',
-            slippage: parseFloat(getSlippageValue()) / 100,  // USER-CONFIGURABLE (fraction)
+            slippage: parseFloat(getSlippageValue()) / 100,
             maxPriceImpact: 0.4,
             jitoBundle: true,
             allowSwitchChain: true,
@@ -1463,19 +1463,19 @@
       },
       parseResponse: (response, { des_output, chainName }) => {
         const routes = response?.routes;
-        if (!routes || !Array.isArray(routes) || routes.length === 0) throw new Error(`LIFI-${dexTitle}: No valid routes received`);
+        if (!routes || !Array.isArray(routes) || routes.length === 0) throw new Error(`${providerPrefix}-${dexTitle}: No valid routes received`);
         const bestRoute = routes[0];
-        if (!bestRoute?.toAmount) throw new Error(`LIFI-${dexTitle}: Invalid route structure`);
+        if (!bestRoute?.toAmount) throw new Error(`${providerPrefix}-${dexTitle}: Invalid route structure`);
         const amount_out = parseFloat(bestRoute.toAmount) / Math.pow(10, des_output);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(bestRoute.gasCostUSD || 0), 0, chainName);
 
         // Dynamic Label logic
-        let routeTool = customLabel || `LIFI-${dexTitle}`;
-        if (dexTitle === 'OKX') routeTool = 'BRAVE-LIFI';
+        let routeTool = `${providerPrefix}-${dexTitle}`;
+        if (dexTitle === 'OKX' && providerPrefix === 'LIFI') routeTool = 'BRAVE-LIFI';
         if (dexTitle === 'LIFIDX') {
           let toolUsed = 'LIFI';
           try { toolUsed = String(bestRoute.steps?.[0]?.toolDetails?.name || bestRoute.steps?.[0]?.tool || 'LIFI').toUpperCase(); } catch (_) { }
-          routeTool = `LIFI-${toolUsed}`;
+          routeTool = `${providerPrefix}-${toolUsed}`;
         }
 
         return { amount_out, FeeSwap, feeSource, dexTitle, routeTool };
@@ -1563,7 +1563,7 @@
           }
         } catch (_) { }
         const { FeeSwap, feeSource } = resolveFeeSwap(_swDirectUsd, _swCalcUsd, chainName);
-        const label = 'SWOOP';
+        const label = `SWOOP-${dexTitle}`;
         return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: label };
       }
     };
@@ -1575,7 +1575,8 @@
   dexStrategies['swoop-matcha'] = createFilteredSwoopStrategy('0x', 'MATCHA');
   dexStrategies['swoop-okx'] = createFilteredSwoopStrategy('okx', 'OKX');
   dexStrategies['swoop-sushi'] = createFilteredSwoopStrategy('sushiswap', 'SUSHI');
-  dexStrategies['swoop-lifi'] = createFilteredSwoopStrategy('lifi', 'LIFIDEX');
+  dexStrategies['swoop-lifi'] = createFilteredSwoopStrategy('lifi', 'LIFIDX');
+  dexStrategies['swoop-lifidex'] = createFilteredSwoopStrategy('lifi', 'LIFIDX');
 
   function createFilteredRabbyStrategy(rabbyDexId, dexTitle) {
     return {
@@ -1618,6 +1619,55 @@
   dexStrategies['rabby-flytrade'] = createFilteredRabbyStrategy('magpie', 'FLYTRADE');
   dexStrategies['rabby-1inch'] = createFilteredRabbyStrategy('1inch_v6', '1INCH');
 
+  // ========== BIRDEYE-1INCH Strategy ==========
+  // Birdeye 1inch proxy — 1inch v6 Quote API via Birdeye endpoint
+  // GET https://1inch.birdeye.so/swap/v6.0/{chainId}/quote
+  dexStrategies['birdeye-1inch'] = {
+    buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big }) => {
+      const NATIVE = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+      const srcToken = sc_input_in.toLowerCase() === '0x0000000000000000000000000000000000000000'
+        ? NATIVE : sc_input_in;
+      const dstToken = sc_output_in.toLowerCase() === '0x0000000000000000000000000000000000000000'
+        ? NATIVE : sc_output_in;
+      const chainId = Number(codeChain) || 1;
+      const params = new URLSearchParams({
+        fee: '0.6',
+        src: srcToken,
+        dst: dstToken,
+        amount: String(amount_in_big),
+        includeTokensInfo: 'true',
+        includeProtocols: 'true',
+        includeGas: 'true',
+        timestamp: String(Date.now())
+      });
+      return {
+        url: `https://1inch.birdeye.so/swap/v6.0/${chainId}/quote?${params.toString()}`,
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      const targetAmount = response.dstAmount || response.toAmount;
+      if (!response || !targetAmount) throw new Error('BIRDEYE-1INCH: Invalid response, missing dstAmount/toAmount');
+      const amount_out = parseFloat(targetAmount) / Math.pow(10, des_output);
+      if (!Number.isFinite(amount_out) || amount_out <= 0) throw new Error('BIRDEYE-1INCH: output amount tidak valid');
+      let _bCalcUsd = 0;
+      try {
+        const gasUnitsRaw = parseFloat(response.gas || 0);
+        if (gasUnitsRaw > 0) {
+          const gasUnits = capGasUnits(gasUnitsRaw, chainName);
+          const allGasData = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('ALL_GAS_FEES') : null;
+          if (allGasData) {
+            const gasInfo = allGasData.find(g => String(g.chain || '').toLowerCase() === String(chainName || '').toLowerCase());
+            if (gasInfo?.gwei && gasInfo?.tokenPrice) _bCalcUsd = (gasUnits * gasInfo.gwei * gasInfo.tokenPrice) / 1e9;
+          }
+        }
+      } catch (_) { }
+      const { FeeSwap, feeSource } = resolveFeeSwap(0, _bCalcUsd, chainName);
+      return { amount_out, FeeSwap, feeSource, dexTitle: '1INCH', routeTool: 'BIRDEYE-1INCH' };
+    }
+  };
+
   function createFilteredC98Strategy(backerName, dexTitle) {
     const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
     const NATIVE_SYMBOLS = { '1': 'ETH', '56': 'BNB', '137': 'MATIC', '42161': 'ETH', '8453': 'ETH', '10': 'ETH', '43114': 'AVAX' };
@@ -1640,7 +1690,7 @@
         const quote = response.data[0];
         const amount_out = parseFloat(quote.amount);
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(quote.additionalData?.gas?.amountUSD || 0), 0, chainName);
-        const label = 'C98';
+        const label = `C98-${dexTitle}`;
         return { amount_out, FeeSwap, feeSource, dexTitle, routeTool: label };
       }
     };
@@ -1666,13 +1716,12 @@
       return { url: 'https://superlink-server.coin98.tech/quote', method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8' }, data: JSON.stringify(body) };
     },
     parseResponse: (response, { des_output, chainName }) => {
-      if (!response?.data?.[0]) throw new Error('C98-LIFIDEX: No quote data received');
+      if (!response?.data?.[0]) throw new Error('C98-LIFIDX: No quote data received');
       const sorted = response.data.filter(q => parseFloat(q.amount) > 0).sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount));
-      if (sorted.length === 0) throw new Error('C98-LIFIDEX: No valid quotes');
+      if (sorted.length === 0) throw new Error('C98-LIFIDX: No valid quotes');
       const best = sorted[0];
       const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(best.additionalData?.gas?.amountUSD || 0), 0, chainName);
-      const toolName = String(best.id || best.name || 'C98').toUpperCase();
-      return { amount_out: parseFloat(best.amount), FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: `C98-${toolName}` };
+      return { amount_out: parseFloat(best.amount), FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: 'C98-LIFIDX' };
     }
   };
 
@@ -3455,6 +3504,7 @@
   // ✅ OneKey filtered strategies — alternatif untuk 1inch dan LiFi DEX
   dexStrategies['onekey-1inch'] = createFilteredOnekeyStrategy('swap1inch', '1INCH');    // OneKey → hanya provider 1inch
   dexStrategies['onekey-lifidex'] = createFilteredOnekeyStrategy('swaplifi', 'LIFIDX');  // OneKey → hanya provider LiFi/Jumper
+  dexStrategies['onekey-odos'] = createFilteredOnekeyStrategy('swapodos', 'ODOS');      // OneKey → hanya provider Odos
 
   // =============================
   // RANGO Filtered Strategy Factory - Rango as REST API Provider
@@ -3857,6 +3907,112 @@
     }
   };
 
+  // ============================================================
+  // OKU TRADE — 3-step REST: Create → UpdateQuoteParams → GetNewQuotes
+  // Endpoint: https://accounts.v2.icarus.tools/connect/gfxcafe.oku.account.v2.SimpleSwapServiceV2
+  // quotes response: object { routerName: { router, fetched, quote: { outAmount, fees: { gasUsdValue } } } }
+  // outAmount sudah human-readable (bukan wei)
+  // ============================================================
+  dexStrategies.okutrade = {
+    execute: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, des_input, des_output, chainName }) => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const BASE = 'https://accounts.v2.icarus.tools/connect/gfxcafe.oku.account.v2.SimpleSwapServiceV2';
+          const chainId = String(codeChain);
+          const slippageBps = Math.round(getSlippageValue() * 100); // % → bps
+          // Proven working markets (adopted from ADDON-DEV) — cowswap/icecreamswap/unizen/usor dihapus karena sering error
+          const OKU_MARKETS = ['enso', 'kyberswap', 'odos', 'okx', 'oneinch', 'openocean', 'paraswap', 'zeroex'];
+
+          // amount_in_big adalah BigInt (wei), konversi ke human-readable
+          const tokenAmount = (Number(amount_in_big) / Math.pow(10, des_input)).toString();
+
+          // OKU Trade: gunakan proxy untuk CORS, retries:1 agar lebih tahan gangguan jaringan
+          const postJson = async (url, bodyObj, timeout) => {
+            const proxyFetch = (typeof fetchWithProxy === 'function') ? fetchWithProxy : (typeof root.fetchWithProxy === 'function') ? root.fetchWithProxy : null;
+            const headers = { 
+              'Content-Type': 'application/json',
+              'connect-protocol-version': '1' // ✅ Required for Connect RPC (Buf)
+            };
+            if (proxyFetch) {
+              return proxyFetch(url, { method: 'POST', headers, body: JSON.stringify(bodyObj), timeout, retries: 1 });
+            }
+            return fetch(url, { method: 'POST', headers, body: JSON.stringify(bodyObj), signal: AbortSignal.timeout(timeout) });
+          };
+
+          // Step 1: Create Order
+          const createRes = await postJson(`${BASE}/Create`, { params: {} }, 8000);
+          if (!createRes.ok) throw new Error(`Oku Create gagal: ${createRes.status}`);
+          const createData = await createRes.json();
+          const orderId = createData.orderId;
+          if (!orderId) throw new Error('Oku: Tidak ada orderId');
+
+          // Step 2: UpdateQuoteParams
+          const updateRes = await postJson(`${BASE}/UpdateQuoteParams`, {
+            orderId,
+            params: {
+              chain: chainId,
+              enabledMarkets: OKU_MARKETS,
+              inTokenAddress: sc_input_in,
+              isExactIn: true,
+              outTokenAddress: sc_output_in,
+              slippage: slippageBps,
+              tokenAmount,
+              usePermit2: true
+            }
+          }, 10000);
+          if (!updateRes.ok) throw new Error(`Oku UpdateQuoteParams gagal: ${updateRes.status}`);
+
+          // Step 3: GetNewQuotes
+          const quotesRes = await postJson(`${BASE}/GetNewQuotes`, {
+            fetchedRouters: ['cowswap', 'enso', 'icecreamswap', 'kyberswap', 'okx', 'oneinch', 'openocean', 'paraswap', 'unizen'],
+            generation: 1,
+            orderId,
+            waitTime: '5000'
+          }, 12000);
+          if (!quotesRes.ok) throw new Error(`Oku GetNewQuotes gagal: ${quotesRes.status}`);
+          const quotesData = await quotesRes.json();
+
+          // quotes adalah object { routerName: { router, quote: { outAmount, fees.gasUsdValue } } }
+          const quotesMap = quotesData.quotes || {};
+          const subResults = [];
+
+          for (const [key, item] of Object.entries(quotesMap)) {
+            if (!item || !item.quote) continue;
+            const q = item.quote;
+            const routerName = (item.router || key || 'OKU').toUpperCase();
+
+            const amountOut = parseFloat(q.outAmount ?? q.netOutAmount ?? q.amountOut ?? 0);
+            if (!Number.isFinite(amountOut) || amountOut <= 0) continue;
+
+            const gasUsd = parseFloat(q.fees?.gasUsdValue ?? q.gasUsd ?? q.gasUsdValue ?? 0);
+            const { FeeSwap, feeSource } = resolveFeeSwap(gasUsd, 0, chainName);
+
+            subResults.push({
+              amount_out: amountOut,
+              FeeSwap,
+              feeSource,
+              dexTitle: `OKU-${routerName}`,
+              isMultiDex: true
+            });
+          }
+
+          if (subResults.length === 0) throw new Error('Oku: Tidak ada quote valid');
+
+          subResults.sort((a, b) => b.amount_out - a.amount_out);
+          const maxProviders = (typeof root.CONFIG_DEXS?.okutrade?.maxProviders === 'number')
+            ? root.CONFIG_DEXS.okutrade.maxProviders : 3;
+
+          resolve({
+            ...subResults[0],
+            subResults: subResults.slice(0, maxProviders)
+          });
+        } catch (e) {
+          reject({ statusCode: 0, pesanDEX: `Oku Trade: ${e.message || 'Request failed'}` });
+        }
+      });
+    }
+  };
+
   /**
    * Quote swap output from a DEX aggregator.
    * Builds request by strategy, applies timeout, and returns parsed amounts.
@@ -4004,7 +4160,7 @@
                 tableBodyId,
                 subResults: parsed.subResults || null,
                 isMultiDex: parsed.isMultiDex || false,
-                routeTool: null
+                routeTool: parsed.routeTool || null
               });
             } catch (e) {
               rej({ statusCode: 0, pesanDEX: `${sKey.toUpperCase()}: ${e.message}`, DEX: sKey.toUpperCase() });
@@ -4348,7 +4504,14 @@
             if (!response || !response.amountOutWei) return reject({ pesanDEX: 'SWOOP response invalid' });
             const amount_out = parseFloat(response.amountOutWei) / Math.pow(10, des_output);
             const FeeSwap = getFeeSwap(nameChain);
-            resolve({ dexTitle: dexType, sc_input, des_input, sc_output, des_output, FeeSwap, dex: dexType, amount_out });
+            resolve({ 
+              dexTitle: dexType, 
+              sc_input, des_input, sc_output, des_output, 
+              FeeSwap, 
+              dex: dexType, 
+              amount_out,
+              routeTool: 'SWOOP'
+            });
           },
           error: function (xhr, textStatus) {
             let status = 0; try { status = Number(xhr && xhr.status) || 0; } catch (_) { }

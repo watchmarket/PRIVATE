@@ -109,18 +109,17 @@
     function linkifyStatus(flag, label, urlOk, tokenName = '') {
         const safe = (u) => (u && /^https?:\/\//i.test(u)) ? u : '#';
         let text, color, className;
-        const icon = (label === 'WD' || label === 'WX') ? '🈳' : '🈷️';
         const displayToken = tokenName ? `[${tokenName.toUpperCase()}]` : '';
 
         if (flag === true) {
-            text = `${icon} ${label}${displayToken}`;
+            text = `${label}${displayToken}`;
             className = 'uk-text-primary';
         } else if (flag === false) {
             const failLabel = (label === 'DP') ? 'DX' : 'WX';
-            text = `${icon} ${failLabel}${displayToken}`;
+            text = `${failLabel}${displayToken}`;
             className = 'uk-text-danger';
         } else {
-            text = `${icon} ?${label}${displayToken}`;
+            text = `?${label}${displayToken}`;
             className = 'uk-text-muted';
         }
         return `<a href="${safe(urlOk)}" target="_blank" rel="noopener noreferrer" class="uk-text-bold ${className}">${text}</a>`;
