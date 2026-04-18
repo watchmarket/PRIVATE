@@ -69,7 +69,7 @@
 
             <a href="saldo.html" target="_blank" data-feature="assets"><img class="icon" title="SALDO ASSET"
                 width="24px" src="assets/icons/asset.png" /></a>
-            
+
             <a href="#" id="openDatabaseViewer" title="MANAJEMEN DATABASE"><img class="icon" width="24"
                 src="assets/icons/signal.png" /></a>
             <a href="#" id="openHistoryModal" title="RIWAYAT AKSI"><img class="icon" width="24"
@@ -77,7 +77,7 @@
 
             <img class="icon" id="darkModeToggle" title="GANTI MODE TERANG/GELAP" width="24px"
               src="assets/icons/dark-mode.png" />
-              <a href="scanner-LP.html" target="_blank" rel="noopener noreferrer" title="BUKA SCANNER LP">
+            <a href="scanner-LP.html" target="_blank" rel="noopener noreferrer" title="BUKA SCANNER LP">
               <img class="icon" width="24px" src="assets/icons/tab-new.png" />
             </a>
           </div>
@@ -99,22 +99,19 @@
             <div class="uk-width-expand uk-flex uk-flex-middle uk-flex-wrap" style="gap: 6px;">
 
 
-              <!-- AUTO Controls Group -->
+              <!-- SCANNER Group -->
+              <!-- <span class="uk-text-bolder scanner-label">
+                SCANNER:
 
+              </span> -->
 
-              <span class="uk-text-bolder uk-text-secondary scanner-label">
-                AUTO [
-              </span>
 
               <label class="scanner-control" title="Auto-scroll ke baris yang di-highlight saat scan">
                 <input class="uk-checkbox" type="checkbox" id="autoScrollCheckbox">
                 <span class="uk-text-warning uk-text-bold">SCROLL</span>
               </label>
 
-              <label class="scanner-control" title="Auto-run SCANNER setelah selesai (mode loop)">
-                <input class="uk-checkbox" type="checkbox" id="autoRunToggle">
-                <span class="uk-text-success uk-text-bold">START</span>
-              </label>
+
 
               <label class="scanner-control" title="Validasi volume sederhana: Cek apakah volume order >= modal">
                 <input class="uk-checkbox vol-check" id="checkVOL" type="checkbox">
@@ -137,15 +134,7 @@
                   placeholder="1-4" style="width:50px; border: 2px solid #2563eb;">
               </div>
 
-              <span class="uk-text-bolder uk-text-secondary scanner-label">]</span>
 
-              ||
-
-              <!-- SCANNER Group -->
-              <span class="uk-text-bolder scanner-label">
-                SCANNER:
-
-              </span>
               <!-- <label class="scanner-control">
                 <input class="uk-checkbox" type="checkbox" id="toggleScanLog">
                 <span class="uk-text-warning">LOGGER</span>
@@ -181,12 +170,21 @@
                 <input id="slippageInput" class="uk-input uk-form-small" type="number" step="0.01" min="0" max="10"
                   placeholder="0.5" style="width:65px;" title="Slippage tolerance in %. Set 0 for AUTO slippage.">%
               </div>
+              <label class="scanner-control" title="Auto-run SCANNER setelah selesai (mode loop)">
+                <input class="uk-checkbox" type="checkbox" id="autoRunToggle">
+                <span class="uk-text-success uk-text-bold">AUTORUN</span>
+              </label>
 
+              <div class="scanner-control-inline" id="autoRunDelayInput" style="display:none;">
+                <input id="autoRunDelay" class="uk-input uk-form-small" type="number" min="20" max="60" value="20"
+                  placeholder="dtk" style="width:60px; border:2px solid #16a34a;" title="Jeda autorun (detik)">
+                <span style="font-size:10px; color:#16a34a; font-weight:600;">s</span>
+              </div>
               <div class="uk-button-group scanner-actions">
                 <button type="button" id="startSCAN" data-feature="scan"
-                  class="uk-button uk-button-success uk-button-small">RUNNING</button>
+                  class="uk-button uk-button-success uk-button-small">START SCAN</button>
                 <button type="button" id="stopSCAN" data-feature="scan" style="display:none;"
-                  class="uk-button uk-button-danger uk-button-small">STOP</button>
+                  class="uk-button uk-button-danger uk-button-small">STOP SCAN</button>
               </div>
 
             </div>

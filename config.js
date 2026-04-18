@@ -1,12 +1,12 @@
 const CONFIG_APP = {
     APP: {
-        //NAME: "PENCARI SELISIH",
-        NAME: "PRIVATE_NOCORS",
+        NAME: "PENCARI SELISIH",
+        // NAME: "PRIVATE_NOCORS",
         VERSION: "04.18",
         SCAN_LIMIT: false,
         AUTORUN: true,
-        AUTO_VOLUME: true,  // cek volume otomatis untuk filter dan alert
-        VOL_CHECK: true, // cek volume aktual
+        AUTO_VOLUME: true,  // cek level order otomatis kalkulasi PNL
+        VOL_CHECK: true,
         DEBUG_LOG: false,
         // Gas units untuk ERC-20 transfer onchain (DEX → CEX wallet)
         // Lebih kecil dari swap gas (~150k-300k) karena hanya transfer biasa
@@ -33,13 +33,13 @@ const CONFIG_APP = {
         // Daftar aggregator META-DEX yang tersedia.
         // Setiap aggregator mengembalikan BANYAK quote dari berbagai DEX sekaligus.
         aggregators: {
-            lifi: { enabled: true, evmOnly: false, jedaDex: 600, label: 'JUMPER' },       // EVM + Solana multi-route
+            lifi: { enabled: true, evmOnly: false, jedaDex: 600, label: 'JUMPX' },       // EVM + Solana multi-route
             // dzap: { enabled: true, evmOnly: false, jedaDex: 500, label: 'DZAP' },       // EVM + Solana multi-route
             // rubic: { enabled: true, evmOnly: false, jedaDex: 500, label: 'Rubic' },     // EVM + Solana multi-quote
             // rango: { enabled: true, evmOnly: false, jedaDex: 500, label: 'RANGO' },       // EVM + Solana multi-quote
             //rocketx: { enabled: true, evmOnly: false, jedaDex: 600, label: 'ROCKET' },    // EVM + Solana multi-quote
             metax: { enabled: true, evmOnly: true, jedaDex: 800, label: 'METAX' },       // EVM only (no Solana support)
-            onekey: { enabled: true, evmOnly: true, jedaDex: 800, label: 'ONEKEY' },       // EVM only — SSE streaming (OKX, 1inch, 0x)
+            onekey: { enabled: true, evmOnly: true, jedaDex: 800, label: 'ONEX' },       // EVM only — SSE streaming (OKX, 1inch, 0x)
             //debridge: { enabled: true, evmOnly: true, jedaDex: 800, label: 'DEBRIDGE' },  // EVM only — deBridge DLN swap
             // okutrade: { enabled: true, evmOnly: true, jedaDex: 800, label: 'OKUTRADE' }, // EVM only — Oku Trade multi-aggregator (3-step REST)
         },
@@ -60,7 +60,7 @@ const CONFIG_APP = {
                 showBestOnly: false,       // false = tampilkan semua quote; true = hanya terbaik
                 // ✅ Blacklist: provider yang TIDAK boleh muncul di hasil scan MetaDEX.
                 // Nama harus UPPERCASE. Berlaku untuk semua MetaDEX (LIFI, DZAP, RANGO, METAX, ONEKEY, dll).
-                offDexResultScan: ["OPENOCEAN", "MAYAN", "UNISWAP", "SUSHISWAP"],
+                offDexResultScan: ["OPENOCEAN", "MAYAN", "UNISWAP", "SUSHISWAP", "NORDSTERN", "BITGET", "FLYTRADE", "ENSO"],
             },
             // Card Signal DEX: tampilan card/signal untuk hasil META-DEX
             cardSignal: {
@@ -538,7 +538,7 @@ const CONFIG_UI = {
     DEXES: [
         { key: 'kyber', label: 'KyberSwap', badgeClass: 'bg-kyberswap', fallbackSlug: 'kyberswap' },
         //  { key: 'sushi', label: 'SUSHI', badgeClass: 'bg-sushi', fallbackSlug: 'sushi' },
-        { key: 'brave-lifi', label: 'JUMPER', badgeClass: 'bg-lifi', fallbackSlug: 'lifi' },
+        { key: 'brave-lifi', label: 'JUMPX', badgeClass: 'bg-lifi', fallbackSlug: 'lifi' },
         { key: 'lifidex', label: 'LIFIDX', badgeClass: 'bg-lifidex', fallbackSlug: 'lifidex' },
         { key: 'okx', label: 'OKX', badgeClass: 'bg-okx', fallbackSlug: 'okx' },
         //  { key: 'relay', label: 'Relay', badgeClass: 'bg-relay', fallbackSlug: 'relay' },
@@ -1235,7 +1235,7 @@ const CONFIG_DEXS = {
     //   - 'lifi' (standalone)  → Meta-DEX, multi-route, kolom sendiri
     //   - 'lifi-odos', 'lifi-velora' (filtered) → backend transport untuk DEX Regular
     'lifi': {
-        label: 'JUMPER',
+        label: 'JUMPX',
         badgeClass: 'bg-lifi',
         disabled: false,
         isMetaDex: true,   // ✅ Meta-DEX: standalone LIFI menampilkan multi-route
@@ -1371,7 +1371,7 @@ const CONFIG_DEXS = {
     },
 
     onekey: {
-        label: 'ONEKEY',
+        label: 'ONEX',
         badgeClass: 'bg-onekey',
         disabled: false,
         proxy: false,        // SSE langsung dari browser (EventSource), tidak lewat proxy

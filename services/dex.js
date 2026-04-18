@@ -212,19 +212,89 @@
    * @param {Array} subResults - Array of { amount_out, FeeSwap, dexTitle, ... }
    * @returns {Array} Filtered array with blacklisted providers removed
    */
+  /**
+   * Filter MetaDEX results (subResults) against the offDexResultScan blacklist in config.js.
+   * Uses bidirectional matching ("Auto Pas") and checks multiple fields.
+   * @param {Array} subResults Array of quote objects.
+   * @returns {Array} Filtered list.
+   */
   function filterOffDexResults(subResults) {
     try {
+      if (!Array.isArray(subResults) || subResults.length === 0) return subResults;
+      
       const blacklist = root.CONFIG_APP?.META_DEX_CONFIG?.settings?.filterScanner?.offDexResultScan;
       if (!Array.isArray(blacklist) || blacklist.length === 0) return subResults;
-      const offSet = new Set(blacklist.map(x => String(x).toUpperCase()));
-      const filtered = subResults.filter(r => !offSet.has(String(r.dexTitle || '').toUpperCase()));
+
+      const normalizedBlacklist = blacklist.map(x => String(x).trim().toUpperCase()).filter(Boolean);
+      
+      const filtered = subResults.filter(r => {
+        // Collect candidate names to check against blacklist for maximum coverage
+        const candidates = [
+          r.dexTitle,
+          r.provider,
+          r.name,
+          r.routeTool
+        ].filter(Boolean).map(v => String(v).trim().toUpperCase());
+
+        if (candidates.length === 0) return true;
+
+        const matchedItem = normalizedBlacklist.find(block => {
+          return candidates.some(name => {
+            // Bidirectional Match for "Auto Pas":
+            // 1. name.includes(block) -> "OKU-OPENOCEAN" matches "OPENOCEAN"
+            // 2. block.includes(name) -> "FLY" matches "FLYTRADE"
+            return name.includes(block) || block.includes(name);
+          });
+        });
+
+        if (matchedItem) {
+          console.log(`[META-DEX BLACKLIST] 🚫 BLOCKED: "${candidates.join(' / ')}" matches blacklist item "${matchedItem}"`);
+          return false;
+        }
+        
+        return true;
+      });
+
       if (filtered.length < subResults.length) {
-        console.log(`[META-DEX] Filtered out ${subResults.length - filtered.length} blacklisted provider(s): ${blacklist.join(', ')}`);
+        console.log(`[META-DEX] Result filtered: ${subResults.length - filtered.length} provider(s) removed. Blacklist:`, normalizedBlacklist);
       }
       return filtered;
-    } catch (_) {
+    } catch (e) {
+      console.warn('[META-DEX] filterOffDexResults error:', e);
       return subResults;
     }
+  }
+
+  /**
+   * Helper to check if a single DEX result should be filtered.
+   * Used as a global gatekeeper in getPriceDEX and getPriceAltDEX.
+   * @param {object} res The result object to check.
+   * @param {string} requestedDexType The DEX key being scanned (e.g., 'flytrade').
+   */
+  function isDexBlacklisted(res, requestedDexType) {
+    if (!res) return false;
+
+    // ✅ CONTEXTUAL BYPASS:
+    // Jika kita sedang men-scan KOLOM DEX tersebut secara spesifik (direct scan),
+    // maka jangan blokir hasilnya di kolom tersebut. Blacklist hanya berlaku jika
+    // DEX tersebut muncul sebagai hasil di dalam aggregator lain (MetaDEX).
+    try {
+      const title = String(res.dexTitle || res.name || '').trim().toUpperCase();
+      const req = String(requestedDexType || '').trim().toUpperCase();
+      
+      // Heuristic comparison: title vs requested key
+      const isTargetColumn = (title === req) || 
+                            (req === 'ONEINCH' && title === '1INCH') ||
+                            (req === 'FLYTRADE' && title === 'FLYTRADE') ||
+                            (req === 'OKX' && title === 'OKX DEX') ||
+                            (title && req && (title.includes(req) || req.includes(title)));
+
+      if (isTargetColumn) return false;
+    } catch (_) { }
+
+    // Check against the blacklist
+    const filtered = filterOffDexResults([res]);
+    return filtered.length === 0;
   }
 
   const dexStrategies = {
@@ -1382,7 +1452,7 @@
       const filtered = filterOffDexResults(subResults);
       if (filtered.length === 0) throw new Error('LIFI: Semua provider terfilter oleh offDexResultScan');
       filtered.sort((a, b) => b.amount_out - a.amount_out);
-      return { amount_out: filtered[0].amount_out, FeeSwap: filtered[0].FeeSwap, feeSource: filtered[0].feeSource, dexTitle: 'JUMPER', routeTool: filtered[0].routeTool, subResults: filtered, isMultiDex: true };
+      return { amount_out: filtered[0].amount_out, FeeSwap: filtered[0].FeeSwap, feeSource: filtered[0].feeSource, dexTitle: filtered[0].dexTitle, routeTool: 'LIFI', subResults: filtered, isMultiDex: true };
     }
   };
 
@@ -2603,9 +2673,15 @@
         };
       });
 
+      // ✅ Filter blacklisted providers dari config offDexResultScan
+      const filtered = filterOffDexResults(top3);
+      if (filtered.length === 0) throw new Error('KAMINO: Semua provider terfilter oleh offDexResultScan');
+
       // Return multi-DEX format (like LIFI/DZAP)
       return {
-        subResults: top3,
+        amount_out: filtered[0].amount_out,
+        FeeSwap: filtered[0].FeeSwap,
+        subResults: filtered,
         isMultiDex: true
       };
     }
@@ -2853,13 +2929,17 @@
         };
       });
 
+      // ✅ Filter blacklisted providers dari config offDexResultScan
+      const filtered = filterOffDexResults(top3);
+      if (filtered.length === 0) throw new Error('RUBIC: Semua provider terfilter oleh offDexResultScan');
+
       // Return multi-DEX format — top-level amount_out wajib ada agar calculateResult tidak early-return
       return {
-        amount_out: top3[0].amount_out,
-        FeeSwap: top3[0].FeeSwap,
-        dexTitle: 'RUBIC',
+        amount_out: filtered[0].amount_out,
+        FeeSwap: filtered[0].FeeSwap,
+        dexTitle: filtered[0].dexTitle || 'RUBIC',
         routeTool: 'RUBIC',
-        subResults: top3,
+        subResults: filtered,
         isMultiDex: true
       };
     }
@@ -2935,8 +3015,8 @@
       const dexQuotes = allQuotes.filter(q => q.exchangeInfo?.exchange_type === 'DEX');
       if (dexQuotes.length === 0) throw new Error('RocketX: No DEX quotes (all routes are CEX)');
 
-      // Ambil satu quote terbaik (amount_out tertinggi)
-      let best = null;
+      // Parse all valid DEX quotes
+      const subResults = [];
       for (const q of dexQuotes) {
         try {
           const amount_out = parseFloat(q.toAmount);
@@ -2946,23 +3026,35 @@
           const gasFeeUsd = parseFloat(q.gasFeeUsd || 0);
           const FeeSwap = (platformFeeUsd + gasFeeUsd) > 0
             ? (platformFeeUsd + gasFeeUsd)
-            : getFeeSwap(chainName);
+            : (typeof getFeeSwap === 'function' ? getFeeSwap(chainName) : 0);
 
-          if (!best || amount_out > best.amount_out) {
-            best = { amount_out, FeeSwap };
-          }
+          // Extract granular DEX name for the blacklist filter
+          const dexTitle = String(q.exchangeInfo?.exchange_name || 'ROCKETX').toUpperCase();
+
+          subResults.push({
+            amount_out,
+            FeeSwap,
+            dexTitle,
+            routeTool: 'ROCKETX'
+          });
         } catch (_) { continue; }
       }
 
-      if (!best) throw new Error('RocketX: No valid DEX quotes parsed');
+      if (subResults.length === 0) throw new Error('RocketX: No valid DEX quotes found');
 
-      console.log(`[ROCKETX] Best DEX quote: ${best.amount_out} (${dexQuotes.length} DEX / ${allQuotes.length} total)`);
+      // ✅ Filter blacklisted providers dari config offDexResultScan
+      const filtered = filterOffDexResults(subResults);
+      if (filtered.length === 0) throw new Error('RocketX: Semua provider terfilter oleh offDexResultScan');
+
+      filtered.sort((a, b) => b.amount_out - a.amount_out);
+      const topN = filtered.slice(0, 3);
+
+      console.log(`[ROCKETX] Best DEX quote: ${topN[0].amount_out} (${topN.length} visible / ${allQuotes.length} total)`);
 
       return {
-        amount_out: best.amount_out,
-        FeeSwap: best.FeeSwap,
-        dexTitle: 'ROCKETX',
-        routeTool: 'ROCKETX'
+        ...topN[0],
+        subResults: topN,
+        isMultiDex: true
       };
     }
   };
@@ -3069,7 +3161,7 @@
                 if (proto) providerName = String(proto).toUpperCase();
               } catch (_) { }
 
-              subResults.push({ amount_out, FeeSwap, feeSource, dexTitle: providerName });
+              subResults.push({ amount_out, FeeSwap, feeSource, dexTitle: providerName, routeTool: 'METAX' });
             } catch (_) { continue; }
           }
 
@@ -3113,7 +3205,8 @@
             amount_out: topN[0].amount_out,
             FeeSwap: topN[0].FeeSwap,
             feeSource: topN[0].feeSource,
-            dexTitle: 'METAX',
+            dexTitle: topN[0].dexTitle || 'METAX',
+            routeTool: 'METAX',
             subResults: topN,
             isMultiDex: true,
             apiUrl: url
@@ -3256,7 +3349,7 @@
               const providerKey = String(item.info?.provider || '').toLowerCase();
               const dexTitle = PROVIDER_MAP[providerKey] || String(item.info?.providerName || providerKey).toUpperCase();
 
-              subResults.push({ amount_out, FeeSwap, feeSource, dexTitle });
+              subResults.push({ amount_out, FeeSwap, feeSource, dexTitle, routeTool: 'ONEX' });
             } catch (_) { continue; }
           }
 
@@ -3286,7 +3379,7 @@
           const topN = filteredOnekey.slice(0, maxN);
 
           // ✅ Debug: Log semua quotes untuk perbandingan dengan platform
-          console.log(`[ONEKEY] Top ${topN.length} quotes dari ${filteredOnekey.length} filtered (sorted by NET VALUE):`);
+          console.log(`[ONEX] Top ${topN.length} quotes dari ${filteredOnekey.length} filtered (sorted by NET VALUE):`);
           filteredOnekey.forEach((r, i) => {
             const marker = i < maxN ? '→' : ' ';
             console.log(`  ${marker} #${i + 1} ${r.dexTitle}: output=$${r.amount_out.toFixed(6)}, gas=$${r.FeeSwap.toFixed(4)} (${r.feeSource}), net=$${r.netValue.toFixed(6)}`);
@@ -3296,10 +3389,10 @@
             amount_out: topN[0].amount_out,
             FeeSwap: topN[0].FeeSwap,
             feeSource: topN[0].feeSource,
-            dexTitle: 'ONEKEY',
+            dexTitle: topN[0].dexTitle || 'ONEX',
             subResults: topN,
             isMultiDex: true,
-            routeTool: 'ONEKEY'
+            routeTool: 'ONEX'
           });
         };
 
@@ -3440,7 +3533,7 @@
               }
             } catch (_) { }
 
-            console.log(`[ONEKEY-${dexTitle}] Quote dari provider ${providerKey}: ${amount_out}`);
+            console.log(`[ONEX-${dexTitle}] Quote dari provider ${providerKey}: ${amount_out}`);
 
             resolve({
               amount_out,
@@ -3448,7 +3541,7 @@
               feeSource,
               dexTitle,
               isMultiDex: false,
-              routeTool: `ONEKEY-${dexTitle}`
+              routeTool: `ONEX-${dexTitle}`
             });
           };
 
@@ -3897,12 +3990,21 @@
       const protocolFeeUsd = parseFloat(response?.protocolFeeApproximateUsdValue || 0);
       const totalFeeUsd = gasFeeUsd + protocolFeeUsd;
       const { FeeSwap, feeSource } = resolveFeeSwap(totalFeeUsd, 0, chainName);
-      return {
+      const result = {
         amount_out,
         FeeSwap,
         feeSource,
-        dexTitle: 'DEBRIDGE',
-        isMultiDex: false
+        dexTitle: 'DEBRIDGE'
+      };
+
+      // ✅ Filter blacklisted providers dari config offDexResultScan
+      const filtered = filterOffDexResults([result]);
+      if (filtered.length === 0) throw new Error('deBridge: Provider terfilter oleh offDexResultScan');
+
+      return {
+        ...filtered[0],
+        subResults: filtered,
+        isMultiDex: true // ✅ Menjadi true agar subResults bisa dirender (MetaDEX standard)
       };
     }
   };
@@ -3998,13 +4100,17 @@
 
           if (subResults.length === 0) throw new Error('Oku: Tidak ada quote valid');
 
-          subResults.sort((a, b) => b.amount_out - a.amount_out);
+          // ✅ Filter blacklisted providers dari config offDexResultScan
+          const filtered = filterOffDexResults(subResults);
+          if (filtered.length === 0) throw new Error('Oku: Semua provider terfilter oleh offDexResultScan');
+
+          filtered.sort((a, b) => b.amount_out - a.amount_out);
           const maxProviders = (typeof root.CONFIG_DEXS?.okutrade?.maxProviders === 'number')
             ? root.CONFIG_DEXS.okutrade.maxProviders : 3;
 
           resolve({
-            ...subResults[0],
-            subResults: subResults.slice(0, maxProviders)
+            ...filtered[0],
+            subResults: filtered.slice(0, maxProviders)
           });
         } catch (e) {
           reject({ statusCode: 0, pesanDEX: `Oku Trade: ${e.message || 'Request failed'}` });
@@ -4081,6 +4187,11 @@
       if (USE_LRU_CACHE) {
         const cachedResponse = DEX_RESPONSE_CACHE.get(cacheKey);
         if (cachedResponse !== undefined) {
+          if (isDexBlacklisted(cachedResponse, dexType)) {
+            console.log(`[DEX BLACKLIST] 🚫 DROPPING CACHED ${dexType.toUpperCase()} - matches blacklist`);
+            reject({ statusCode: 0, pesanDEX: `Filtered by Blacklist`, DEX: dexType.toUpperCase(), isBlacklisted: true });
+            return;
+          }
           console.log(`[DEX CACHE HIT] ${dexType.toUpperCase()} - LRU Cache hit!`);
           resolve(cachedResponse);
           return;
@@ -4089,6 +4200,11 @@
         const cached = DEX_RESPONSE_CACHE.get(cacheKey);
         const now = Date.now();
         if (now - cached.timestamp < DEX_CACHE_TTL) {
+          if (isDexBlacklisted(cached.response, dexType)) {
+             console.log(`[DEX BLACKLIST] 🚫 DROPPING CACHED ${dexType.toUpperCase()} - matches blacklist`);
+             reject({ statusCode: 0, pesanDEX: `Filtered by Blacklist`, DEX: dexType.toUpperCase(), isBlacklisted: true });
+             return;
+          }
           // Cache hit - return cached response immediately
           const ageSeconds = Math.round((now - cached.timestamp) / 1000);
           console.log(`[DEX CACHE HIT] ${dexType.toUpperCase()} (age: ${ageSeconds}s) - Request saved!`);
@@ -4151,7 +4267,7 @@
           if (typeof strategy.execute === 'function') {
             try {
               const parsed = await strategy.execute(requestParams);
-              res({
+              const finalRes = {
                 dexTitle: parsed.dexTitle,
                 sc_input, des_input, sc_output, des_output,
                 FeeSwap: parsed.FeeSwap,
@@ -4161,7 +4277,12 @@
                 subResults: parsed.subResults || null,
                 isMultiDex: parsed.isMultiDex || false,
                 routeTool: parsed.routeTool || null
-              });
+              };
+              
+              if (isDexBlacklisted(finalRes, dexType)) {
+                 return rej({ statusCode: 0, pesanDEX: `Filtered by Blacklist`, DEX: sKey.toUpperCase(), isBlacklisted: true });
+              }
+              res(finalRes);
             } catch (e) {
               rej({ statusCode: 0, pesanDEX: `${sKey.toUpperCase()}: ${e.message}`, DEX: sKey.toUpperCase() });
             }
@@ -4220,12 +4341,19 @@
                 const parsed = strategy.parseResponse(response, requestParams);
                 // ✅ FIX: Also extract routeTool from parsed response for tooltip transparency
                 const { amount_out, FeeSwap, dexTitle, subResults, isMultiDex, routeTool } = parsed;
-                res({
+                const finalRes = {
                   dexTitle, sc_input, des_input, sc_output, des_output, FeeSwap, amount_out, apiUrl: url, tableBodyId,
                   subResults: subResults || null, // Pass subResults untuk DZAP
                   isMultiDex: isMultiDex || false,  // Pass flag isMultiDex
                   routeTool: routeTool || null  // ✅ FIX: Pass routeTool untuk tooltip (e.g., "VELORA via SWING")
-                });
+                };
+
+                if (isDexBlacklisted(finalRes, dexType)) {
+                  console.log(`[DEX BLACKLIST] 🚫 DROPPING ${sKey.toUpperCase()} - matches blacklist`);
+                  return rej({ statusCode: 0, pesanDEX: `Filtered by Blacklist`, DEX: sKey.toUpperCase(), isBlacklisted: true });
+                }
+
+                res(finalRes);
               } catch (error) {
                 rej({ statusCode: 500, pesanDEX: `Parse Error: ${error.message}`, DEX: sKey.toUpperCase() });
               }
@@ -4504,14 +4632,21 @@
             if (!response || !response.amountOutWei) return reject({ pesanDEX: 'SWOOP response invalid' });
             const amount_out = parseFloat(response.amountOutWei) / Math.pow(10, des_output);
             const FeeSwap = getFeeSwap(nameChain);
-            resolve({ 
+            const finalRes = { 
               dexTitle: dexType, 
               sc_input, des_input, sc_output, des_output, 
               FeeSwap, 
               dex: dexType, 
               amount_out,
               routeTool: 'SWOOP'
-            });
+            };
+
+            if (isDexBlacklisted(finalRes, dexType)) {
+              console.log(`[DEX BLACKLIST] 🚫 DROPPING SWOOP $(\{dexType.toUpperCase()\}) - matches blacklist`);
+              return reject({ statusCode: 0, pesanDEX: `Filtered by Blacklist`, DEX: dexType.toUpperCase(), isBlacklisted: true });
+            }
+
+            resolve(finalRes);
           },
           error: function (xhr, textStatus) {
             let status = 0; try { status = Number(xhr && xhr.status) || 0; } catch (_) { }
@@ -4619,19 +4754,24 @@
             }
 
             if (!targetQuote || !targetQuote.destAmount) return reject({ pesanDEX: 'DZAP valid quote not found' });
-
+  
             const amount_out = parseFloat(targetQuote.destAmount) / Math.pow(10, des_output);
             const feeUsd = parseFloat(targetQuote.fee?.gasFee?.[0]?.amountUSD || 0);
             const FeeSwap = (Number.isFinite(feeUsd) && feeUsd > 0) ? feeUsd : getFeeSwap(nameChain);
-            // Gunakan ID provider dari Dzap sebagai routeTool untuk ditampilkan di UI (VIA ...)
             const rawTool = targetQuote.providerDetails?.id || exchangeSlug || 'dzap';
-
-            resolve({
+  
+            const finalRes = {
               dexTitle: displayTitle,
               sc_input, des_input, sc_output, des_output,
               FeeSwap, dex: dexType, amount_out,
               routeTool: String(rawTool).toUpperCase()
-            });
+            };
+
+            if (isDexBlacklisted(finalRes, dexType)) {
+               return reject({ statusCode: 0, pesanDEX: `Filtered by Blacklist`, DEX: dexType.toUpperCase(), isBlacklisted: true });
+            }
+
+            resolve(finalRes);
           },
           error: function (xhr, textStatus) {
             let status = 0; try { status = Number(xhr && xhr.status) || 0; } catch (_) { }

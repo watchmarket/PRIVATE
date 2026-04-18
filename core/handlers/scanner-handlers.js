@@ -50,51 +50,57 @@
         const autorunEnabled = (window.CONFIG_APP?.APP?.AUTORUN !== false);
 
         if (!autorunEnabled) {
-            // Hide autorun UI elements when disabled in config
             $('#autoRunToggle').closest('label').hide();
+            $('#autoRunDelayInput').hide();
             $('#autoRunCountdown').hide();
             window.AUTORUN_ENABLED = false;
             window.AUTORUN_FEATURE_DISABLED = true;
         } else {
-            // Show autorun UI elements when enabled
             $('#autoRunToggle').closest('label').show();
             $('#autoRunCountdown').show();
             window.AUTORUN_ENABLED = false;
             window.AUTORUN_FEATURE_DISABLED = false;
 
-            // Register change handler only if feature is enabled
+            // Tampilkan delay input sesuai state awal checkbox
+            const _initChecked = $('#autoRunToggle').is(':checked');
+            $('#autoRunDelayInput').toggle(_initChecked);
+
             $(document).on('change', '#autoRunToggle', function () {
-                window.AUTORUN_ENABLED = $(this).is(':checked');
-                if (!window.AUTORUN_ENABLED) {
-                    // cancel any pending autorun countdown
-                    // ✅ PERF: Use TimerManager for centralized timer control
+                const isChecked = $(this).is(':checked');
+                window.AUTORUN_ENABLED = isChecked;
+
+                // Tampilkan/sembunyikan input delay
+                $('#autoRunDelayInput').toggle(isChecked);
+
+                if (!isChecked) {
                     if (typeof TimerManager !== 'undefined') {
                         TimerManager.clear('autorun-countdown');
                     } else {
                         try { clearInterval(window.__autoRunInterval); } catch (_) { }
                         window.__autoRunInterval = null;
                     }
-                    // clear countdown label
                     $('#autoRunCountdown').text('');
-                    // restore UI to idle state if not scanning
                     try {
                         $('#stopSCAN').hide().prop('disabled', true);
-                        $('#startSCAN').prop('disabled', false).removeClass('uk-button-disabled').text('START');
+                        $('#startSCAN').prop('disabled', false).removeClass('uk-button-disabled').text('START SCAN');
                         $("#LoadDataBtn, #SettingModal, #MasterData,#UpdateWalletCEX,#chain-links-container,.sort-toggle, .edit-token-button").css("pointer-events", "auto").css("opacity", "1");
                         if (typeof setScanUIGating === 'function') setScanUIGating(false);
                         $('.header-card a, .header-card .icon').css({ pointerEvents: 'auto', opacity: 1 });
                     } catch (_) { }
                 }
 
-                // ✅ AUTO-SAVE: Save to per-chain filter storage
                 try {
-                    const isChecked = $(this).is(':checked');
-                    if (typeof saveCheckboxPreference === 'function') {
-                        saveCheckboxPreference('autoRun', isChecked);
-                    }
-                } catch (e) {
-                    console.warn('[AUTO-SAVE] Failed to save autoRun:', e.message);
-                }
+                    if (typeof saveCheckboxPreference === 'function') saveCheckboxPreference('autoRun', isChecked);
+                } catch (e) { }
+            });
+
+            // Auto-save nilai delay saat diubah
+            $(document).on('change', '#autoRunDelay', function () {
+                const val = parseInt($(this).val(), 10) || 20;
+                $(this).val(Math.min(60, Math.max(20, val)));
+                try {
+                    if (typeof saveCheckboxPreference === 'function') saveCheckboxPreference('autoRunDelay', $(this).val());
+                } catch (e) { }
             });
         }
     } catch (_) { }
@@ -254,7 +260,7 @@
         try {
             const stClick = getAppState();
             if (stClick && stClick.run === 'YES') {
-                $('#startSCAN').prop('disabled', true).attr('aria-busy', 'true').text('Running...').addClass('uk-button-disabled');
+                $('#startSCAN').prop('disabled', true).attr('aria-busy', 'true').text('SCANNING...').addClass('uk-button-disabled');
                 $('#stopSCAN').show().prop('disabled', false);
                 try { if (typeof setScanUIGating === 'function') setScanUIGating(true); } catch (_) { }
                 return; // do not start twice

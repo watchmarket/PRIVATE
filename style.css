@@ -1613,7 +1613,7 @@ body.dark-mode {
 /* ── Global text color overrides for dark mode ── */
 /* uk-text-dark dipakai di dom-renderer untuk counter badge & SW fee */
 .dark-mode .uk-text-dark {
-    color: #cbd5e1 !important;
+    color: #f75680 !important;
 }
 
 /* Primary: #2563eb terlalu gelap di dark bg, ganti ke biru terang */
@@ -3545,10 +3545,116 @@ body.cex-mode-active .header-card {
 }
 
 .scanner-actions .uk-button {
-    height: 26px !important;
-    line-height: 26px !important;
+    height: 30px !important;
+    line-height: 30px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    padding: 0 14px !important;
+    letter-spacing: 0.4px;
 }
 
 #monitoring-scroll {
     margin-top: 4px !important;
+}
+
+/* ── Filter Section Boxes — warna bg tipis per kategori ── */
+.filter-box {
+    border-radius: 5px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+}
+
+.filter-box-chain {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+
+.filter-box-cex {
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.filter-box-dex {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.filter-box-metadex {
+    background: #faf5ff;
+    border-color: #e9d5ff;
+}
+
+.filter-box-pair {
+    background: #f8f9fa;
+    border-color: #d1d5db;
+}
+
+/* dark mode */
+.dark-mode .filter-box-chain {
+    background: rgba(37, 99, 235, 0.08);
+    border-color: rgba(37, 99, 235, 0.2);
+}
+
+.dark-mode .filter-box-cex {
+    background: rgba(251, 146, 60, 0.08);
+    border-color: rgba(251, 146, 60, 0.2);
+}
+
+.dark-mode .filter-box-dex {
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+.dark-mode .filter-box-metadex {
+    background: rgba(124, 58, 237, 0.08);
+    border-color: rgba(124, 58, 237, 0.2);
+}
+
+.dark-mode .filter-box-pair {
+    background: rgba(100, 116, 139, 0.08);
+    border-color: rgba(100, 116, 139, 0.2);
+}
+
+/* ── Filter Scanner Modal — ukuran & overflow ── */
+#scanner-filter-modal .uk-modal-dialog {
+    max-width: min(720px, 96vw) !important;
+    min-width: 0 !important;
+    width: 96vw !important;
+    overflow-x: hidden !important;
+}
+
+#scanner-filter-modal .uk-modal-body {
+    max-height: 72vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+#modal-filter-sections {
+    overflow-x: hidden;
+}
+
+/* ── Filter chip & title: font lebih kecil ── */
+.filter-section-title {
+    font-size: 10px !important;
+    margin-bottom: 5px !important;
+    padding-bottom: 3px !important;
+}
+
+.filter-chip {
+    padding: 2px 5px !important;
+    font-size: 9px !important;
+}
+
+.filter-chip .chip-label {
+    font-size: 9px !important;
+}
+
+.filter-chip .chip-count {
+    font-size: 8px !important;
+}
+
+.filter-chip input[type="checkbox"] {
+    width: 9px !important;
+    height: 9px !important;
 }

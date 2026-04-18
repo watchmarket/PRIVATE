@@ -106,23 +106,25 @@
      * @param {string} [colorOk='green'] - The color for the active status.
      * @returns {string} HTML string for the status.
      */
-    function linkifyStatus(flag, label, urlOk, tokenName = '') {
+    function linkifyStatus(flag, label, urlOk, tokenName = '', showIcon = true) {
         const safe = (u) => (u && /^https?:\/\//i.test(u)) ? u : '#';
         let text, color, className;
         const displayToken = tokenName ? `[${tokenName.toUpperCase()}]` : '';
+        const icon = label === 'DP' ? '🈳' : '🈯';
 
         if (flag === true) {
-            text = `${label}${displayToken}`;
-            className = 'uk-text-primary';
+            text = showIcon ? `${icon} <b>${label}</b>${displayToken}` : `<b>${label}</b>${displayToken}`;
+            className = label === 'WD' ? 'uk-text-success' : 'uk-text-primary';
         } else if (flag === false) {
             const failLabel = (label === 'DP') ? 'DX' : 'WX';
-            text = `${failLabel}${displayToken}`;
+            const failIcon = label === 'DP' ? '⛔' : '🚫';
+            text = showIcon ? `${failIcon} <b>${failLabel}</b>${displayToken}` : `<b>${failLabel}</b>${displayToken}`;
             className = 'uk-text-danger';
         } else {
-            text = `?${label}${displayToken}`;
+            text = showIcon ? `❓ <b>${label}</b>${displayToken}` : `<b>?${label}</b>${displayToken}`;
             className = 'uk-text-muted';
         }
-        return `<a href="${safe(urlOk)}" target="_blank" rel="noopener noreferrer" class="uk-text-bold ${className}">${text}</a>`;
+        return `<a href="${safe(urlOk)}" target="_blank" rel="noopener noreferrer" class="${className}">${text}</a>`;
     }
 
     // refactor: remove getStatusLabel (tidak dipakai); gunakan linkifyStatus untuk status DP/WD.

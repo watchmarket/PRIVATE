@@ -20,13 +20,15 @@
     <script src="secrets.js"></script>
     <script src="utils/cex-helpers.js"></script>
     <script src="utils/chain-toggle-helpers.js"></script>
+    <script src="utils/fetch-helper.js"></script>
     <script src="app-namespace.js"></script>
     <script src="services/cex.js"></script>
+
 </head>
 <style>
     body {
-        color: #1a2e1a;
-        background: #f0faf4;
+        color: #1f2937;
+        background: #f3f4f6;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         margin: 0;
         padding: 0;
@@ -34,69 +36,69 @@
 
     .uk-container {
         max-width: 100%;
-        padding: 10px;
-        font-size: 13.5px;
+        padding: 8px;
+        font-size: 12.5px;
     }
 
     .main-header {
         background: #fff;
-        padding: 14px 16px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(22, 163, 74, .12);
-        margin-bottom: 14px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
         border: 1px solid #bbf7d0;
+        border-top: 3px solid #16a34a;
         text-align: center;
     }
 
     .main-header h3 {
-        margin: 0 0 4px;
-        font-weight: 700;
-        color: #166534;
-        font-size: 1.1rem;
-    }
-
-    .main-header p {
         margin: 0;
-        font-size: 0.8rem;
-        color: #4ade80;
+        font-weight: 800;
+        color: #166534;
+        font-size: 1.08rem;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        line-height: 1.2;
     }
 
     /* Summary Cards */
     .summary-cards {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 8px;
+        margin-bottom: 10px;
     }
 
     .summary-card {
         background: #fff;
         border: 1px solid #bbf7d0;
-        border-radius: 8px;
-        padding: 12px;
-        box-shadow: 0 2px 4px rgba(22, 163, 74, .08);
+        padding: 10px;
         text-align: center;
     }
 
     .summary-card .card-title {
-        font-size: 0.7rem;
+        font-size: 0.64rem;
         color: #16a34a;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: .5px;
         margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
     }
 
     .summary-card .card-value {
-        font-size: 1.3rem;
+        font-size: 1.08rem;
         font-weight: 700;
         color: #166534;
         margin: 0;
+        line-height: 1.2;
     }
 
     .summary-card .card-value-idr {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
+        margin-top: 4px;
     }
 
     .summary-card.positive .card-value {
@@ -110,7 +112,8 @@
     .summary-card .card-value-input-group {
         display: flex;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
+        gap: 4px;
         margin-top: 4px;
     }
 
@@ -118,10 +121,10 @@
         flex: 1;
         min-width: 70px;
         text-align: right;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 700;
-        height: 34px;
-        padding: 4px 6px;
+        height: 30px;
+        padding: 3px 6px;
     }
 
     @media(max-width:1200px) {
@@ -146,28 +149,27 @@
     .table-glass {
         width: 100%;
         border-collapse: collapse;
-        border-radius: 8px;
-        overflow: hidden;
         background: #fff;
         border: 1px solid #bbf7d0;
     }
 
     .table-glass thead th {
-        background: #15803d;
-        color: #fff;
+        background: #f0fdf4;
+        color: #166534;
         font-weight: 600;
         letter-spacing: .03em;
-        padding: 9px 10px;
+        padding: 7px 8px;
         text-align: center;
         text-transform: uppercase;
-        font-size: 0.78rem;
+        font-size: 0.68rem;
+        border-bottom: 1px solid #d1d5db;
     }
 
     .table-glass tbody td {
-        padding: 7px 10px;
-        color: #1a3a1a;
-        border-bottom: 1px solid #d1fae5;
-        font-size: 0.83rem;
+        padding: 6px 8px;
+        color: #111827;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.78rem;
         vertical-align: middle;
     }
 
@@ -180,12 +182,13 @@
     }
 
     .table-glass .table-total-row th {
-        padding: 10px;
+        padding: 8px;
         text-align: center;
-        font-size: 0.95rem;
+        font-size: 0.82rem;
         font-weight: 700;
         color: #166534;
-        background: #dcfce7;
+        background: #f0fdf4;
+        border-top: 1px solid #bbf7d0;
     }
 
     /* CEX / Chain Colors */
@@ -269,9 +272,78 @@
         font-weight: 700;
     }
 
+    #assetTableCexs tbody tr,
+    #assetTableWallet tbody tr {
+        transition: background-color .15s ease;
+    }
+
+    .row-cex-binance {
+        background: rgba(240, 185, 11, .08);
+    }
+
+    .row-cex-gate {
+        background: rgba(229, 27, 123, .06);
+    }
+
+    .row-cex-bitget {
+        background: rgba(0, 240, 255, .06);
+    }
+
+    .row-cex-kucoin {
+        background: rgba(35, 175, 145, .08);
+    }
+
+    .row-cex-bybit {
+        background: rgba(247, 166, 0, .08);
+    }
+
+    .row-cex-indodax {
+        background: rgba(61, 90, 254, .06);
+    }
+
+    .row-cex-mexc {
+        background: rgba(0, 184, 151, .08);
+    }
+
+    .row-cex-htx {
+        background: rgba(0, 140, 214, .06);
+    }
+
+    .row-cex-okx {
+        background: rgba(17, 24, 39, .04);
+    }
+
+    .row-chain-ethereum {
+        background: rgba(98, 126, 234, .06);
+    }
+
+    .row-chain-bsc {
+        background: rgba(240, 185, 11, .08);
+    }
+
+    .row-chain-polygon {
+        background: rgba(156, 107, 240, .08);
+    }
+
+    .row-chain-base {
+        background: rgba(0, 82, 255, .06);
+    }
+
+    .row-chain-arbitrum {
+        background: rgba(40, 160, 240, .06);
+    }
+
+    .row-chain-solana {
+        background: rgba(153, 69, 255, .06);
+    }
+
+    .row-chain-avax {
+        background: rgba(232, 65, 66, .06);
+    }
+
     .asset-line {
-        padding: 5px 0;
-        border-bottom: 1px dashed rgba(31, 122, 77, .18);
+        padding: 4px 0;
+        border-bottom: 1px dashed #d1d5db;
         font-size: 12px;
     }
 
@@ -280,44 +352,41 @@
     }
 
     .error {
-        background: rgba(255, 124, 152, .22);
-        border-radius: 4px;
+        background: #fee2e2;
     }
 
     img:hover {
-        transform: scale(1.06);
-        transition: transform .2s ease;
+        transition: opacity .15s ease;
+        opacity: .92;
     }
 
     /* Info pills */
     .info-pills-cards {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 12px;
+        gap: 8px;
+        margin-bottom: 8px;
     }
 
     .info-pill-card {
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
-        border-radius: 8px;
-        padding: 10px;
+        padding: 8px 9px;
         text-align: center;
-        box-shadow: 0 2px 4px rgba(22, 163, 74, .08);
     }
 
     .info-pill-card .pill-label {
-        font-size: 0.68rem;
+        font-size: 0.62rem;
         color: #16a34a;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: .5px;
-        margin-bottom: 4px;
+        margin-bottom: 3px;
         display: block;
     }
 
     .info-pill-card .pill-value {
-        font-size: 1rem;
+        font-size: 0.92rem;
         font-weight: 700;
         color: #166534;
         display: block;
@@ -334,20 +403,23 @@
     /* Buttons */
     .uk-button {
         letter-spacing: .02em;
-        transition: all .2s ease;
-        border-radius: 6px;
-        font-size: 0.78rem;
+        transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+        font-size: 0.72rem;
+        min-height: 30px;
+        padding: 0 10px;
+        border-radius: 0;
+        box-shadow: none !important;
+        text-transform: uppercase;
     }
 
     .uk-button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px rgba(22, 163, 74, .25);
+        transform: none;
     }
 
     .uk-button-primary {
         background: #16a34a;
         color: #fff;
-        border: none;
+        border: 1px solid #16a34a;
     }
 
     .uk-button-primary:hover {
@@ -355,13 +427,13 @@
     }
 
     .uk-button-secondary {
-        background: #4b7a55;
-        color: #fff;
-        border: none;
+        background: #fff;
+        color: #374151;
+        border: 1px solid #d1d5db;
     }
 
     .uk-button-secondary:hover {
-        background: #166534;
+        background: #f3f4f6;
     }
 
     /* icon-link */
@@ -369,32 +441,58 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        transition: all .2s ease;
+        width: 32px;
+        height: 32px;
+        background: #fff;
+        border: 1px solid #d1d5db;
+        transition: background-color .15s ease, border-color .15s ease;
         cursor: pointer;
+        padding: 0;
     }
 
     .icon-link img {
-        width: 17px;
-        height: 17px;
+        width: 16px;
+        height: 16px;
     }
 
     .icon-link:hover {
-        background: #dcfce7;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(22, 163, 74, .18);
+        background: #f3f4f6;
+        border-color: #9ca3af;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .icon-link-dark {
+        background: #6a94ef;
+        border-color: #111827;
+    }
+
+    .icon-link-dark:hover {
+        background: #1f2937;
+        border-color: #1f2937;
+    }
+
+    .icon-link-success {
+        background: #f0fdf4;
+        border-color: #86efac;
+    }
+
+    .icon-link-danger {
+        background: #fef2f2;
+        border-color: #fca5a5;
+    }
+
+    .icon-link-warn {
+        background: #fff7ed;
+        border-color: #fdba74;
     }
 
     /* Card */
     .uk-card.uk-card-default {
-        padding: 14px;
+        padding: 10px;
         background: #fff;
         border: 1px solid #bbf7d0;
-        box-shadow: 0 2px 8px rgba(22, 163, 74, .08);
+        box-shadow: none;
     }
 
     .uk-grid {
@@ -402,29 +500,28 @@
     }
 
     .uk-grid>* {
-        padding-left: 8px !important;
-        padding-right: 8px !important;
+        padding-left: 4px !important;
+        padding-right: 4px !important;
     }
 
     .uk-margin-small-top {
-        margin-top: 8px !important;
+        margin-top: 6px !important;
     }
 
     .uk-margin-small-bottom {
-        margin-bottom: 8px !important;
+        margin-bottom: 6px !important;
     }
 
     /* Wallet token row */
     .token-card {
         background: #fff;
         border: 1px solid #bbf7d0;
-        border-radius: 6px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         overflow: hidden;
     }
 
     .token-card-header {
-        padding: 8px 10px;
+        padding: 7px 8px;
         background: #f0fdf4;
         display: flex;
         align-items: center;
@@ -441,8 +538,8 @@
         display: inline-flex;
         align-items: center;
         gap: 3px;
-        padding: 1px 6px;
-        border-radius: 3px;
+        padding: 1px 5px;
+        border: 1px solid currentColor;
         font-size: 10px;
         font-weight: 700;
     }
@@ -464,8 +561,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, .85);
-        backdrop-filter: blur(10px);
+        background: rgba(17, 24, 39, .72);
         z-index: 9999;
         justify-content: center;
         align-items: center;
@@ -477,55 +573,49 @@
     }
 
     .overlay-content {
-        background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
-        padding: 36px 46px;
-        border-radius: 16px;
+        background: #111827;
+        padding: 24px 28px;
         text-align: center;
-        box-shadow: 0 25px 70px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .1);
         max-width: 430px;
         animation: slideUp .4s ease;
-        border: 1px solid rgba(255, 255, 255, .08);
+        border: 1px solid rgba(255, 255, 255, .12);
     }
 
     .overlay-spinner {
         width: 64px;
         height: 64px;
-        margin: 0 auto 22px;
+        margin: 0 auto 16px;
         border: 5px solid rgba(255, 255, 255, .1);
         border-top-color: #fff;
         border-right-color: rgba(255, 255, 255, .6);
-        border-radius: 50%;
         animation: spin 1s linear infinite;
     }
 
     .overlay-title {
-        font-size: 22px;
+        font-size: 18px;
         font-weight: 700;
         color: #fff;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
     }
 
     .overlay-message {
-        font-size: 14px;
+        font-size: 12px;
         color: rgba(255, 255, 255, .75);
-        margin-bottom: 18px;
-        line-height: 1.6;
+        margin-bottom: 12px;
+        line-height: 1.45;
     }
 
     .overlay-progress {
         background: rgba(255, 255, 255, .1);
-        border-radius: 50px;
-        height: 7px;
+        height: 6px;
         overflow: hidden;
-        margin-top: 16px;
+        margin-top: 12px;
     }
 
     .overlay-progress-bar {
         height: 100%;
-        background: linear-gradient(90deg, #4ade80, #16a34a, #4ade80);
-        border-radius: 50px;
+        background: #4ade80;
         transition: width .3s ease;
-        box-shadow: 0 0 12px rgba(74, 222, 128, .5);
     }
 
     .overlay-details {
@@ -565,12 +655,12 @@
 
     /* Calculator Modal */
     #calculator-modal .uk-modal-dialog {
-        border-radius: 10px;
+        border-radius: 0;
     }
 
     #calculator-modal .uk-modal-body {
-        padding: 22px;
-        background: linear-gradient(160deg, #d7eed5);
+        padding: 14px;
+        background: #f9fafb;
     }
 
     #calculator-modal .uk-form-label {
@@ -582,22 +672,21 @@
 
     #calculator-modal .uk-input {
         border: 1px solid #ced4da;
-        border-radius: 6px;
+        border-radius: 0;
         transition: all .2s ease;
         font-size: .9rem;
     }
 
     #calculator-modal .uk-input:focus {
-        border-color: #80bdff;
-        box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+        border-color: #111827;
+        box-shadow: none;
         outline: none;
     }
 
     /* Status bar */
     .status-bar {
-        padding: 6px 10px;
-        border-radius: 5px;
-        margin-bottom: 8px;
+        padding: 5px 8px;
+        margin-bottom: 6px;
         font-size: 11.5px;
         display: none;
     }
@@ -622,6 +711,49 @@
         background: rgba(72, 187, 120, .1);
         border: 1px solid rgba(72, 187, 120, .3);
         color: #276749;
+    }
+
+    .snapshot-panel {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        padding: 8px 10px;
+        margin: 8px 0;
+        font-size: 0.76rem;
+    }
+
+    .snapshot-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
+
+    .snapshot-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .action-toolbar {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+
+    .uk-input,
+    .uk-select,
+    .uk-textarea {
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        min-height: 30px;
+        border-color: #d1d5db;
+        font-size: 0.8rem;
+    }
+
+    .uk-input:focus,
+    .uk-select:focus,
+    .uk-textarea:focus {
+        border-color: #111827;
     }
 </style>
 
@@ -694,63 +826,63 @@
                             </tr>
                         </thead>
                         <tbody class="cex-static">
-                            <tr data-cex="BINANCE">
+                            <tr data-cex="BINANCE" class="row-cex-binance">
                                 <td class="uk-text-left text-cex-binance" style="white-space:nowrap;">
                                     <img src="assets/icons/cex/binance.png"
                                         style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> BINANCE
                                 </td>
                                 <td id="BINANCESaldo">—</td>
                             </tr>
-                            <tr data-cex="GATE">
-                                <td class="uk-text-left text-cex-gate">
-                                    <img src="assets/icons/cex/gate.png"
-                                        style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> GATE
-                                </td>
-                                <td id="GATESaldo">—</td>
-                            </tr>
-                            <tr data-cex="BITGET">
+                            <tr data-cex="BITGET" class="row-cex-bitget">
                                 <td class="uk-text-left text-cex-bitget">
                                     <img src="assets/icons/cex/bitget.png"
                                         style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> BITGET
                                 </td>
                                 <td id="BITGETSaldo">—</td>
                             </tr>
-                            <tr data-cex="KUCOIN">
-                                <td class="uk-text-left text-cex-kucoin">
-                                    <img src="assets/icons/cex/kucoin.png"
-                                        style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> KUCOIN
-                                </td>
-                                <td id="KUCOINSaldo">—</td>
-                            </tr>
-                            <tr data-cex="BYBIT">
+                            <tr data-cex="BYBIT" class="row-cex-bybit">
                                 <td class="uk-text-left text-cex-bybit">
                                     <img src="assets/icons/cex/bybit.png"
                                         style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> BYBIT
                                 </td>
                                 <td id="BYBITSaldo">—</td>
                             </tr>
-                            <tr data-cex="INDODAX">
-                                <td class="uk-text-left text-cex-indodax">
-                                    <img src="assets/icons/cex/indodax.png"
-                                        style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> INDODAX
+                            <tr data-cex="GATE" class="row-cex-gate">
+                                <td class="uk-text-left text-cex-gate">
+                                    <img src="assets/icons/cex/gate.png"
+                                        style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> GATE
                                 </td>
-                                <td id="INDODAXSaldo">—</td>
+                                <td id="GATESaldo">—</td>
                             </tr>
-                            <tr data-cex="MEXC">
-                                <td class="uk-text-left text-cex-mexc">
-                                    <img src="assets/icons/cex/mexc.png"
-                                        style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> MEXC
-                                </td>
-                                <td id="MEXCSaldo">—</td>
-                            </tr>
-                            <tr data-cex="HTX">
+                            <tr data-cex="HTX" class="row-cex-htx">
                                 <td class="uk-text-left text-cex-htx">
                                     <img src="assets/icons/cex/htx.png"
                                         style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> HTX
                                 </td>
                                 <td id="HTXSaldo">—</td>
                             </tr>
-                            <tr data-cex="OKX">
+                            <tr data-cex="INDODAX" class="row-cex-indodax">
+                                <td class="uk-text-left text-cex-indodax">
+                                    <img src="assets/icons/cex/indodax.png"
+                                        style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> INDODAX
+                                </td>
+                                <td id="INDODAXSaldo">—</td>
+                            </tr>
+                            <tr data-cex="KUCOIN" class="row-cex-kucoin">
+                                <td class="uk-text-left text-cex-kucoin">
+                                    <img src="assets/icons/cex/kucoin.png"
+                                        style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> KUCOIN
+                                </td>
+                                <td id="KUCOINSaldo">—</td>
+                            </tr>
+                            <tr data-cex="MEXC" class="row-cex-mexc">
+                                <td class="uk-text-left text-cex-mexc">
+                                    <img src="assets/icons/cex/mexc.png"
+                                        style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> MEXC
+                                </td>
+                                <td id="MEXCSaldo">—</td>
+                            </tr>
+                            <tr data-cex="OKX" class="row-cex-okx">
                                 <td class="uk-text-left text-cex-okx">
                                     <img src="assets/icons/cex/okx.png"
                                         style="width:22px;height:22px;vertical-align:middle;margin-right:6px;"> OKX
@@ -791,52 +923,46 @@
                         </div>
                     </div>
 
-                    <div
-                        style="background:#e5e7e5;border:1px solid #bbf7d0;padding:9px 10px;border-radius:6px;margin:10px 0;font-size:0.83rem;">
-                        <div style="display:flex;justify-content:space-between;margin-bottom:5px;color: red;">
+                    <div class="snapshot-panel">
+                        <div class="snapshot-row" style="color:#dc2626;">
                             <span class="uk-text-bold">Last Check:</span>
                             <strong id="lastUpdate">...</strong>
                         </div>
-                        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                        <div class="snapshot-row">
                             <span class="uk-text-bold">Modal Saat Ini:</span>
                             <strong id="m_akhirs">...</strong>
                         </div>
-                        <div id="pnl-container" style="display:flex;justify-content:space-between;">
+                        <div id="pnl-container" class="snapshot-row">
                             <span class="uk-text-bold">PNL Saat Ini:</span>
                             <strong id="m_pnls">...</strong>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
-                    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                    <div class="action-toolbar">
                         <a class="icon-link" href="index.html" target="_blank" title="Buka Aplikasi Utama">
                             <img src="assets/icons/tab-new.png" style="width:20px;height:20px;">
                         </a>
-                        <button class="icon-link" id="openModalKalkulator" title="Kalkulator Crypto"
-                            style="background:#ffffff;border-color:#bcbdbc;">
+                        <button class="icon-link" id="openModalKalkulator" title="Kalkulator Crypto">
                             <img src="assets/icons/calculator.png" alt="Kalkulator" style="width:20px;height:20px;">
                         </button>
                         <a class="icon-link" href="#" id="reload" title="Reload">
                             <img src="assets/icons/reload.png" alt="Refresh Halaman" style="width:23px;height:23px;">
                         </a>
-                        <button class="icon-link" id="CheckModal" title="Cek Semua Saldo"
-                            style="background:#583df0;border-color:#583df0;">
+                        <button class="icon-link icon-link-dark" id="CheckModal" title="Cek Semua Saldo">
                             <span uk-icon="icon: play-circle; ratio: 1.1" style="color:white;"></span>
                         </button>
-                        <button class="icon-link" id="UpdateHistoryPNL" title="Update History PNL"
-                            style="background:#28a745;border-color:#28a745;">
-                            <span uk-icon="icon: plus-circle; ratio: 1.1" style="color:white;"></span>
+                        <button class="icon-link icon-link-success" id="UpdateHistoryPNL" title="Update History PNL">
+                            <span uk-icon="icon: plus-circle; ratio: 1.1" style="color:#166534;"></span>
                         </button>
 
 
-                        <button class="icon-link" id="SearchHistoryPNL" title="Riwayat PNL"
-                            style="background:#ee4b63;border-color:#06ba1b;">
-                            <span uk-icon="icon: info; ratio: 1.1" style="color:white"></span>
+                        <button class="icon-link icon-link-danger" id="SearchHistoryPNL" title="Riwayat PNL">
+                            <span uk-icon="icon: info; ratio: 1.1" style="color:#b91c1c"></span>
                         </button>
 
-                        <button class="icon-link" id="ResetModal" title="Reset Modal"
-                            style="background:#faa05a;border-color:#232322;">
-                            <span uk-icon="icon: refresh; ratio: 1.1" style="color:white;"></span>
+                        <button class="icon-link icon-link-warn" id="ResetModal" title="Reset Modal">
+                            <span uk-icon="icon: refresh; ratio: 1.1" style="color:#c2410c;"></span>
                         </button>
                     </div>
 
@@ -923,6 +1049,8 @@
             _proxyIdx++;
             return p;
         }
+        window.getRandomProxy = getNextProxy; // ✅ Export untuk fetch-helper.js
+
 
         // ═══════════════════════════════════════════════════════
         //  Chain definitions for OKX DEX API
@@ -964,6 +1092,22 @@
         function getFormattedTime() {
             const now = new Date();
             return now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID');
+        }
+
+        function sortAscByLabel(items, getLabel) {
+            return [...(items || [])].sort((a, b) =>
+                String(getLabel(a) || '').localeCompare(String(getLabel(b) || ''), 'en', { sensitivity: 'base' })
+            );
+        }
+
+        function getChainBadgeClass(chainKey) {
+            const key = String(chainKey || '').toLowerCase();
+            return `text-chain-${key}`;
+        }
+
+        function getChainRowClass(chainKey) {
+            const key = String(chainKey || '').toLowerCase();
+            return `row-chain-${key}`;
         }
 
         function isEvmAddress(addr) {
@@ -1384,11 +1528,11 @@
                 const url = `https://api.binance.com/api/v3/account?${qs}&signature=${sig}`;
                 try {
                     setCEXStatus('BINANCE', 'loading');
-                    const r = await fetch(url, { headers: { 'X-MBX-APIKEY': creds.ApiKey } });
-                    const d = await r.json();
-                    if (!r.ok || d?.code) throw new Error(d?.msg || `HTTP ${r.status}`);
+                    // ✅ Gunakan fetchSignedRequest (binan-compatible) dengan proxy rotation
+                    const d = await fetchSignedRequest(url, { 'X-MBX-APIKEY': creds.ApiKey });
+                    if (d?.code) throw new Error(d?.msg || `Binance Error ${d.code}`);
                     const binancePrices = await getCEXPriceOverrides('BINANCE');
-                    await renderExchangeAssets('BINANCE', d.balances.map(i => ({ symbol: i.asset, amount: (parseFloat(i.free || 0)) + (parseFloat(i.locked || 0)) })), { overrides: binancePrices });
+                    await renderExchangeAssets('BINANCE', (d.balances || []).map(i => ({ symbol: i.asset, amount: (parseFloat(i.free || 0)) + (parseFloat(i.locked || 0)) })), { overrides: binancePrices });
                 } catch (e) {
                     setCEXStatus('BINANCE', 'error', e.message);
                     localStorage.setItem('MULTI_BINANCESaldo', '0');
@@ -1404,12 +1548,20 @@
                 const bodyHash = CryptoJS.SHA512('').toString();
                 const signStr = `${method}\n${prefix}${path}\n\n${bodyHash}\n${ts}`;
                 const sign = CryptoJS.HmacSHA512(signStr, creds.ApiSecret).toString();
-                const url = `https://cors-proxy-rosy.vercel.app/api/proxy?url=https://api.gateio.ws${prefix}${path}`;
+                const url = `https://api.gateio.ws${prefix}${path}`;
                 try {
                     setCEXStatus('GATE', 'loading');
-                    const r = await fetch(url, { method, headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Timestamp': ts, 'KEY': creds.ApiKey, 'SIGN': sign } });
-                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                    const d = await r.json();
+                    // ✅ Gunakan fetchJsonWithProxy untuk proxy rotation
+                    const d = await fetchJsonWithProxy(url, {
+                        method,
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'Timestamp': ts,
+                            'KEY': creds.ApiKey,
+                            'SIGN': sign
+                        }
+                    });
                     const gatePrices = await getCEXPriceOverrides('GATE');
                     await renderExchangeAssets('GATE', d.map(i => ({ symbol: i.currency, amount: (parseFloat(i.available || 0)) + (parseFloat(i.locked || 0)) })), { overrides: gatePrices });
                 } catch (e) {
@@ -1487,12 +1639,12 @@
                 const serverTime = Date.now();
                 const qs = `recvWindow=5000&timestamp=${serverTime}`;
                 const sign = CryptoJS.HmacSHA256(qs, creds.ApiSecret).toString(CryptoJS.enc.Hex);
-                const url = `${PROXY_BASE_KUCOIN}?url=${encodeURIComponent(`https://api.mexc.com/api/v3/account?${qs}&signature=${sign}`)}`;
+                const url = `https://api.mexc.com/api/v3/account?${qs}&signature=${sign}`;
                 try {
                     setCEXStatus('MEXC', 'loading');
-                    const r = await fetch(url, { headers: { 'X-MEXC-APIKEY': creds.ApiKey, 'Content-Type': 'application/json' } });
-                    const d = await r.json();
-                    if (!r.ok || d?.code) throw new Error(d?.msg || `HTTP ${r.status}`);
+                    // ✅ Gunakan fetchSignedRequest dengan proxy rotation
+                    const d = await fetchSignedRequest(url, { 'X-MEXC-APIKEY': creds.ApiKey });
+                    if (d?.code) throw new Error(d?.msg || `MEXC Error ${d.code}`);
                     const mexcPrices = await getCEXPriceOverrides('MEXC');
                     await renderExchangeAssets('MEXC', (d.balances || []).map(i => ({ symbol: i.asset, amount: (parseFloat(i.free || 0)) + (parseFloat(i.locked || 0)) })), { overrides: mexcPrices });
                 } catch (e) {
@@ -1823,12 +1975,15 @@
 
                     // Render table
                     if (allRows.length > 0) {
-                        const html = allRows.map(r => {
+                        const sortedRows = sortAscByLabel(allRows, r => r?.chainInfo?.name || r?.chainInfo?.short || r?.chainKey);
+                        const html = sortedRows.map(r => {
                             const ci = r.chainInfo;
                             const chainIcon = ci.icon ? `<img src="${ci.icon}" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;">` : '';
-                            const chainLabel = `<td class="uk-text-left" style="white-space:nowrap;">${chainIcon}<span style="color:${ci.color};font-weight:700;text-transform:uppercase;">${escHtml(ci.name || ci.short)}</span></td>`;
+                            const chainTextClass = getChainBadgeClass(r.chainKey);
+                            const rowClass = getChainRowClass(r.chainKey);
+                            const chainLabel = `<td class="uk-text-left ${chainTextClass}" style="white-space:nowrap;text-transform:uppercase;">${chainIcon}${escHtml(String(ci.name || ci.short || '').toUpperCase())}</td>`;
                             if (r.error) {
-                                return `<tr>
+                                return `<tr class="${rowClass}">
                             ${chainLabel}
                             <td class="uk-text-danger" style="font-size:11px;">${escHtml(r.error.slice(0, 80))}</td>
                         </tr>`;
@@ -1837,7 +1992,7 @@
                                 + `<hr class="uk-margin-small-top uk-margin-small-bottom">`
                                 + `<b style="color:${ci.color};">Total ${fmtUsd(r.cTotal)} $</b>`
                                 + (r.hiddenNote || '');
-                            return `<tr>
+                            return `<tr class="${rowClass}">
                         ${chainLabel}
                         <td style="font-size:11px;">${chainDetail}</td>
                     </tr>`;
@@ -1851,7 +2006,7 @@
                         localStorage.setItem('MULTI_TotalSaldoChain', totalUsdt.toFixed(2));
                         localStorage.setItem('MULTI_lastUpdateChain', getFormattedTime());
                         localStorage.setItem('MULTI_assetDataCEX', JSON.stringify(
-                            allRows.filter(r => !r.error).map(r => ({
+                            sortedRows.filter(r => !r.error).map(r => ({
                                 chain: r.chainKey, total: parseFloat(r.cTotal.toFixed(2)),
                                 tokenCount: r.tokenCount,
                                 tokenLines: r.tokenLines || '',
@@ -2131,12 +2286,18 @@
                 });
 
                 // Restore CEX rows
-                const allCEX = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
-                    : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
+                const allCEX = sortAscByLabel(
+                    (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
+                        : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'],
+                    cex => cex
+                );
 
                 // Show/hide by enabledCEXs setting
-                const enabledCEXs = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
-                    : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
+                const enabledCEXs = sortAscByLabel(
+                    (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
+                        : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'],
+                    cex => cex
+                );
                 ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'].forEach(cex => {
                     const $row = $(`tr[data-cex="${cex}"]`);
                     if (enabledCEXs.includes(cex)) $row.show(); else $row.hide();
@@ -2150,21 +2311,27 @@
                 // Restore wallet table
                 const cachedWallet = JSON.parse(localStorage.getItem('MULTI_assetDataCEX')) || [];
                 if (cachedWallet.length) {
-                    const html = cachedWallet.map(r => {
+                    const sortedCachedWallet = sortAscByLabel(cachedWallet, r => {
+                        const ci = OKX_CHAINS[r.chain] || {};
+                        return ci.name || ci.short || r.chain;
+                    });
+                    const html = sortedCachedWallet.map(r => {
                         const ci = OKX_CHAINS[r.chain] || { short: r.chain.toUpperCase(), color: '#888', icon: '' };
                         const chainIcon = ci.icon ? `<img src="${ci.icon}" style="width:22px;height:22px;vertical-align:middle;margin-right:6px;">` : '';
+                        const chainTextClass = getChainBadgeClass(r.chain);
+                        const rowClass = getChainRowClass(r.chain);
                         const chainDetail = (r.tokenLines || '<span class="uk-text-muted">—</span>')
                             + `<hr class="uk-margin-small-top uk-margin-small-bottom">`
                             + `<b style="color:${ci.color};">Total ${fmtUsd(r.total)} $</b>`
                             + (r.hiddenNote || '');
-                        return `<tr>
-                    <td class="uk-text-left" style="white-space:nowrap;">${chainIcon}<span style="color:${ci.color};font-weight:700;text-transform:uppercase;">${escHtml(ci.name || ci.short)}</span></td>
+                        return `<tr class="${rowClass}">
+                    <td class="uk-text-left ${chainTextClass}" style="white-space:nowrap;text-transform:uppercase;">${chainIcon}${escHtml(String(ci.name || ci.short || '').toUpperCase())}</td>
                     <td style="font-size:11px;">${chainDetail}</td>
                 </tr>`;
                     }).join('');
                     $('#output_chain').html(html);
                     $('#assetTableWallet').show();
-                    const totW = cachedWallet.reduce((s, r) => s + (r.total || 0), 0);
+                    const totW = sortedCachedWallet.reduce((s, r) => s + (r.total || 0), 0);
                     $('#TotalSaldoWallets').text('$' + fmtUsd(totW));
                 }
 
@@ -2267,49 +2434,47 @@
     <style>
         #rekap-pnl-modal .uk-modal-dialog {
             background: #fff;
-            border: 2px solid #e74c3c;
-            border-radius: 12px;
-            color: #1a2e1a;
-            box-shadow: 0 12px 40px rgba(231, 76, 60, .18), 0 2px 8px rgba(0, 0, 0, .1);
+            border: 1px solid #d1d5db;
+            border-top: 3px solid #dc2626;
+            color: #111827;
+            box-shadow: none;
             overflow: hidden;
         }
 
         #rekap-pnl-modal .rekap-header {
-            background: linear-gradient(135deg, #a31618 0%, #e74855 60%, #651616 100%);
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
             margin: 0;
-            padding: 14px 20px;
-            text-align: center;
+            padding: 10px 14px;
             position: relative;
         }
 
         #rekap-pnl-modal .rekap-title {
-            color: #fff;
-            font-size: 1rem;
+            color: #111827;
+            font-size: .9rem;
             font-weight: 700;
             margin: 0;
             letter-spacing: .02em;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, .2);
         }
 
         #rekap-pnl-modal .uk-modal-close-default {
-            color: rgba(255, 255, 255, .9);
-            top: 12px;
-            right: 14px;
+            color: #6b7280;
+            top: 10px;
+            right: 10px;
         }
 
         #rekap-pnl-modal .uk-modal-close-default:hover {
-            color: #fff;
+            color: #111827;
         }
 
         #rekap-pnl-modal .filter-section {
-            background: #d7f3e4;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            padding: 12px 14px;
-            margin: 14px 0 12px;
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            margin: 10px 0 8px;
             display: flex;
             align-items: flex-end;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
@@ -2319,109 +2484,106 @@
         }
 
         #rekap-pnl-modal .uk-form-label {
-            color: #c0392b;
-            font-size: 0.72rem;
+            color: #6b7280;
+            font-size: 0.66rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .04em;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         #rekap-pnl-modal .uk-input {
             background: #fff;
-            border: 1px solid #fca5a5;
-            color: #1a2e1a;
-            border-radius: 6px;
-            font-size: 0.84rem;
-            height: 34px;
+            border: 1px solid #d1d5db;
+            color: #111827;
+            border-radius: 0;
+            font-size: 0.8rem;
+            height: 30px;
             padding: 4px 8px;
             width: 100%;
         }
 
         #rekap-pnl-modal .uk-input:focus {
-            border-color: #e74c3c;
+            border-color: #111827;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(231, 76, 60, .15);
+            box-shadow: none;
         }
 
         #rekap-pnl-modal #rekapFilterBtn {
-            background: #e74c3c;
-            border: none;
+            background: #111827;
+            border: 1px solid #111827;
             color: #fff;
-            border-radius: 6px;
-            font-size: 0.8rem;
+            border-radius: 0;
+            font-size: 0.74rem;
             font-weight: 700;
-            padding: 0 16px;
-            height: 34px;
+            padding: 0 12px;
+            height: 30px;
             letter-spacing: .03em;
             white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(231, 76, 60, .35);
         }
 
         #rekap-pnl-modal #rekapFilterBtn:hover {
-            background: #c0392b;
+            background: #1f2937;
         }
 
         #rekap-pnl-modal #rekapResetBtn {
             background: #fff;
-            border: 1px solid #fca5a5;
-            color: #c0392b;
-            border-radius: 6px;
-            font-size: 0.8rem;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            border-radius: 0;
+            font-size: 0.74rem;
             font-weight: 600;
-            padding: 0 14px;
-            height: 34px;
+            padding: 0 12px;
+            height: 30px;
             white-space: nowrap;
         }
 
         #rekap-pnl-modal #rekapResetBtn:hover {
-            background: #fff5f5;
-            border-color: #e74c3c;
+            background: #f3f4f6;
+            border-color: #9ca3af;
         }
 
         #rekap-pnl-modal .table-rekap {
             width: 100%;
             border-collapse: collapse;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #fecaca;
+            border: 1px solid #d1d5db;
         }
 
         #rekap-pnl-modal .table-rekap thead th {
-            background: #15803d;
-            color: #fff;
+            background: #f3f4f6;
+            color: #374151;
             font-weight: 600;
             letter-spacing: .04em;
-            padding: 9px 10px;
+            padding: 7px 8px;
             text-align: center;
             text-transform: uppercase;
-            font-size: 0.73rem;
+            font-size: 0.68rem;
         }
 
         #rekap-pnl-modal .table-rekap tbody td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #fee2e2;
-            font-size: 0.83rem;
-            color: #1a2e1a;
+            padding: 6px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.78rem;
+            color: #111827;
             vertical-align: middle;
         }
 
         #rekap-pnl-modal .table-rekap tbody tr:nth-child(even) {
-            background: #fff5f5;
+            background: #fafafa;
         }
 
         #rekap-pnl-modal .table-rekap tbody tr:hover {
-            background: #fee2e2;
+            background: #f3f4f6;
         }
 
         #rekap-pnl-modal #rekapSummary {
-            font-size: 0.84rem;
-            margin-top: 10px;
+            font-size: 0.78rem;
+            margin-top: 8px;
             text-align: right;
-            color: #7f1d1d;
-            padding-top: 8px;
-            border-top: 1px solid #d7f8df;
+            color: #374151;
+            padding-top: 6px;
+            border-top: 1px solid #e5e7eb;
             font-weight: 600;
         }
     </style>
@@ -2431,7 +2593,7 @@
             <div class="rekap-header">
                 <div class="rekap-title"><span uk-icon="icon: history"></span> Rekap PNL Berdasarkan Tanggal</div>
             </div>
-            <div style="padding:0 18px 18px;">
+            <div style="padding:0 12px 12px;">
                 <div class="filter-section">
                     <div class="filter-group">
                         <label class="uk-form-label">Dari Tanggal</label>

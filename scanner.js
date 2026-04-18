@@ -444,7 +444,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
             }
 
             // Reset UI state
-            $('#startSCAN').prop('disabled', false).text('START').removeClass('uk-button-disabled');
+            $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled');
             return; // Exit early - don't start scan
         }
     } catch (e) {
@@ -471,7 +471,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
             if (typeof toast !== 'undefined' && toast.error) {
                 toast.error('Gagal memulai scan - ada scan lain yang berjalan');
             }
-            $('#startSCAN').prop('disabled', false).text('START').removeClass('uk-button-disabled');
+            $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled');
             return; // Exit early
         }
 
@@ -511,7 +511,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
     } catch (_) { }
 
     // Update tampilan tombol dan banner.
-    $('#startSCAN').prop('disabled', true).text('Running...').addClass('uk-button-disabled');
+    $('#startSCAN').prop('disabled', true).text('SCANNING...').addClass('uk-button-disabled');
 
     // ✅ FIX: Only clear signals on MANUAL scan, not on auto-run
     // This prevents signals from being replaced when AUTO LEVEL re-scans with different orderbook data
@@ -1321,7 +1321,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const chainCfg = (window.CONFIG_CHAINS || {})[String(token.chain).toLowerCase()] || {};
                                     const chainName = (chainCfg.Nama_Chain || token.chain || '').toString().toUpperCase();
                                     const ce = String(token.cex || '').toUpperCase();
-                                    const dx = String((finalDexRes?.dexTitle) || dex || '').toUpperCase();
+                                    const dx = String(dex).toUpperCase();
                                     const nameIn = String(isKiri ? token.symbol_in : token.symbol_out).toUpperCase();
                                     const nameOut = String(isKiri ? token.symbol_out : token.symbol_in).toUpperCase();
                                     
@@ -1365,19 +1365,20 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const nowStr = (new Date()).toLocaleTimeString();
                                     const viaName = (function () {
                                         try {
-                                            // 1. Prioritas: routeTool metadata (sudah standar provider-prefix)
-                                            const routeTool = String(finalDexRes?.routeTool || '').trim();
-                                            if (routeTool && routeTool.length > 0) return routeTool.toUpperCase();
+                                            const provider = String(finalDexRes?.routeTool || '').toUpperCase().trim();
+                                            const innerDex = String(finalDexRes?.dexTitle || '').toUpperCase().trim();
 
-                                            // 2. Fallback: isFallback flag
                                             if (isFallback === true) {
-                                                const fbSrc = String(finalDexRes?.fallbackSource || '').toUpperCase();
-                                                return fbSrc === 'SWOOP' ? 'SWOOP' : 'DZAP';
+                                                const fb = provider || (String(finalDexRes?.fallbackSource || '').toUpperCase());
+                                                return fb || 'SWOOP';
                                             }
 
-                                            // 3. Last Resort: dexTitle dari response atau label kolom
-                                            const dTitle = String(finalDexRes?.dexTitle || '').toUpperCase();
-                                            if (dTitle && dTitle !== dx) return dTitle;
+                                            // Join format: PROVIDER - DEX
+                                            if (provider && innerDex && provider !== innerDex) {
+                                                if (innerDex === dx) return provider;
+                                                return `${provider} - ${innerDex}`;
+                                            }
+                                            return provider || innerDex || dx;
                                         } catch (_) { }
                                         return dx;
                                     })();
@@ -2272,7 +2273,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
         // Aktifkan kembali UI.
         form_on();
         $("#stopSCAN").hide().prop("disabled", true);
-        $('#startSCAN').prop('disabled', false).text('Start').removeClass('uk-button-disabled');
+        $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled');
         // Release gating via centralized helper
         if (typeof setScanUIGating === 'function') setScanUIGating(false); // REFACTORED
         // Persist run=NO reliably before any potential next action
@@ -2293,7 +2294,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
             const autorunUserEnabled = (window.AUTORUN_ENABLED === true);
 
             if (autorunFeatureEnabled && autorunUserEnabled) {
-                const total = 10; // seconds
+                const total = Math.min(60, Math.max(20, parseInt($('#autoRunDelay').val(), 10) || 20));
                 let remain = total;
                 const $cd = $('#autoRunCountdown');
                 // Disable UI while waiting, similar to running state
@@ -2409,7 +2410,7 @@ async function stopScanner() {
 
         // Reset UI ke state normal
         $('#stopSCAN').hide().prop('disabled', true);
-        $('#startSCAN').prop('disabled', false).text('Start').removeClass('uk-button-disabled');
+        $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled');
         $('#autoRunCountdown').text('').css({ color: '', fontWeight: '' });
 
         // Release UI gating

@@ -453,10 +453,10 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const linkToken = createHoverLink(tradeTokenUrl, (data.symbol_in || '').toUpperCase());
       const linkPair = createHoverLink(tradePairUrl, (data.symbol_out || '').toUpperCase());
 
-      const WD_TOKEN = linkifyStatus(data.withdrawToken, 'WD', withdrawTokenUrl);
-      const DP_TOKEN = linkifyStatus(data.depositToken, 'DP', depositTokenUrl);
-      const WD_PAIR = linkifyStatus(data.withdrawPair, 'WD', withdrawPairUrl);
-      const DP_PAIR = linkifyStatus(data.depositPair, 'DP', depositPairUrl);
+      const WD_TOKEN = linkifyStatus(data.withdrawToken, 'WD', withdrawTokenUrl, '', false);
+      const DP_TOKEN = linkifyStatus(data.depositToken, 'DP', depositTokenUrl, '', false);
+      const WD_PAIR = linkifyStatus(data.withdrawPair, 'WD', withdrawPairUrl, '', false);
+      const DP_PAIR = linkifyStatus(data.depositPair, 'DP', depositPairUrl, '', false);
 
       // Background kolom detail: merah jika ada WX/DX, warna chain jika normal
       let detailBgStyle;
@@ -523,16 +523,26 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       rowHtml += `
             <td id="${idPrefix}${rowId}" class="uk-text-center uk-background td-detail" style="text-align: center; border:1px solid black; padding:5px; ${detailBgStyle}">
              [${index + 1}]<span style="color: ${warnaCex}; font-weight:bolder; font-size:medium;"> ${data.cex} </span> on <span style="color: ${warnaChain}; font-weight:bolder; font-size:medium;">${chainShort} </span>
-
-            <span class="detail-line">
-                <span style="color: ${warnaChain}; font-weight:bolder; font-size:medium;"  >${linkToken} </span> ⇄ <span style="color: ${warnaChain}; font-weight:bolder; font-size:medium;">${linkPair} </span>
                 <span id="${idPrefix}EditMulti-${data.id}" data-id="${data.id}"
-                data-chain="${String(data.chain).toLowerCase()}"
+                      data-chain="${String(data.chain).toLowerCase()}"
                       data-cex="${String(data.cex).toUpperCase()}"
                       data-symbol-in="${String(data.symbol_in).toUpperCase()}"
                       data-symbol-out="${String(data.symbol_out).toUpperCase()}"
-                       title="UBAH DATA KOIN" uk-icon="icon: settings; ratio: 0.7" class="uk-text-primary uk-text-bolder edit-token-button" style="cursor:pointer"></span>
+                      title="UBAH DATA KOIN" uk-icon="icon: settings; ratio: 0.7" class="uk-text-primary uk-text-bolder edit-token-button" style="cursor:pointer"></span>
+                <span id="${idPrefix}DelMulti-${data.id}"
+                      data-id="${data.id}"
+                      data-chain="${String(data.chain).toLowerCase()}"
+                      data-cex="${String(data.cex).toUpperCase()}"
+                      data-symbol-in="${String(data.symbol_in).toUpperCase()}"
+                      data-symbol-out="${String(data.symbol_out).toUpperCase()}"
+                      title="HAPUS DATA KOIN"
+                      uk-icon="icon: trash; ratio: 0.7"
+                      class="uk-text-danger uk-text-bolder delete-token-button"
+                      style="cursor:pointer;">
+                </span>
 
+            <span class="detail-line">
+                <span style="color: ${warnaChain}; font-weight:bolder; font-size:medium;">${linkToken} </span> ⇄ <span style="color: ${warnaChain}; font-weight:bolder; font-size:medium;">${linkPair} </span>
                 ${(() => {
           const _m = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
           if (_m.type === 'single' || _m.type === 'cex') {
@@ -555,19 +565,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
           }
           return '';
         })()}
-
-                <span id="${idPrefix}DelMulti-${data.id}"
-                      data-id="${data.id}"
-                      data-chain="${String(data.chain).toLowerCase()}"
-                      data-cex="${String(data.cex).toUpperCase()}"
-                      data-symbol-in="${String(data.symbol_in).toUpperCase()}"
-                      data-symbol-out="${String(data.symbol_out).toUpperCase()}"
-                      title="HAPUS DATA KOIN"
-                      uk-icon="icon: trash; ratio: 0.7"
-                      class="uk-text-danger uk-text-bolder delete-token-button"
-                      style="cursor:pointer;">
-                </span>
-                </span>
+            </span>
 
                 <span class="detail-line uk-text-bolder">${WD_TOKEN}~ ${DP_TOKEN} | ${WD_PAIR}~ ${DP_PAIR}</span>
                 <span class="detail-line"><span style="color:${warnaChain}; font-weight:bold;">${(data.symbol_in || '').toUpperCase()}</span> ${linkSCtoken} : ${linkStokToken}</span>
@@ -1774,14 +1772,21 @@ function DisplayPNL(data) {
 
         // Highlight hanya sub-kolom yang profit (PNL > 0)
         const isSubProfit = subPnl > 0;
-        const subBgStyle = isSubProfit ? 'background-color: #ddf0b7ff;' : '';
+        const _subHighlightBg = isDarkMode() ? '#eeffdd' : '#ddf0b7ff';
+        const subBgStyle = isSubProfit ? `background-color: ${_subHighlightBg};` : '';
 
-        // ✅ FIX: Gunakan linkifyStatus agar format IDENTIK dengan DEX reguler
-        // Token for DP is always Name_out in both directions when we end up with the pair token
-        const dpTokenName = upper(Name_out);
-        const feeLabel1 = direction === 'tokentopair'
-          ? linkifyStatus(metaWdFlag, 'WD', metaWdUrl, upper(Name_in))
-          : linkifyStatus(metaDpFlag, 'DP', metaDpUrl, dpTokenName);
+        // Format WD/DP identik dengan DEX reguler: WD tampilkan fee, DP tampilkan token name
+        const _dpTokenName = upper(Name_out);
+        let feeLabel1;
+        if (direction === 'tokentopair') {
+          const _wdTxt = metaWdFlag === false ? '🚫 <b>WX</b>' : '🈯 <b>WD</b>';
+          const _wdCls = metaWdFlag === false ? 'uk-text-danger' : 'uk-text-success';
+          feeLabel1 = `<a class="${_wdCls}" href="${metaWdUrl}" target="_blank" rel="noopener" title="FEE WITHDRAW">${_wdTxt}: ${subFeeWD.toFixed(4)}$</a>`;
+        } else {
+          const _dpTxt = metaDpFlag === false ? `⛔ <b>DX[${_dpTokenName}]</b>` : `🈳 <b>DP[${_dpTokenName}]</b>`;
+          const _dpCls = metaDpFlag === false ? 'uk-text-danger' : 'uk-text-primary';
+          feeLabel1 = `<a class="${_dpCls}" href="${metaDpUrl}" target="_blank" rel="noopener">${_dpTxt}</a>`;
+        }
 
 
         // ✅ link ⬆/⬇ pakai divTitle penuh — IDENTIK dengan DEX reguler (tipBuy = tipSell = __titleLog)
@@ -1798,7 +1803,7 @@ function DisplayPNL(data) {
               <span class="monitor-line">${feeLabel1}</span>
               <span class="monitor-line uk-text-dark" title="${divTitle}">💸 SW: ${feeSwap.toFixed(4)}$  </span>
               <span class="monitor-line uk-text-danger" title="BRUTO ~ TOTAL FEE">[${subBruto.toFixed(2)} ~ <b style="font-size: larger;">${subTotalFee.toFixed(2)}</b>]</span>
-              <span class="monitor-line ${pnlClass}" title="PROFIT / LOSS" style="font-weight: bold;">💰 PNL: ${subPnl.toFixed(2)}</span>
+              <span class="monitor-line ${pnlClass}" title="PROFIT / LOSS" style="font-weight: bold;">🤑 PNL: ${subPnl.toFixed(2)}</span>
             </span>
           </div>
         `;
@@ -1858,7 +1863,7 @@ function DisplayPNL(data) {
       const shouldHighlight = hasSignal;  // Background hijau saat ada sinyal
 
       if (shouldHighlight) {
-        const multiDexGreen = '#ddf0b7ff';
+        const multiDexGreen = isDarkMode() ? '#eeffdd' : '#ddf0b7ff';
         el.style.cssText = `text-align:center;vertical-align:middle;background-color:${multiDexGreen}!important;font-weight:bolder!important;border:2px solid black !important`;
         el.classList.add('dex-cell-highlight');
       } else {
@@ -2260,11 +2265,11 @@ function DisplayPNL(data) {
       dpFlag = hit.depositToken;
     }
   } catch (_) { }
-  const wdText = (wdFlag === false) ? 'WX' : 'WD';
+  const wdText = (wdFlag === false) ? '🚫 <b>WX</b>' : '🈯 <b>WD</b>';
   // Nama token untuk label DP Token (arah-sensitive: TokenToPair → Name_in, PairToToken → Name_out)
   const dpTokenName = (direction === 'tokentopair') ? upper(Name_in) : upper(Name_out);
-  const dpText = (dpFlag === false) ? `DX[${dpTokenName}]` : `DP[${dpTokenName}]`;
-  const wdCls = (wdFlag === false) ? 'uk-text-danger' : 'uk-text-primary';
+  const dpText = (dpFlag === false) ? `⛔ <b>DX[${dpTokenName}]</b>` : `🈳 <b>DP[${dpTokenName}]</b>`;
+  const wdCls = (wdFlag === false) ? 'uk-text-danger' : 'uk-text-success';
   const dpCls = (dpFlag === false) ? 'uk-text-danger' : 'uk-text-primary';
   const wdLine = `<a class="${wdCls}" href="${wdUrl}" target="_blank" rel="noopener" title="FEE WITHDRAW">${wdText}: ${n(FeeWD).toFixed(4)}$</a>`;
   const dpLine = `<a class="${dpCls}" href="${dpUrlToken}" target="_blank" rel="noopener">${dpText}</a>`;
@@ -2285,7 +2290,7 @@ function DisplayPNL(data) {
   const multiLightGreen = '#ddf0b7ff';
   const hlBg = isMultiModeHL
     ? multiLightGreen
-    : (isDarkMode() ? '#87db0bff' : '#ddf0b7ff');
+    : (isDarkMode() ? '#f6f9f3' : '#ddf0b7ff');
 
   // Apply highlight class dan background hanya jika profit melewati filter threshold
   if (shouldHighlight) {
@@ -2302,7 +2307,7 @@ function DisplayPNL(data) {
   const feeBlock1 = `<span class="monitor-line">${feeLine}</span>`;
   const feeBlock2 = `<span class="monitor-line">${swapLine}</span>`; // ← baris terpisah
   const lineBrut = `<span class="monitor-line uk-text-danger" title="BRUTO ~ TOTAL FEE">${bracket}</span>`;
-  const linePNL = `<span class="monitor-line ${netClass}" title="PROFIT / LOSS">💰 PNL: ${pnl.toFixed(2)}</span>`;
+  const linePNL = `<span class="monitor-line ${netClass}" title="PROFIT / LOSS">🤑 PNL: ${pnl.toFixed(2)}</span>`;
 
   // Icon multi-tab: hanya muncul saat ada sinyal (bg hijau / PNL > 0)
   let lineMultiTab = '';

@@ -973,7 +973,13 @@ function renderSettingsForm() {
 
     // ✅ NEW: Restore checkbox scanner controls
     if (appSettings.autoRun !== undefined) {
-        $('#autoRunToggle').prop('checked', appSettings.autoRun);
+        const _autoRunOn = (window.CONFIG_APP?.APP?.AUTORUN !== false);
+        if (_autoRunOn) {
+            $('#autoRunToggle').prop('checked', appSettings.autoRun);
+        } else {
+            $('#autoRunToggle').prop('checked', false);
+            window.AUTORUN_ENABLED = false;
+        }
     }
     if (appSettings.autoVol !== undefined) {
         $('#checkVOL').prop('checked', appSettings.autoVol);
@@ -982,7 +988,13 @@ function renderSettingsForm() {
         $('#checkWalletCEX').prop('checked', appSettings.walletCex);
     }
     if (appSettings.autoLevel !== undefined) {
-        $('#autoVolToggle').prop('checked', appSettings.autoLevel);
+        const _autoVolOn = (window.CONFIG_APP?.APP?.AUTO_VOLUME !== false);
+        if (_autoVolOn) {
+            $('#autoVolToggle').prop('checked', appSettings.autoLevel);
+        } else {
+            $('#autoVolToggle').prop('checked', false);
+            $('#autoVolLevelInput').hide();
+        }
     }
     if (appSettings.autoLevelValue !== undefined) {
         $('#autoVolLevels').val(appSettings.autoLevelValue);
@@ -1892,7 +1904,7 @@ async function deferredInit() {
             }, {});
 
             // Section 1: CHAIN (horizontal flex) - ✅ FILTERED BY ENABLED CHAINS
-            const $chainSection = $('<div style="margin-bottom:15px;"></div>');
+            const $chainSection = $('<div class="filter-box filter-box-chain"></div>');
             $chainSection.append($('<div class="filter-section-title">CHAIN</div>'));
             const $chainGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
 
@@ -1929,15 +1941,15 @@ async function deferredInit() {
 
             // Build DEX section (shared between CEX and multichain)
             // ======== SECTION DEX (bukan MetaDEX) ========
-            const $dexSection = $('<div style="margin-bottom:15px;"></div>');
+            const $dexSection = $('<div class="filter-box filter-box-dex"></div>');
             $dexSection.append($('<div class="filter-section-title">DEX</div>'));
-            const $dexGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
+            const $dexGrid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;"></div>');
             const metaDexEnabled = (CONFIG_APP && CONFIG_APP.APP && CONFIG_APP.APP.META_DEX === true);
 
             // ======== SECTION META-DEX (terpisah) ========
-            const $metaDexSection = $('<div style="margin-bottom:15px;"></div>');
+            const $metaDexSection = $('<div class="filter-box filter-box-metadex"></div>');
             $metaDexSection.append($('<div class="filter-section-title" style="color:#7c3aed;">&#x26A1; META-DEX AGGREGATORS</div>'));
-            const $metaDexGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
+            const $metaDexGrid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;"></div>');
 
             Object.keys(CONFIG_DEXS || {}).forEach(dx => {
                 const dexConfig = CONFIG_DEXS[dx];
@@ -2013,14 +2025,14 @@ async function deferredInit() {
                     byPair[key] = (byPair[key] || 0) + 1;
                 });
 
-                const $pairSection = $('<div style="margin-bottom:15px;"></div>');
+                const $pairSection = $('<div class="filter-box filter-box-pair"></div>');
                 $pairSection.append($('<div class="filter-section-title">PAIR</div>'));
                 const $pairGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
                 Object.keys(allPairDefs).forEach(p => {
                     const cnt = byPair[p] || 0;
                     if (cnt === 0) return;
                     const checked = pairSel.includes(p);
-                    const pairColor = (p === 'NON') ? '#6b7280' : accentColor;
+                    const pairColor = '#b4b8c0';
                     const id = `modal-fc-pair-${p}`;
                     $pairGrid.append($(`
                         <label class="fc-pair filter-chip" data-val="${p}" data-color="${pairColor}" for="${id}" style="border-color: ${checked ? pairColor : 'transparent'};">
@@ -2043,12 +2055,10 @@ async function deferredInit() {
                 $grid.append($col1).append($col2);
                 $wrap.append($grid);
             } else {
-                // Normal Multichain Mode: stacked layout (CHAIN → EXCHANGER → DEX → META-DEX)
-                $wrap.append($chainSection);
-
-                const $cexSection = $('<div style="margin-bottom:15px;"></div>');
+                // Normal Multichain Mode: 2-column layout (CHAIN+EXCHANGER | DEX+MetaDEX)
+                const $cexSection = $('<div class="filter-box filter-box-cex"></div>');
                 $cexSection.append($('<div class="filter-section-title">EXCHANGER</div>'));
-                const $cexGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
+                const $cexGrid = $('<div style="display:flex; flex-direction:column; gap:4px;"></div>');
                 getEnabledCEXs().forEach(cx => {
                     const id = `modal-fc-cex-${cx}`; const cnt = byCex[cx] || 0; if (cnt === 0) return; const checked = cexSel.includes(cx.toUpperCase());
                     const col = CONFIG_CEX[cx].WARNA || '#333';
@@ -2061,9 +2071,16 @@ async function deferredInit() {
                     `));
                 });
                 $cexSection.append($cexGrid);
-                $wrap.append($cexSection);
-                $wrap.append($dexSection);
-                if (metaDexEnabled) $wrap.append($metaDexSection);  // ✅ MetaDEX terpisah di bawah DEX
+
+                const $multiGrid = $('<div style="display:grid; grid-template-columns:1fr 2fr; gap:20px;"></div>');
+                const $leftCol = $('<div></div>');
+                $leftCol.append($chainSection);
+                $leftCol.append($cexSection);
+                const $rightCol = $('<div></div>');
+                $rightCol.append($dexSection);
+                if (metaDexEnabled) $rightCol.append($metaDexSection);
+                $multiGrid.append($leftCol).append($rightCol);
+                $wrap.append($multiGrid);
             }
 
             const savedFilterKey = isCEXModeNow ? `FILTER_CEX_${window.CEXModeManager.getSelectedCEX()}` : 'FILTER_MULTICHAIN';
@@ -2223,8 +2240,9 @@ async function deferredInit() {
                 console.log('[FILTER] CEX Mode active (single chain) - hiding Exchanger section');
             }
 
-            // Row 1: EXCHANGER dan PAIR side by side
-            const $topRow = $('<div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px; margin-bottom:20px;"></div>');
+            // Row 1: 3-column grid (EXCHANGER | PAIR | DEX), or 2-column in CEX mode (PAIR | DEX)
+            const _topCols = isCEXMode ? '1fr 2fr' : '1fr 1fr 2fr';
+            const $topRow = $(`<div style="display:grid; grid-template-columns: ${_topCols}; gap:16px; margin-bottom:10px;"></div>`);
 
             // Hitung pair per CEX untuk info
             const pairByCex = {};
@@ -2238,7 +2256,7 @@ async function deferredInit() {
 
             // Column 1: EXCHANGER (only show if NOT in CEX mode)
             if (!isCEXMode) {
-                const $cexCol = $('<div></div>');
+                const $cexCol = $('<div class="filter-box filter-box-cex"></div>');
                 $cexCol.append($('<div class="filter-section-title">EXCHANGER</div>'));
                 const $cexList = $('<div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;"></div>');
                 let relevantCexs = (CONFIG_CHAINS[chain] && CONFIG_CHAINS[chain].WALLET_CEX) ? Object.keys(CONFIG_CHAINS[chain].WALLET_CEX) : [];
@@ -2270,7 +2288,7 @@ async function deferredInit() {
             }
 
             // Column 2: PAIR
-            const $pairCol = $('<div></div>');
+            const $pairCol = $('<div class="filter-box filter-box-pair"></div>');
             $pairCol.append($('<div class="filter-section-title">PAIR</div>'));
             const $pairList = $('<div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;"></div>');
             const allPairs = Array.from(new Set([...Object.keys(pairDefs), 'NON']));
@@ -2279,7 +2297,7 @@ async function deferredInit() {
                 const cnt = byPair[p] || 0;
                 if (cnt === 0) return;
                 const checked = pairSel.includes(p);
-                const pairColor = (p === 'NON') ? '#6b7280' : chainColor;
+                const pairColor = '#b4b8c0';
                 const id = `modal-sc-pair-${p}`;
                 $pairList.append($(`
                     <label class="sc-pair filter-chip" data-val="${p}" data-color="${pairColor}" for="${id}" style="border-color: ${checked ? pairColor : 'transparent'};">
@@ -2294,10 +2312,10 @@ async function deferredInit() {
 
             $container.append($topRow);
 
-            // Row 2: DEX (horizontal, flex-wrap) — DEX biasa saja (bukan MetaDEX)
-            const $dexSection = $('<div></div>');
+            // Col 3 (or col 2 in CEX mode): DEX column
+            const $dexSection = $('<div class="filter-box filter-box-dex"></div>');
             $dexSection.append($('<div class="filter-section-title">DEX</div>'));
-            const $dexGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px; align-items:flex-start;"></div>');
+            const $dexGrid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; align-items:flex-start;"></div>');
             const dexAllowed = ((CONFIG_CHAINS[chain] || {}).DEXS || []).map(x => String(x).toLowerCase());
             const byDex = flatPair.reduce((a, t) => {
                 (t.dexs || []).forEach(d => { const k = String(d.dex || '').toLowerCase(); if (!dexAllowed.includes(k)) return; a[k] = (a[k] || 0) + 1; });
@@ -2320,13 +2338,13 @@ async function deferredInit() {
                 `));
             });
             $dexSection.append($dexGrid);
-            $container.append($dexSection);
+            $topRow.append($dexSection);
 
-            // Row 3: META-DEX (terpisah, section sendiri)
+            // Row 2: META-DEX (terpisah, section sendiri)
             if (window.CONFIG_APP?.APP?.META_DEX === true) {
-                const $metaDexSc = $('<div style="margin-top:14px;"></div>');
-                $metaDexSc.append($('<div class="filter-section-title" style="color:#7c3aed;">META-DEX <span style="font-size:10px;font-weight:400;color:#888;"></span></div>'));
-                const $metaGrid = $('<div style="display:flex; flex-wrap:wrap; gap:6px;"></div>');
+                const $metaDexSc = $('<div class="filter-box filter-box-metadex"></div>');
+                $metaDexSc.append($('<div class="filter-section-title" style="color:#7c3aed;">META-DEX</div>'));
+                const $metaGrid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;"></div>');
                 const metaKeys = Object.keys(CONFIG_DEXS || {}).filter(k => {
                     const dcfg = CONFIG_DEXS[k];
                     if (!dcfg?.isMetaDex || dcfg?.disabled || dcfg?.isBackendProvider) return false;
@@ -2735,48 +2753,16 @@ async function deferredInit() {
         if (window.App?.Scanner?.stopScanner) window.App.Scanner.stopScanner();
     });
 
-    // Autorun toggle - controlled by CONFIG_APP.APP.AUTORUN
+    // Autorun toggle — show/hide & state handled by scanner-handlers.js
+    // Hanya sinkronisasi state awal di sini, tidak re-register change handler
     try {
-        // Check if autorun feature is enabled in config
         const autorunEnabled = (window.CONFIG_APP?.APP?.AUTORUN !== false);
-
         if (!autorunEnabled) {
-            // Hide autorun UI elements when disabled in config
-            $('#autoRunToggle').closest('label').hide();
-            $('#autoRunCountdown').hide();
             window.AUTORUN_ENABLED = false;
             window.AUTORUN_FEATURE_DISABLED = true;
         } else {
-            // Show autorun UI elements when enabled
-            $('#autoRunToggle').closest('label').show();
-            $('#autoRunCountdown').show();
-            window.AUTORUN_ENABLED = false;
             window.AUTORUN_FEATURE_DISABLED = false;
-
-            // Register change handler only if feature is enabled
-            $(document).on('change', '#autoRunToggle', function () {
-                window.AUTORUN_ENABLED = $(this).is(':checked');
-                if (!window.AUTORUN_ENABLED) {
-                    // cancel any pending autorun countdown
-                    // ✅ PERF: Use TimerManager for centralized timer control
-                    if (typeof TimerManager !== 'undefined') {
-                        TimerManager.clear('autorun-countdown');
-                    } else {
-                        try { clearInterval(window.__autoRunInterval); } catch (_) { }
-                        window.__autoRunInterval = null;
-                    }
-                    // clear countdown label
-                    $('#autoRunCountdown').text('');
-                    // restore UI to idle state if not scanning
-                    try {
-                        $('#stopSCAN').hide().prop('disabled', true);
-                        $('#startSCAN').prop('disabled', false).removeClass('uk-button-disabled').text('START');
-                        $("#LoadDataBtn, #SettingModal, #MasterData,#UpdateWalletCEX,#chain-links-container,.sort-toggle, .edit-token-button").css("pointer-events", "auto").css("opacity", "1");
-                        if (typeof setScanUIGating === 'function') setScanUIGating(false);
-                        $('.header-card a, .header-card .icon').css({ pointerEvents: 'auto', opacity: 1 });
-                    } catch (_) { }
-                }
-            });
+            // AUTORUN_ENABLED akan di-set oleh change handler di scanner-handlers.js
         }
     } catch (_) { }
 
@@ -5408,7 +5394,7 @@ $(document).ready(function () {
     function applyRunUI(isRunning) {
         if (isRunning) {
             try { form_off(); } catch (_) { }
-            $('#startSCAN').prop('disabled', true).attr('aria-busy', 'true').text('Running...').addClass('uk-button-disabled');
+            $('#startSCAN').prop('disabled', true).attr('aria-busy', 'true').text('SCANNING...').addClass('uk-button-disabled');
             // Show standardized running banner: [ RUN SCANNING: <CHAINS> ]
             try { if (typeof window.updateRunningChainsBanner === 'function') window.updateRunningChainsBanner(); } catch (_) { }
             $('#stopSCAN').show().prop('disabled', false);
@@ -5441,7 +5427,7 @@ $(document).ready(function () {
                 try { $('#infoAPP').text(`⚠️ Scan sedang berjalan di mode ${lockMode}`).show(); } catch (_) { }
                 try { if (typeof setScanUIGating === 'function') setScanUIGating(true); } catch (_) { }
             } else {
-                $('#startSCAN').prop('disabled', false).removeAttr('aria-busy').text('Start').removeClass('uk-button-disabled');
+                $('#startSCAN').prop('disabled', false).removeAttr('aria-busy').text('START SCAN').removeClass('uk-button-disabled');
                 $('#stopSCAN').hide();
                 // Clear banner when not running
                 try { $('#infoAPP').text('').hide(); } catch (_) { }
@@ -7486,7 +7472,7 @@ $(document).on('click', '#histClearAll', async function () {
         // Confirm before applying
         const buildRow = (dex, vals, isMeta = false) => {
             const config = (typeof CONFIG_DEXS !== 'undefined' ? CONFIG_DEXS[dex.toLowerCase()] : {}) || {};
-            const warna = config.warna || '#374151';
+            const warna = config.warna || '#b4b8c0';
             const label = config.label || dex.toUpperCase();
             const prefix = isMeta ? '<span style="color:#94a3b8;font-size:10px;font-weight:500;">META</span> ' : '';
             return `<tr>

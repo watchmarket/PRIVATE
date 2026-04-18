@@ -45,7 +45,7 @@ $(document).ready(function () {
     function applyRunUI(isRunning) {
         if (isRunning) {
             try { form_off(); } catch (_) { }
-            $('#startSCAN').prop('disabled', true).attr('aria-busy', 'true').text('Running...').addClass('uk-button-disabled');
+            $('#startSCAN').prop('disabled', true).attr('aria-busy', 'true').text('SCANNING...').addClass('uk-button-disabled');
             // Show standardized running banner: [ RUN SCANNING: <CHAINS> ]
             try { if (typeof window.updateRunningChainsBanner === 'function') window.updateRunningChainsBanner(); } catch (_) { }
             $('#stopSCAN').show().prop('disabled', false);
@@ -78,7 +78,7 @@ $(document).ready(function () {
                 try { $('#infoAPP').text(`⚠️ Scan sedang berjalan di mode ${lockMode}`).show(); } catch (_) { }
                 try { if (typeof setScanUIGating === 'function') setScanUIGating(true); } catch (_) { }
             } else {
-                $('#startSCAN').prop('disabled', false).removeAttr('aria-busy').text('Start').removeClass('uk-button-disabled');
+                $('#startSCAN').prop('disabled', false).removeAttr('aria-busy').text('START SCAN').removeClass('uk-button-disabled');
                 $('#stopSCAN').hide();
                 // Clear banner when not running
                 try { $('#infoAPP').text('').hide(); } catch (_) { }
@@ -295,8 +295,19 @@ $(document).ready(function () {
                 $('#autoScrollCheckbox').prop('checked', prefs.autoScroll);
             }
             if (prefs.autoRun !== undefined) {
-                $('#autoRunToggle').prop('checked', prefs.autoRun);
-                window.AUTORUN_ENABLED = prefs.autoRun;
+                const _autoRunOn = (window.CONFIG_APP?.APP?.AUTORUN !== false);
+                if (_autoRunOn) {
+                    $('#autoRunToggle').prop('checked', prefs.autoRun);
+                    window.AUTORUN_ENABLED = prefs.autoRun;
+                    $('#autoRunDelayInput').toggle(!!prefs.autoRun);
+                } else {
+                    $('#autoRunToggle').prop('checked', false);
+                    $('#autoRunDelayInput').hide();
+                    window.AUTORUN_ENABLED = false;
+                }
+            }
+            if (prefs.autoRunDelay !== undefined) {
+                $('#autoRunDelay').val(prefs.autoRunDelay);
             }
             if (prefs.autoVol !== undefined) {
                 $('#checkVOL').prop('checked', prefs.autoVol);
@@ -305,11 +316,16 @@ $(document).ready(function () {
                 $('#checkWalletCEX').prop('checked', prefs.walletCex);
             }
             if (prefs.autoLevel !== undefined) {
-                $('#autoVolToggle').prop('checked', prefs.autoLevel);
-                // Show/hide level input based on toggle
-                if (prefs.autoLevel) {
-                    $('#autoVolLevelInput').show();
+                const _autoVolOn = (window.CONFIG_APP?.APP?.AUTO_VOLUME !== false);
+                if (_autoVolOn) {
+                    $('#autoVolToggle').prop('checked', prefs.autoLevel);
+                    if (prefs.autoLevel) {
+                        $('#autoVolLevelInput').show();
+                    } else {
+                        $('#autoVolLevelInput').hide();
+                    }
                 } else {
+                    $('#autoVolToggle').prop('checked', false);
                     $('#autoVolLevelInput').hide();
                 }
             }

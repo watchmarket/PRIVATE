@@ -53,7 +53,7 @@
     ].join(';');
     var styles = {
       primary: 'background:#2563eb;color:#fff;border-color:#2563eb;',
-      secondary: 'background:#f3f4f6;color:#374151;border-color:#e5e7eb;',
+      secondary: 'background:#f3f4f6;color:#b4b8c0;border-color:#e5e7eb;',
       danger: 'background:#ef4444;color:#fff;border-color:#ef4444;',
       success: 'background:#16a34a;color:#fff;border-color:#16a34a;',
     };
@@ -106,7 +106,7 @@
       var bodyHtml = '<div style="padding:20px 20px 8px;display:flex;align-items:flex-start;">' +
         iconInBody +
         '<div style="flex:1;">' +
-        '<div style="font-size:14px;color:#374151;line-height:1.6;white-space:pre-wrap;word-break:break-word;">' + contentHtml + '</div>' +
+        '<div style="font-size:14px;color:#b4b8c0;line-height:1.6;white-space:pre-wrap;word-break:break-word;">' + contentHtml + '</div>' +
         detailsHtml +
         '</div>' +
         '</div>';

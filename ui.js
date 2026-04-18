@@ -247,7 +247,8 @@ function RenderCardSignal() {
         // HEADER lebih tipis
         const cardHeader = document.createElement('div');
         cardHeader.className = 'uk-card-header uk-padding-small uk-padding-remove-vertical uk-flex uk-flex-middle uk-flex-between';
-        cardHeader.style.backgroundColor = chainColor;
+        const _isDark = (typeof isDarkMode === 'function') ? isDarkMode() : document.body.classList.contains('dark-mode');
+        cardHeader.style.backgroundColor = _isDark ? '#2d2f3e' : chainColor;
         cardHeader.style.color = '#fff';
 
         const left = document.createElement('div');
@@ -305,7 +306,7 @@ function RenderCardSignal() {
             info.style.display = 'none';
             info.innerHTML = `
         <div class=\"uk-card uk-card-default uk-card-hover uk-card-small signal-card\" data-accent-color=\"${chainColor}\">
-          <div class=\"uk-card-header uk-padding-small uk-padding-remove-vertical\" style=\"background-color:${chainColor}; color:#fff;\">
+          <div class=\"uk-card-header uk-padding-small uk-padding-remove-vertical\" style=\"background-color:${_isDark ? '#2d2f3e' : chainColor}; color:#fff;\">
             <div class="uk-flex uk-flex-middle uk-flex-between">
               <div class="uk-flex uk-flex-middle" style="gap:8px;">
                 <span class="uk-text-bold" style="color:#fff!important; font-size:14px;">INFORMASI</span>
@@ -366,8 +367,7 @@ window.updateSignalTheme = function () {
         const signalTextColor = isDark ? '#e7e7ec' : '#000000';
         const applyHeaderTheme = (header, accent) => {
             if (!header) return;
-            const useAccent = accent || chainColor;
-            header.style.backgroundColor = useAccent;
+            header.style.backgroundColor = isDark ? '#2d2f3e' : (accent || chainColor);
             header.style.color = headerTextColor;
             header.style.borderBottomColor = borderColor;
         };
