@@ -103,7 +103,7 @@ const CONFIG_CEX = {
             deposit: ({ pair }) => `https://www.gate.com/myaccount/deposit/${String(pair || '').toUpperCase()}`
         },
         ORDERBOOK: {
-            urlTpl: ({ symbol }) => `https://api.gateio.ws/api/v4/spot/order_book?limit=5&currency_pair=${String(symbol || '')}_USDT`,
+            urlTpl: ({ symbol }) => `${CONFIG_PROXY.PREFIX}https://api.gateio.ws/api/v4/spot/order_book?limit=5&currency_pair=${String(symbol || '')}_USDT`,
             parser: 'standard' // use standard orderbook parser
         }
     },
