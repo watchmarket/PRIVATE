@@ -2,7 +2,7 @@ const CONFIG_APP = {
     APP: {
         //NAME: "PENCARI SELISIH",
          NAME: "PRIVATE_NOCORS",
-        VERSION: "04.18",
+        VERSION: "04.20",
         SCAN_LIMIT: false,
         AUTORUN: true,
         AUTO_VOLUME: true,  // cek level order otomatis kalkulasi PNL
