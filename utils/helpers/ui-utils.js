@@ -33,6 +33,12 @@
     // UI GATING WHILE SCANNING
     // Disable most interactions while scan is running; allow Reload + Theme
     // =============================================================
+    /**
+     * Enable/disable UI gating during scan.
+     * @param {boolean} isRunning - Whether a scan is active (disables most UI).
+     * Note: STOP SCAN visibility/text is controlled by applyRunUI — this function
+     * always enables/shows it when isRunning=true for backward compatibility.
+     */
     function setScanUIGating(isRunning) {
         try {
             const $allToolbar = $('.header-card a, .header-card .icon');
@@ -79,10 +85,11 @@
                 $('#SaveEditkoin').show().prop('disabled', false);
                 $('#CopyToMultiBtn').show().prop('disabled', false);
                 $('#BatalEditkoin').show().prop('disabled', false);
-                // Keep STOP button usable during running
+                // STOP SCAN: selalu tampil saat isRunning=true.
+                // Text/label diset oleh applyRunUI sebelum memanggil setScanUIGating.
                 $('#stopSCAN').prop('disabled', false).show();
-                // Keep RELOAD usable (already via toolbar allow-list), disable START explicitly
-                $('#startSCAN').prop('disabled', true);
+                // Sembunyikan START SCAN (bukan hanya disable) agar tidak tampil bersamaan
+                $('#startSCAN').prop('disabled', true).hide();
             } else {
                 // Re-enable toolbar
                 $allToolbar.css({ pointerEvents: '', opacity: '' });

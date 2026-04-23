@@ -34,11 +34,18 @@
         try { location.reload(); } catch (_) { }
     });
 
-    /**
-     * Stop scan button handler
-     */
     $("#stopSCAN").click(function () {
         if (window.App?.Scanner?.stopScanner) window.App.Scanner.stopScanner();
+        // Broadcast force-stop to all other tabs ONLY if SCAN_LIMIT is enabled
+        try {
+            const scanLimitEnabled = window.CONFIG_APP?.APP?.SCAN_LIMIT === true;
+            if (scanLimitEnabled && window.__MC_BC) {
+                window.__MC_BC.postMessage({
+                    type: 'force_stop_scan',
+                    fromTabId: typeof getTabId === 'function' ? getTabId() : null
+                });
+            }
+        } catch (_) {}
     });
 
     /**

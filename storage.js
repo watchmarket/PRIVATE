@@ -258,6 +258,14 @@
         } catch (_) { /* ignore */ }
     };
 
+    // Patch the in-memory cache from BroadcastChannel messages (cross-tab sync)
+    window.patchStorageCache = function (key, value) {
+        try {
+            const nsKey = String((window.storagePrefix || '') + key);
+            cache[nsKey] = value;
+        } catch (_) { }
+    };
+
     // Async variant with explicit success/failure result for better UX
     window.saveToLocalStorageAsync = async function (key, value) {
         const nsKey = String((window.storagePrefix || '') + key);

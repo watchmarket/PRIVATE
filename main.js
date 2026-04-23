@@ -5392,46 +5392,67 @@ $(document).ready(function () {
     } catch (_) { }
     // Initialize app state from localStorage
     function applyRunUI(isRunning) {
-        if (isRunning) {
-            try { form_off(); } catch (_) { }
-            $('#startSCAN').prop('disabled', true).attr('aria-busy', 'true').text('SCANNING...').addClass('uk-button-disabled');
-            // Show standardized running banner: [ RUN SCANNING: <CHAINS> ]
-            try { if (typeof window.updateRunningChainsBanner === 'function') window.updateRunningChainsBanner(); } catch (_) { }
-            $('#stopSCAN').show().prop('disabled', false);
-            $('#reload').prop('disabled', false);
+        // Cek apakah TAB INI yang benar-benar sedang scanning
+        const thisTabActuallyScanning = (typeof window.App?.Scanner?.isScanRunning === 'function')
+            ? window.App.Scanner.isScanRunning()
+            : (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('TAB_SCANNING') === 'YES');
 
+        if (isRunning && thisTabActuallyScanning) {
+            // ✅ TAB INI SCANNING: SCANNING... + STOP SCAN (tanpa label chain)
+            try { form_off(); } catch (_) { }
+            $('#startSCAN').prop('disabled', true).attr('aria-busy', 'true').text('SCANNING...').addClass('uk-button-disabled').show();
+            try { if (typeof window.updateRunningChainsBanner === 'function') window.updateRunningChainsBanner(); } catch (_) { }
+            $('#stopSCAN').text('STOP SCAN').show().prop('disabled', false);
+            $('#reload').prop('disabled', false);
             try { if (typeof setScanUIGating === 'function') setScanUIGating(true); } catch (_) { }
         } else {
-            // When SCAN_LIMIT is true, check if another mode is running globally
-            let lockedByOther = false;
-            let lockMode = '';
+            // Cek apakah tab LAIN sedang scanning
+            let anotherTabScanning = false;
+            let lockInfo = null;
             try {
                 const scanLimitEnabled = window.CONFIG_APP && window.CONFIG_APP.APP && window.CONFIG_APP.APP.SCAN_LIMIT === true;
                 if (scanLimitEnabled && typeof getGlobalScanLock === 'function') {
                     const lock = getGlobalScanLock();
                     if (lock) {
-                        // Check if lock is from a DIFFERENT mode than current
-                        const activeKey = (typeof getActiveFilterKey === 'function') ? getActiveFilterKey() : '';
-                        if (lock.key !== activeKey) {
-                            lockedByOther = true;
-                            lockMode = lock.mode || 'UNKNOWN';
+                        const myTabId = typeof getTabId === 'function' ? getTabId() : null;
+                        if (!myTabId || lock.tabId !== myTabId) {
+                            anotherTabScanning = true;
+                            lockInfo = lock;
                         }
                     }
                 }
             } catch (_) { }
 
-            if (lockedByOther) {
-                // Another mode is scanning - disable Start but don't show Stop
-                $('#startSCAN').prop('disabled', true).removeAttr('aria-busy').text(`Locked (${lockMode})`).addClass('uk-button-disabled');
-                $('#stopSCAN').hide();
-                try { $('#infoAPP').text(`⚠️ Scan sedang berjalan di mode ${lockMode}`).show(); } catch (_) { }
+            if (anotherTabScanning) {
+                // ✅ TAB LAIN SCANNING: sembunyikan START, tampilkan STOP [mode]
+                $('#startSCAN').hide().prop('disabled', true);
+                try {
+                    // Bangun label yang informatif berdasarkan mode scan
+                    const m = lockInfo?.mode || '';
+                    let labelText;
+                    if (m === 'MULTICHAIN') {
+                        labelText = 'MULTICHAIN';
+                    } else if (m.startsWith('CEX_')) {
+                        labelText = 'CEX: ' + m.slice(4); // CEX_BINANCE → CEX: BINANCE
+                    } else {
+                        labelText = lockInfo?.chain || m || '...';
+                    }
+                    $('#stopSCAN').text(`STOP SCAN [${labelText}]`).show().prop('disabled', false);
+                    $('#infoAPP').html(`⛔ SCANNING DI TAB LAIN: <strong>${labelText}</strong>`).show();
+                    if (typeof window.updateRunningChainsBanner === 'function') window.updateRunningChainsBanner();
+                } catch (_) { }
                 try { if (typeof setScanUIGating === 'function') setScanUIGating(true); } catch (_) { }
             } else {
-                $('#startSCAN').prop('disabled', false).removeAttr('aria-busy').text('START SCAN').removeClass('uk-button-disabled');
-                $('#stopSCAN').hide();
-                // Clear banner when not running
-                try { $('#infoAPP').text('').hide(); } catch (_) { }
-                try { if (typeof setScanUIGating === 'function') setScanUIGating(false); } catch (_) { }
+                // ✅ TIDAK ADA SCAN: START SCAN hanya jika IDB sudah siap (cegah flash)
+                $('#stopSCAN').text('STOP SCAN').hide().prop('disabled', true);
+                if (window.__IDB_READY_FOR_UI) {
+                    $('#startSCAN').prop('disabled', false).removeAttr('aria-busy').text('START SCAN').removeClass('uk-button-disabled').show();
+                    try { $('#infoAPP').text('').hide(); } catch (_) { }
+                    try { if (typeof setScanUIGating === 'function') setScanUIGating(false); } catch (_) { }
+                } else {
+                    // IDB belum siap — sembunyikan kedua tombol
+                    $('#startSCAN').hide().prop('disabled', true);
+                }
             }
         }
     }
@@ -5501,6 +5522,18 @@ $(document).ready(function () {
             }
             const msg = ev?.data;
             if (!msg) return;
+            // === FORCE STOP: dari tab lain yang klik Stop (hanya jika SCAN_LIMIT=true) ===
+            if (msg.type === 'force_stop_scan') {
+                const scanLimitEnabled = window.CONFIG_APP?.APP?.SCAN_LIMIT === true;
+                if (!scanLimitEnabled) return; // abaikan jika multitab diperbolehkan
+
+                const myTabId = typeof getTabId === 'function' ? getTabId() : null;
+                if (msg.fromTabId && msg.fromTabId === myTabId) return; // abaikan pesan sendiri
+                if (Date.now() - pageLoadTime < IGNORE_MESSAGES_DURATION) return;
+                const running = (typeof window.App?.Scanner?.isScanRunning === 'function') ? window.App.Scanner.isScanRunning() : false;
+                if (running && window.App?.Scanner?.stopScanner) window.App.Scanner.stopScanner();
+                return;
+            }
             if (msg.type === 'kv') {
                 try {
                     const keyStr = String(msg.key || '');
@@ -5515,6 +5548,9 @@ $(document).ready(function () {
                     }
 
                     if (!keyUpper.startsWith('FILTER_')) return; // only react to FILTER_* changes
+
+                    // Sync storage cache so getFromLocalStorage() returns fresh data cross-tab
+                    try { if (typeof window.patchStorageCache === 'function') window.patchStorageCache(keyStr, msg.val); } catch (_) { }
 
                     // Update in-memory cache first
                     try { updateRunStateCache(keyUpper, msg.val || {}); } catch (_) { }

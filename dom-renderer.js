@@ -2441,7 +2441,9 @@ function DisplayPNL(data) {
   } catch (_) { }
 
   // Telegram alert mengikuti kondisi yang sama agar konsisten // REFACTORED
-  if (typeof MultisendMessage === 'function' && passSignal) {
+  // Filter: hanya kirim jika WD & DP token+pair semuanya aktif (true)
+  const wdDpOK = wdTokenFlag === true && dpTokenFlag === true && wdPairFlag === true && dpPairFlag === true;
+  if (typeof MultisendMessage === 'function' && passSignal && wdDpOK) {
     const directionMsg = (direction === 'tokentopair') ? 'cex_to_dex' : 'dex_to_cex';
     const tokenData = {
       chain: nameChain,

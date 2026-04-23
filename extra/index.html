@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aplikasi Extra & Download Center</title>
+  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-window-plus" viewBox="0 0 16 16">
+  <path d="M2.5 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M4 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1m2-.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+  <path d="M0 4a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v4a.5.5 0 0 1-1 0V7H1v5a1 1 0 0 0 1 1h5.5a.5.5 0 0 1 0 1H2a2 2 0 0 1-2-2zm1 2h13V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1z"/>
+  <path d="M16 12.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0m-3.5-2a.5.5 0 0 0-.5.5v1h-1a.5.5 0 0 0 0 1h1v1a.5.5 0 0 0 1 0v-1h1a.5.5 0 0 0 0-1h-1v-1a.5.5 0 0 0-.5-.5"/>
+</svg>'>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1220;
+      --bg-soft: #111b2e;
+      --panel: rgba(13, 23, 41, 0.72);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --text: #edf4ff;
+      --muted: #9db0cb;
+      --primary: #1fb6ff;
+      --primary-2: #22c55e;
+      --accent: #ffb020;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Plus Jakarta Sans", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(31, 182, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.14), transparent 24%),
+        radial-gradient(circle at bottom center, rgba(255, 176, 32, 0.14), transparent 26%),
+        linear-gradient(160deg, #07101d 0%, #0b1220 45%, #10192d 100%);
+    }
+
+    .page-shell {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(14px);
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .orb.one {
+      width: 220px;
+      height: 220px;
+      top: 40px;
+      left: -60px;
+      background: rgba(31, 182, 255, 0.22);
+    }
+
+    .orb.two {
+      width: 260px;
+      height: 260px;
+      right: -90px;
+      top: 120px;
+      background: rgba(34, 197, 94, 0.18);
+    }
+
+    .hero-card,
+    .file-card {
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      border-radius: 28px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .55rem .9rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #d9ebff;
+      font-size: .86rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+
+    .hero-badge svg {
+      color: #2563eb;
+      flex: 0 0 auto;
+    }
+
+    .hero-title {
+      font-size: clamp(1.85rem, 4vw, 2.8rem);
+      line-height: 1.08;
+      font-weight: 800;
+      margin: .8rem 0 .55rem;
+      max-width: 680px;
+    }
+
+    .text-gradient {
+      background: linear-gradient(90deg, #8be9ff 0%, #66ffc2 55%, #ffd36e 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-subtitle {
+      color: var(--muted);
+      font-size: .98rem;
+      max-width: 540px;
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .filter-chip {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: #d7e8ff;
+      border-radius: 999px;
+      padding: .65rem 1rem;
+      font-weight: 600;
+      transition: .2s ease;
+    }
+
+    .filter-chip.active,
+    .filter-chip:hover {
+      background: linear-gradient(135deg, rgba(31, 182, 255, 0.2), rgba(34, 197, 94, 0.18));
+      border-color: rgba(31, 182, 255, 0.45);
+      color: #fff;
+    }
+
+    .file-card {
+      border-radius: 24px;
+      padding: 1.25rem;
+      height: 100%;
+      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+
+    .file-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(31, 182, 255, 0.35);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+    }
+
+    .icon-badge {
+      width: 56px;
+      height: 56px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px;
+      font-size: 1.45rem;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .file-type-html {
+      background: linear-gradient(135deg, #06b6d4, #2563eb);
+    }
+
+    .file-type-zip {
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+    }
+
+    .file-type-apk {
+      background: linear-gradient(135deg, #22c55e, #14b8a6);
+    }
+
+    .file-type-other {
+      background: linear-gradient(135deg, #64748b, #334155);
+    }
+
+    .file-type-js {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .file-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: .45rem;
+      word-break: break-word;
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .42rem .7rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #dbe8fb;
+      font-size: .82rem;
+      font-weight: 600;
+    }
+
+    .file-desc {
+      color: var(--muted);
+      min-height: 44px;
+    }
+
+    .btn-modern {
+      border-radius: 14px;
+      font-weight: 700;
+      padding: .8rem 1rem;
+    }
+
+    .btn-download {
+      background: linear-gradient(135deg, #1fb6ff, #2563eb);
+      color: #fff;
+      border: 0;
+    }
+
+    .btn-download:hover {
+      color: #fff;
+      filter: brightness(1.05);
+    }
+
+    .btn-open {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-open:hover {
+      color: #fff;
+      border-color: rgba(31, 182, 255, 0.45);
+      background: rgba(31, 182, 255, 0.1);
+    }
+
+    .empty-state {
+      display: none;
+    }
+
+    @media (max-width: 767.98px) {
+      .hero-card {
+        padding: 1.35rem;
+      }
+
+      .file-desc {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+
+    <div class="container py-4 py-lg-5">
+
+
+      <section class="mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+          <div>
+            <h2 class="section-title mb-1">Daftar Extra Aplikasi</h2>
+            <p class="section-subtitle">Berbagai Aplikasi Tambahan untuk Kebutuhan Arbitrage Cryptocurrency</p>
+          </div>
+          <div class="w-100" style="max-width: 360px;">
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-dark border-secondary text-light">
+                <i class="bi bi-search"></i>
+              </span>
+              <input type="text" id="searchInput" class="form-control bg-dark border-secondary text-light"
+                placeholder="Cari file...">
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          <button class="filter-chip active" data-filter="all" type="button">Semua</button>
+          <button class="filter-chip" data-filter="html" type="button">HTML</button>
+          <button class="filter-chip" data-filter="zip" type="button">ZIP</button>
+          <button class="filter-chip" data-filter="apk" type="button">APK</button>
+          <button class="filter-chip" data-filter="js" type="button">Script</button>
+        </div>
+
+        <div class="row g-4" id="fileGrid"></div>
+
+        <div class="empty-state text-center py-5" id="emptyState">
+          <div class="hero-card mx-auto" style="max-width: 520px;">
+            <div class="icon-badge file-type-other mx-auto">
+              <i class="bi bi-folder-x"></i>
+            </div>
+            <h3 class="h4 fw-bold mb-2">Tidak ada file yang cocok</h3>
+            <p class="mb-0 text-secondary">Ubah kata kunci pencarian atau pilih filter tipe file yang lain.</p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const files = [
+      {
+        name: 'Portofolio Crypto',
+        type: 'html',
+        icon: 'bi-currency-dollar',
+        desc: 'Aplikasi Pengecekan Portofolio Crypto pada Banyak Exchanger dan Multi Chain.',
+        href: 'portfolio.html',
+        action: 'open'
+      },
+      {
+        name: 'Scanner Liquidity Pool ',
+        type: 'html',
+        icon: 'bi-window-stack',
+        desc: 'Aplikasi Scanner Pencari Liquidity Pool (LP) Blockchain berdasarkan daftar koin file CSV',
+        href: 'scanner-LP.html',
+        action: 'open'
+      },
+      {
+        name: 'MultiChecker Saldo',
+        type: 'html',
+        icon: 'bi-bar-chart-line',
+        desc: 'Aplikasi MultiChecker untuk memeriksa saldo di berbagai alamat dan chain sekaligus.',
+        href: 'multichecker-saldo.html',
+        action: 'open'
+      },
+      
+      {
+        name: 'AddON-Pencari-Selisih.zip',
+        type: 'zip',
+        size: '863.2 KB',
+        icon: 'bi-file-earmark-arrow-down',
+        desc: 'AddOn Browser untuk Pencarian Selisih Harga (Arbitrage) di berbagai DEX,CEX & Chain.',
+        href: 'AddON-Pencari-Selisih.zip',
+        action: 'download'
+      },
+      {
+        name: 'ANDROID-Mini-Scanner.apk',
+        type: 'apk',
+        size: '13.35 MB',
+        icon: 'bi-android2',
+        desc: 'Aplikasi Android untuk Mini Scanning.',
+        href: 'ANDROID-Mini-Scanner.apk',
+        action: 'download'
+      },
+      {
+        name: 'AddON-Gas-Gwei.zip',
+        type: 'zip',
+        size: '271.8 KB',
+        icon: 'bi-file-earmark-zip',
+        desc: 'AddOn Browser untuk Monitoring gas gwei multichain.',
+        href: 'AddON-Gas-Gwei.zip',
+        action: 'download'
+      },
+      {
+        name: 'Rate USDT Calculator',
+        type: 'js',
+        size: '27.2 KB',
+        icon: 'bi-currency-exchange',
+        desc: 'Script injex Web DEX untuk Hitung Rate USDT & IDR secara real-time',
+        href: 'conversi_rate_usdt-tempermonkey.js',
+        action: 'download'
+      }
+    ];
+
+    function typeLabel(type) {
+      if (type === 'html') return 'Halaman';
+      if (type === 'zip') return 'Arsip';
+      if (type === 'apk') return 'Android APK';
+      if (type === 'js') return 'Tampermonkey Script';
+      return 'File';
+    }
+
+    function buttonHtml(file) {
+      if (file.action === 'open') {
+        return `
+          <a href="${file.href}" class="btn btn-open btn-modern w-100" target="_blank" rel="noopener">
+            <i class="bi bi-box-arrow-up-right me-2"></i>Buka Halaman
+          </a>
+        `;
+      }
+
+      return `
+        <a href="${file.href}" class="btn btn-download btn-modern w-100" download>
+          <i class="bi bi-download me-2"></i>Download File
+        </a>
+      `;
+    }
+
+    function renderFiles(filter = 'all', query = '') {
+      const normalizedQuery = String(query || '').toLowerCase().trim();
+      const filtered = files.filter((file) => {
+        const matchType = filter === 'all' || file.type === filter;
+        const matchSearch = !normalizedQuery || file.name.toLowerCase().includes(normalizedQuery);
+        return matchType && matchSearch;
+      });
+
+      const $grid = $('#fileGrid');
+      $grid.empty();
+
+      if (!filtered.length) {
+        $('#emptyState').show();
+        return;
+      }
+
+      $('#emptyState').hide();
+
+      filtered.forEach((file, index) => {
+        const card = `
+          <div class="col-12 col-sm-6 col-lg-3">
+            <div class="file-card h-100" style="animation: fadeUp .35s ease ${index * 0.05}s both;">
+              <div class="icon-badge file-type-${file.type}">
+                <i class="bi ${file.icon}"></i>
+              </div>
+              <div class="file-name">${file.name}</div>
+              <div class="mb-3">
+                <span class="meta-pill"><i class="bi bi-tags"></i>${typeLabel(file.type)}</span>
+              </div>
+              <p class="file-desc">${file.desc}</p>
+              <div class="mt-3">
+                ${buttonHtml(file)}
+              </div>
+            </div>
+          </div>
+        `;
+        $grid.append(card);
+      });
+    }
+
+    $(function () {
+      renderFiles();
+
+      $('.filter-chip').on('click', function () {
+        $('.filter-chip').removeClass('active');
+        $(this).addClass('active');
+        renderFiles($(this).data('filter'), $('#searchInput').val());
+      });
+
+      $('#searchInput').on('input', function () {
+        const activeFilter = $('.filter-chip.active').data('filter') || 'all';
+        renderFiles(activeFilter, $(this).val());
+      });
+    });
+  </script>
+  <style>
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</body>
+
+</html>

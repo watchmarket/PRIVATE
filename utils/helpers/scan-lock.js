@@ -18,6 +18,24 @@
     'use strict';
 
     // =================================================================================
+    // TAB ID — unik per-tab, disimpan di sessionStorage agar tidak bocor antar tab
+    // =================================================================================
+    function getTabId() {
+        try {
+            const KEY = 'TAB_ID';
+            let id = sessionStorage.getItem(KEY);
+            if (!id) {
+                id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+                sessionStorage.setItem(KEY, id);
+            }
+            return id;
+        } catch (_) {
+            return null;
+        }
+    }
+    if (typeof window !== 'undefined') window.getTabId = getTabId;
+
+    // =================================================================================
     // GLOBAL SCAN LOCK SYSTEM
     // =================================================================================
     /**

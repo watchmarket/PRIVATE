@@ -444,7 +444,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
             }
 
             // Reset UI state
-            $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled');
+            $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled').show();
             return; // Exit early - don't start scan
         }
     } catch (e) {
@@ -471,7 +471,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
             if (typeof toast !== 'undefined' && toast.error) {
                 toast.error('Gagal memulai scan - ada scan lain yang berjalan');
             }
-            $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled');
+            $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled').show();
             return; // Exit early
         }
 
@@ -526,10 +526,12 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
     if (typeof window.hideEmptySignalCards === 'function') window.hideEmptySignalCards();
 
     // Nonaktifkan sebagian besar kontrol UI untuk mencegah perubahan konfigurasi saat scan.
+    // ownsTheScan=true: tab ini sendiri yang memulai scan
     if (typeof setScanUIGating === 'function') setScanUIGating(true);
     form_off();
     $("#autoScrollCheckbox").show().prop('disabled', false);
-    $("#stopSCAN").show().prop('disabled', false);
+    // Tab A (scanning): STOP SCAN tanpa label chain — label hanya untuk Tab B/C
+    $("#stopSCAN").text('STOP SCAN').show().prop('disabled', false);
     $('.statusCheckbox').css({ 'pointer-events': 'auto', 'opacity': '1' }).prop('disabled', false);
 
     // Kirim notifikasi status 'ONLINE' ke Telegram.
@@ -2272,8 +2274,9 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
 
         // Aktifkan kembali UI.
         form_on();
-        $("#stopSCAN").hide().prop("disabled", true);
-        $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled');
+        // Reset teks tombol ke default dan sembunyikan
+        $("#stopSCAN").text('STOP SCAN').hide().prop("disabled", true);
+        $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled').show();
         // Release gating via centralized helper
         if (typeof setScanUIGating === 'function') setScanUIGating(false); // REFACTORED
         // Persist run=NO reliably before any potential next action
@@ -2299,8 +2302,9 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                 const $cd = $('#autoRunCountdown');
                 // Disable UI while waiting, similar to running state
                 $('#startSCAN').prop('disabled', true).addClass('uk-button-disabled'); // REFACTORED
-                $('#stopSCAN').show().prop('disabled', false);
-                if (typeof setScanUIGating === 'function') setScanUIGating(true);
+                // Scan selesai (countdown), reset label tombol kembali ke default
+                $('#stopSCAN').text('STOP SCAN').show().prop('disabled', false);
+                if (typeof setScanUIGating === 'function') setScanUIGating(true, true);
                 const tick = () => {
                     // Double-check feature + user flags on each tick
                     const stillEnabled = (window.CONFIG_APP?.APP?.AUTORUN !== false) && window.AUTORUN_ENABLED;
@@ -2410,7 +2414,7 @@ async function stopScanner() {
 
         // Reset UI ke state normal
         $('#stopSCAN').hide().prop('disabled', true);
-        $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled');
+        $('#startSCAN').prop('disabled', false).text('START SCAN').removeClass('uk-button-disabled').show();
         $('#autoRunCountdown').text('').css({ color: '', fontWeight: '' });
 
         // Release UI gating
