@@ -1061,7 +1061,7 @@
             polygon: { id: '137', name: 'Polygon', short: 'MATIC', color: '#9c6bf0', icon: 'assets/icons/chains/polygon.png' },
             base: { id: '8453', name: 'Base', short: 'BASE', color: '#0052ff', icon: 'assets/icons/chains/base.png' },
             arbitrum: { id: '42161', name: 'Arbitrum', short: 'ARB', color: '#28a0f0', icon: 'assets/icons/chains/arbitrum.png' },
-            avax: { id: '43114', name: 'Avalanche', short: 'AVAX', color: '#e84142', icon: '' },
+            avax: { id: '43114', name: 'Avalanche', short: 'AVAX', color: '#e84142', icon: 'assets/icons/chains/avax.png' },
             solana: { id: '501', name: 'Solana', short: 'SOL', color: '#9945ff', icon: 'assets/icons/chains/solana.png' },
         };
 
@@ -1743,7 +1743,7 @@
             // ══════════════════════════════════════════════════
             function getTotalSaldoCEXS() {
                 const allCEX = (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
-                    : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'];
+                    : CONFIG_UI.CEXES.map(c => c.key);
                 let total = 0;
                 allCEX.forEach(cex => { total += parseFloat(localStorage.getItem(`MULTI_${cex}Saldo`)) || 0; });
                 localStorage.setItem('MULTI_TotalSaldoCEX', total);
@@ -2288,17 +2288,17 @@
                 // Restore CEX rows
                 const allCEX = sortAscByLabel(
                     (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
-                        : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'],
+                        : CONFIG_UI.CEXES.map(c => c.key),
                     cex => cex
                 );
 
                 // Show/hide by enabledCEXs setting
                 const enabledCEXs = sortAscByLabel(
                     (typeof getEnabledCEXs === 'function') ? getEnabledCEXs()
-                        : ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'],
+                        : CONFIG_UI.CEXES.map(c => c.key),
                     cex => cex
                 );
-                ['BINANCE', 'GATE', 'BITGET', 'KUCOIN', 'BYBIT', 'INDODAX', 'MEXC', 'HTX', 'OKX'].forEach(cex => {
+                CONFIG_UI.CEXES.map(c => c.key).forEach(cex => {
                     const $row = $(`tr[data-cex="${cex}"]`);
                     if (enabledCEXs.includes(cex)) $row.show(); else $row.hide();
                 });

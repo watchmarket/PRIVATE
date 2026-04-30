@@ -25,6 +25,71 @@
 (function () {
     'use strict';
 
+    function getSelectedDexLimitStatus(filter) {
+        const dexSel = Array.from(new Set((filter?.dex || []).map(d => String(d).toLowerCase()).filter(Boolean)));
+        const limitDex = Number(window.CONFIG_APP?.APP?.LIMIT_DEX || 0);
+        const limitMetaDex = Number(window.CONFIG_APP?.APP?.LIMIT_METADEX || 0);
+        const metaDexEnabled = window.CONFIG_APP?.APP?.META_DEX === true;
+
+        let regularCount = 0;
+        let metaCount = 0;
+
+        dexSel.forEach(dx => {
+            const cfg = window.CONFIG_DEXS?.[dx];
+            if (!cfg || cfg.isBackendProvider) return;
+            if (cfg.isMetaDex) {
+                if (metaDexEnabled) metaCount++;
+                return;
+            }
+            regularCount++;
+        });
+
+        return {
+            regularCount,
+            metaCount,
+            limitDex,
+            limitMetaDex,
+            regularOver: limitDex > 0 && regularCount > limitDex,
+            metaOver: metaDexEnabled && limitMetaDex > 0 && metaCount > limitMetaDex
+        };
+    }
+
+    function validateDexSelectionBeforeScan() {
+        let filter = {};
+        try {
+            if (window.CEXModeManager && window.CEXModeManager.isCEXMode()) {
+                const currentCEX = window.CEXModeManager.getSelectedCEX();
+                filter = (typeof getFilterCEX === 'function') ? getFilterCEX(currentCEX) : {};
+            } else {
+                const mode = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
+                if (mode.type === 'single') {
+                    filter = (typeof getFilterChain === 'function') ? getFilterChain(mode.chain) : {};
+                } else {
+                    filter = (typeof getFilterMulti === 'function') ? getFilterMulti() : {};
+                }
+            }
+        } catch (_) {
+            filter = {};
+        }
+
+        const status = getSelectedDexLimitStatus(filter);
+        if (!status.regularOver && !status.metaOver) return true;
+
+        const details = [];
+        if (status.regularOver) details.push(`DEX regular ${status.regularCount}/${status.limitDex}`);
+        if (status.metaOver) details.push(`MetaDEX ${status.metaCount}/${status.limitMetaDex}`);
+
+        const msg = `Filter Scanner melebihi batas:\n${details.join('\n')}\n\nSilakan ubah Filter Scanner sebelum START SCAN.`;
+        try {
+            if (window.FlatDialog && typeof window.FlatDialog.alert === 'function') {
+                window.FlatDialog.alert(msg, 'Pembatasan, Pemilihan DEX & MetaDEX', 'warning');
+            }
+        } catch (_) { }
+        return false;
+    }
+
+    window.validateDexSelectionBeforeScan = validateDexSelectionBeforeScan;
+
     /**
      * Reload button handler
      * Per-tab reload: do NOT broadcast run=NO; only mark local flag
@@ -273,6 +338,10 @@
                 return; // do not start twice
             }
         } catch (_) { }
+
+        if (typeof validateDexSelectionBeforeScan === 'function' && !validateDexSelectionBeforeScan()) {
+            return;
+        }
 
         // === CEX MODE HANDLING ===
         // If in CEX mode, use specific CEX token fetching logic

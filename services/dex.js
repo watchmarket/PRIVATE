@@ -138,6 +138,35 @@
     return { FeeSwap: getFeeSwap(chainName), feeSource: 'fallback' };
   }
 
+  function formatUnitsForQuery(rawAmount, decimals) {
+    try {
+      const raw = BigInt(rawAmount);
+      const dec = Math.max(0, Number(decimals) || 0);
+      const base = BigInt(10) ** BigInt(dec);
+      const whole = raw / base;
+      const fraction = raw % base;
+      if (fraction === 0n) return whole.toString();
+      const frac = fraction.toString().padStart(dec, '0').replace(/0+$/, '');
+      return `${whole.toString()}.${frac}`;
+    } catch (_) {
+      const n = Number(rawAmount) / Math.pow(10, Number(decimals) || 0);
+      return Number.isFinite(n) ? String(n) : '0';
+    }
+  }
+
+  function normalizeWowmaxTokenAddress(address, codeChain) {
+    const zero = '0x0000000000000000000000000000000000000000';
+    const lower = String(address || '').toLowerCase();
+    const nativeWrapped = {
+      1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+      56: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
+      137: '0x0000000000000000000000000000000000001010',
+      42161: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+      8453: '0x4200000000000000000000000000000000000006'
+    };
+    return lower && lower === nativeWrapped[Number(codeChain)] ? zero : address;
+  }
+
   /**
    * Helper: Cap gas units dari API response agar tidak melebihi GASLIMIT config.js.
    * API kadang mengembalikan gasLimit yang sangat besar (terutama multi-hop route),
@@ -554,44 +583,6 @@
         return { amount_out, FeeSwap, feeSource, dexTitle: '1INCH', routeTool: 'HINKAL-1INCH' };
       }
     },
-    'hinkal-lifidex': {
-      /**
-       * Hinkal LiFi Proxy - Privacy-focused LiFi integration
-       * Endpoint: POST https://wallet-prodv11.hinkal.pro/server/LifiBridgeData
-       */
-      buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, SavedSettingData }) => {
-        const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
-        return {
-          url: 'https://wallet-prodv11.hinkal.pro/server/LifiBridgeData',
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          data: JSON.stringify({
-            fromChain: parseInt(codeChain),
-            toChain: parseInt(codeChain),
-            fromToken: sc_input_in,
-            toToken: sc_output_in,
-            fromAddress: userAddr,
-            fromAmount: amount_in_big.toString(),
-            order: 'FASTEST',
-            slippage: parseFloat(getSlippageValue()) / 100
-          })
-        };
-      },
-      parseResponse: (response, { des_output, chainName }) => {
-        const data = response?.lifiResponse || response;
-        const outRaw = data.toAmount || data.amount;
-        if (!outRaw) throw new Error('Invalid Hinkal-LIFIDX response: missing output amount');
-        const amount_out = parseFloat(outRaw) / Math.pow(10, des_output);
-        const feeUsd = parseFloat(data.gasCostUSD || 0);
-        const { FeeSwap, feeSource } = resolveFeeSwap(feeUsd, 0, chainName);
-        let toolName = 'LIFI';
-        try {
-          if (data.steps?.[0]?.toolDetails?.name) toolName = data.steps[0].toolDetails.name;
-          else if (data.steps?.[0]?.tool) toolName = data.steps[0].tool;
-        } catch (_) { }
-        return { amount_out, FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: `HINKAL-${toolName.toUpperCase()}` };
-      }
-    },
     'enkrypt-1inch': {
       proxy: true,
       buildRequest: ({ codeChain, sc_input, sc_output, amount_in_big, SavedSettingData }) => {
@@ -684,6 +675,7 @@
       }
     },
     matcha: {
+      proxy: true,  // Solana endpoint (matcha.xyz) requires CORS proxy
       buildRequest: ({ chainName, sc_input_in, sc_output_in, amount_in_big, codeChain, sc_output, sc_input, SavedSettingData }) => {
         /**
          * Matcha API - Official 0x Documentation
@@ -1168,6 +1160,51 @@
         return { amount_out, FeeSwap, feeSource, dexTitle: 'FLYTRADE', routeTool: 'FLYTRADE' };
       }
     },
+    wowmax: {
+      proxy: true,
+      buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, des_input }) => {
+        const chainId = Number(codeChain);
+        if (!Number.isFinite(chainId) || chainId <= 0) throw new Error('Wowmax: chainId tidak valid');
+        const amount = formatUnitsForQuery(amount_in_big, des_input);
+        const params = new URLSearchParams({
+          amount,
+          from: normalizeWowmaxTokenAddress(sc_input_in, chainId),
+          to: normalizeWowmaxTokenAddress(sc_output_in, chainId),
+          usePMM: 'true',
+          source: 'wowmax'
+        });
+        return {
+          url: `https://api-gateway.wowmax.exchange/chains/${chainId}/quote?${params.toString()}`,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8'
+          }
+        };
+      },
+      parseResponse: (response, { des_output, chainName }) => {
+        const outRaw = response?.amountOut;
+        if (!outRaw) throw new Error('WOWMAX: response tidak memiliki amountOut');
+        const amount_out = parseFloat(outRaw) / Math.pow(10, des_output);
+        if (!Number.isFinite(amount_out) || amount_out <= 0) throw new Error('Wowmax: amountOut tidak valid');
+
+        let directUsd = parseFloat(response?.gasCostUSD || 0) || 0;
+        let calcUsd = 0;
+        try {
+          if (!(directUsd > 0)) {
+            const gasUnitsRaw = parseFloat(response?.gasUnitsConsumed || 0) || 0;
+            const gasPriceWei = parseFloat(response?.gasPrice || 0) || 0;
+            const nativeUsd = parseFloat(response?.from?.priceUSD || 0) || 0;
+            if (gasUnitsRaw > 0 && gasPriceWei > 0 && nativeUsd > 0) {
+              const gasUnits = capGasUnits(gasUnitsRaw, chainName);
+              calcUsd = (gasUnits * gasPriceWei * nativeUsd) / 1e18;
+            }
+          }
+        } catch (_) { }
+        const { FeeSwap, feeSource } = resolveFeeSwap(directUsd, calcUsd, chainName);
+
+        return { amount_out, FeeSwap, feeSource, dexTitle: 'WOWMAX', routeTool: 'WOWMAX' };
+      }
+    },
     'dexview-okx': {
       proxy: true,  // ✅ Proxy required — CORS restriction on api.dexview.com
       buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, SavedSettingData }) => {
@@ -1253,42 +1290,8 @@
         return { amount_out, FeeSwap, feeSource, dexTitle: 'OKX', routeTool: 'DEXVIEW' };
       }
     },
-    temple: {
-      buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
-        const chainId = Number(codeChain);
-        const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
-        const params = new URLSearchParams({
-          fromChain: chainId.toString(),
-          toChain: chainId.toString(),
-          fromToken: sc_input_in,
-          toToken: sc_output_in,
-          amount: amount_in_big.toString(),
-          fromAddress: userAddr,
-          slippage: getSlippageValue()  // USER-CONFIGURABLE (percentage)
-        });
-        return {
-          url: `https://temple-api-evm.prod.templewallet.com/api/swap-route?${params.toString()}`,
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json; charset=utf-8' }
-        };
-      },
-      parseResponse: (response, { des_output, chainName }) => {
-        if (!response || !response.toAmount) throw new Error("Invalid Temple/LIFI response - missing toAmount");
-        const amount_out = parseFloat(response.toAmount) / Math.pow(10, des_output);
-        let _tDirectUsd = 0;
-        try { _tDirectUsd = parseFloat(response.gasCostUSD || 0); } catch (_) { }
-        const { FeeSwap, feeSource } = resolveFeeSwap(_tDirectUsd, 0, chainName);
-        let routeTool = 'LIFI';
-        try {
-          if (response.steps?.length > 0) {
-            const toolName = response.steps[0]?.toolDetails?.name || response.steps[0]?.tool || '';
-            if (toolName) routeTool = String(toolName).toUpperCase();
-          }
-        } catch (_) { }
-        return { amount_out, FeeSwap, feeSource, dexTitle: 'LIFIDX', routeTool: String(routeTool).toUpperCase() };
-      }
-    },
   };
+
   function createOdosStrategy(version) {
     const endpoint = `https://api.odos.xyz/sor/quote/${version}`;
     return {
@@ -1368,7 +1371,7 @@
     }
   };
 
-  dexStrategies['brave-jumper'] = {
+  dexStrategies['lifi'] = {
     buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
       const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
       const lifiChainId = chainConfig?.LIFI_CHAIN_ID || Number(codeChain);
@@ -1405,7 +1408,7 @@
         const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(route.gasCostUSD || 0), 0, chainName);
         let dexTitle = 'LIFI';
         try { dexTitle = String(route.steps?.[0]?.toolDetails?.name || 'LIFI').toUpperCase(); } catch (_) { }
-        subResults.push({ amount_out, FeeSwap, feeSource, dexTitle, routeTool: 'BRAVE-JUMPER' });
+        subResults.push({ amount_out, FeeSwap, feeSource, dexTitle, routeTool: 'LIFI' });
         if (subResults.length >= 3) break;
       }
       // ✅ Filter blacklisted providers dari config offDexResultScan
@@ -1415,7 +1418,6 @@
       return { amount_out: filtered[0].amount_out, FeeSwap: filtered[0].FeeSwap, feeSource: filtered[0].feeSource, dexTitle: filtered[0].dexTitle, routeTool: 'LIFI', subResults: filtered, isMultiDex: true };
     }
   };
-
   function createFilteredTalismanStrategy(allowExchanges, dexTitleLabel) {
     return {
       buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
@@ -1442,7 +1444,6 @@
             executionType: 'all'
           }
         };
-        // Apply exchange filter if provided
         if (allowExchanges) {
           body.options.allowExchanges = Array.isArray(allowExchanges) ? allowExchanges : [allowExchanges];
         }
@@ -1454,37 +1455,29 @@
         const subResults = [];
         for (const route of routes) {
           if (!route || !route.toAmount) continue;
+
+          // STRICT VALIDATION: Check if returned tool matches our target label
+          const actualTool = String(route.steps?.[0]?.toolDetails?.name || '').toUpperCase();
+          if (dexTitleLabel && !actualTool.includes(dexTitleLabel.toUpperCase()) && !dexTitleLabel.toUpperCase().includes(actualTool)) {
+            continue; // Skip mismatched route
+          }
+
           const amount_out = parseFloat(route.toAmount) / Math.pow(10, des_output);
           const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(route.gasCostUSD || 0), 0, chainName);
-          let dexTitle = dexTitleLabel || 'LIFI';
-          try {
-            if (!dexTitleLabel) dexTitle = String(route.steps?.[0]?.toolDetails?.name || 'LIFI').toUpperCase();
-          } catch (_) { }
+          let dexTitle = dexTitleLabel || actualTool || 'LIFI';
           subResults.push({ amount_out, FeeSwap, feeSource, dexTitle, routeTool: `TALISMAN-${dexTitleLabel || 'JUMPER'}` });
           if (subResults.length >= 3) break;
         }
         const filtered = filterOffDexResults(subResults);
-        if (filtered.length === 0) throw new Error(`TALISMAN-${dexTitleLabel || 'JUMPER'}: Results filtered`);
+        if (filtered.length === 0) throw new Error(`TALISMAN-${dexTitleLabel || 'JUMPER'}: No matching DEX found (Requested: ${dexTitleLabel || 'ANY'})`);
         filtered.sort((a, b) => b.amount_out - a.amount_out);
-        return {
-          amount_out: filtered[0].amount_out,
-          FeeSwap: filtered[0].FeeSwap,
-          feeSource: filtered[0].feeSource,
-          dexTitle: filtered[0].dexTitle,
-          routeTool: filtered[0].routeTool,
-          subResults: filtered,
-          isMultiDex: !dexTitleLabel
-        };
+        return { amount_out: filtered[0].amount_out, FeeSwap: filtered[0].FeeSwap, feeSource: filtered[0].feeSource, dexTitle: filtered[0].dexTitle, routeTool: filtered[0].routeTool, subResults: filtered, isMultiDex: !dexTitleLabel };
       }
     };
   }
 
-  dexStrategies['talisman-jumper'] = createFilteredTalismanStrategy(null, null);
-  dexStrategies['talisman-flytrade'] = createFilteredTalismanStrategy('fly', 'FLYTRADE');
-  dexStrategies['talisman-velora'] = createFilteredTalismanStrategy('paraswap', 'VELORA');
-  dexStrategies['talisman-kyber'] = createFilteredTalismanStrategy('kyberswap', 'KYBER');
 
-  function createFilteredZapperStrategy(allowExchanges, dexTitleLabel) {
+  function createFilteredBraveStrategy(allowExchanges, dexTitleLabel) {
     return {
       buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
         const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
@@ -1493,51 +1486,187 @@
         const fromToken = isSolana ? sc_input_in : sc_input.toLowerCase();
         const toToken = isSolana ? sc_output_in : sc_output.toLowerCase();
         const userAddr = isSolana ? (SavedSettingData?.walletSolana || 'So11111111111111111111111111111111111111112') : (SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000');
-        const params = new URLSearchParams({
-          fromChain: lifiChainId.toString(),
-          toChain: lifiChainId.toString(),
-          fromToken: fromToken,
-          toToken: toToken,
-          fromAmount: amount_in_big.toString(),
+        const body = {
           fromAddress: userAddr,
-          slippage: String(parseFloat(getSlippageValue()) / 100),
-          integrator: 'zapper',
-          fee: '0.004'
-        });
-        // Apply exchange filter if provided
+          fromAmount: amount_in_big.toString(),
+          fromChainId: lifiChainId,
+          fromTokenAddress: fromToken,
+          toChainId: lifiChainId,
+          toTokenAddress: toToken,
+          options: {
+            integrator: 'brave',
+            order: 'CHEAPEST',
+            slippage: parseFloat(getSlippageValue()) / 100,
+            maxPriceImpact: 0.4,
+            jitoBundle: true,
+            allowSwitchChain: true,
+            executionType: 'all'
+          }
+        };
         if (allowExchanges) {
-          params.append('allowExchanges', Array.isArray(allowExchanges) ? allowExchanges.join(',') : allowExchanges);
+          body.options.allowExchanges = Array.isArray(allowExchanges) ? allowExchanges : [allowExchanges];
         }
-        return { url: `https://zapper.xyz/api/lifi/quote?${params.toString()}`, method: 'GET' };
+        return { url: 'https://lifi.wallet.brave.com/v1/advanced/routes', method: 'POST', data: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } };
       },
       parseResponse: (response, { des_output, chainName }) => {
-        if (!response?.estimate?.toAmount) throw new Error(`ZAPPER-${dexTitleLabel || 'JUMPER'}: No valid quote received`);
-        const amount_out = parseFloat(response.estimate.toAmount) / Math.pow(10, des_output);
-        let gasCostUsd = 0;
-        if (response.estimate.gasCosts) gasCostUsd = response.estimate.gasCosts.reduce((sum, gc) => sum + parseFloat(gc.amountUSD || 0), 0);
-        const { FeeSwap, feeSource } = resolveFeeSwap(gasCostUsd, 0, chainName);
+        const routes = response?.routes;
+        if (!routes || !Array.isArray(routes) || routes.length === 0) throw new Error(`BRAVE-${dexTitleLabel || 'JUMPER'}: No routes found`);
+        const subResults = [];
+        for (const route of routes) {
+          if (!route || !route.toAmount) continue;
 
-        let dexTitle = dexTitleLabel || 'LIFI';
-        try {
-          if (!dexTitleLabel) dexTitle = String(response.toolDetails?.name || response.tool || 'ZAPPER').toUpperCase();
-        } catch (_) { }
+          // STRICT VALIDATION: Check if returned tool matches our target label
+          const actualTool = String(route.steps?.[0]?.toolDetails?.name || '').toUpperCase();
+          if (dexTitleLabel && !actualTool.includes(dexTitleLabel.toUpperCase()) && !dexTitleLabel.toUpperCase().includes(actualTool)) {
+            continue; // Skip mismatched route
+          }
 
-        const result = { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `ZAPPER-${dexTitleLabel || 'JUMPER'}` };
-        return {
-          ...result,
-          subResults: [result],
-          isMultiDex: !dexTitleLabel
-        };
+          const amount_out = parseFloat(route.toAmount) / Math.pow(10, des_output);
+          const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(route.gasCostUSD || 0), 0, chainName);
+          let dexTitle = dexTitleLabel || actualTool || 'LIFI';
+          subResults.push({ amount_out, FeeSwap, feeSource, dexTitle, routeTool: `BRAVE-${dexTitleLabel || 'JUMPER'}` });
+          if (subResults.length >= 3) break;
+        }
+        const filtered = filterOffDexResults(subResults);
+        if (filtered.length === 0) throw new Error(`BRAVE-${dexTitleLabel || 'JUMPER'}: No matching DEX found (Requested: ${dexTitleLabel || 'ANY'})`);
+        filtered.sort((a, b) => b.amount_out - a.amount_out);
+        return { amount_out: filtered[0].amount_out, FeeSwap: filtered[0].FeeSwap, feeSource: filtered[0].feeSource, dexTitle: filtered[0].dexTitle, routeTool: filtered[0].routeTool, subResults: filtered, isMultiDex: !dexTitleLabel };
       }
     };
   }
 
-  dexStrategies['zapper-jumper'] = createFilteredZapperStrategy(null, null);
-  dexStrategies['zapper-flytrade'] = createFilteredZapperStrategy('fly', 'FLYTRADE');
-  dexStrategies['zapper-velora'] = createFilteredZapperStrategy('paraswap', 'VELORA');
-  dexStrategies['zapper-kyber'] = createFilteredZapperStrategy('kyberswap', 'KYBER');
 
-  function createFilteredBackpackStrategy(allowExchanges, dexTitleLabel) {
+  // ✅ 4 canonical unfiltered aliases
+  dexStrategies['brave'] = dexStrategies['lifi'];                     // Brave    — POST /advanced/routes (lifi.wallet.brave.com)
+  dexStrategies['talisman'] = createFilteredTalismanStrategy(null, null); // Talisman — POST /advanced/routes (lifi.talisman.xyz)
+
+  dexStrategies['zapper'] = {
+    buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
+      const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
+      const lifiChainId = chainConfig?.LIFI_CHAIN_ID || Number(codeChain);
+      const isSolana = String(chainName || '').toLowerCase() === 'solana';
+      const fromToken = isSolana ? sc_input_in : sc_input.toLowerCase();
+      const toToken = isSolana ? sc_output_in : sc_output.toLowerCase();
+      const userAddr = isSolana ? (SavedSettingData?.walletSolana || 'So11111111111111111111111111111111111111112') : (SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000');
+      const params = new URLSearchParams({
+        fromChain: lifiChainId.toString(),
+        toChain: lifiChainId.toString(),
+        fromToken: fromToken,
+        toToken: toToken,
+        fromAmount: amount_in_big.toString(),
+        fromAddress: userAddr,
+        slippage: String(parseFloat(getSlippageValue()) / 100),
+        integrator: 'zapper',
+        fee: '0.004'
+      });
+      return { url: `https://zapper.xyz/api/lifi/quote?${params.toString()}`, method: 'GET' };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      if (!response?.estimate?.toAmount) throw new Error(`ZAPPER: No valid quote received`);
+      const actualTool = String(response.toolDetails?.name || response.tool || '').toUpperCase();
+      const amount_out = parseFloat(response.estimate.toAmount) / Math.pow(10, des_output);
+      let gasCostUsd = 0;
+      if (response.estimate.gasCosts) gasCostUsd = response.estimate.gasCosts.reduce((sum, gc) => sum + parseFloat(gc.amountUSD || 0), 0);
+      const { FeeSwap, feeSource } = resolveFeeSwap(gasCostUsd, 0, chainName);
+      const dexTitle = actualTool || 'LIFI';
+      const result = { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `ZAPPER` };
+      return { ...result, subResults: [result], isMultiDex: true };
+    }
+  };
+
+  dexStrategies['backpack'] = {
+    buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
+      const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
+      const lifiChainId = chainConfig?.LIFI_CHAIN_ID || Number(codeChain);
+      const isSolana = String(chainName || '').toLowerCase() === 'solana';
+      const fromToken = isSolana ? sc_input_in : sc_input.toLowerCase();
+      const toToken = isSolana ? sc_output_in : sc_output.toLowerCase();
+      const userAddr = isSolana ? (SavedSettingData?.walletSolana || 'So11111111111111111111111111111111111111112') : (SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000');
+      const params = new URLSearchParams({
+        fromChain: lifiChainId.toString(),
+        toChain: lifiChainId.toString(),
+        fromToken: fromToken,
+        toToken: toToken,
+        fromAmount: amount_in_big.toString(),
+        fromAddress: userAddr,
+        toAddress: userAddr,
+        slippage: String(parseFloat(getSlippageValue()) / 100)
+      });
+      return { url: `https://lifi.workers.madlads.com/quote?${params.toString()}`, method: 'GET' };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      if (!response?.estimate?.toAmount) throw new Error(`BACKPACK: No valid quote received`);
+      const actualTool = String(response.toolDetails?.name || response.tool || '').toUpperCase();
+      const amount_out = parseFloat(response.estimate.toAmount) / Math.pow(10, des_output);
+      let gasCostUsd = 0;
+      if (response.estimate.gasCosts) gasCostUsd = response.estimate.gasCosts.reduce((sum, gc) => sum + parseFloat(gc.amountUSD || 0), 0);
+      const { FeeSwap, feeSource } = resolveFeeSwap(gasCostUsd, 0, chainName);
+      const dexTitle = actualTool || 'LIFI';
+      const result = { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `BACKPACK` };
+      return { ...result, subResults: [result], isMultiDex: true };
+    }
+  };
+
+
+  // ✅ Unified LiFi filter factory
+  // Usage: createLiFiFilterStrategy('brave', 'kyberswap', 'KYBER')
+  //        createLiFiFilterStrategy('talisman', 'openocean', 'OPENOCEAN')
+  function createLiFiFilterStrategy(provider, allowExchanges, dexTitleLabel) {
+    const p = String(provider).toLowerCase();
+    if (p === 'brave') return createFilteredBraveStrategy(allowExchanges, dexTitleLabel);
+    if (p === 'talisman') return createFilteredTalismanStrategy(allowExchanges, dexTitleLabel);
+    throw new Error(`[LiFi] Unknown provider: "${provider}". Valid: brave, talisman`);
+  }
+
+  // DEX filter map: strategy-suffix → [lifi-exchange-slug, LABEL]
+  const LIFI_DEX_MAP = {
+    'kyber': ['kyberswap', 'KYBER'],
+    'velora': ['paraswap', 'VELORA'],
+    'odos': ['odos', 'ODOS'],
+    'matcha': ['0x', 'MATCHA'],
+    'okx': ['okx', 'OKX'],
+    'sushi': ['sushiswap', 'SUSHI'],
+    'openocean': ['openocean', 'OPENOCEAN'],
+    'flytrade': ['fly', 'FLYTRADE'],
+    '1inch': ['1inch', '1INCH'],
+    'eisen': ['eisen', 'EISEN'],
+    'cowswap': ['cow', 'COWSWAP'],
+    'jupiter': ['jupiter', 'JUPITER']  // Solana — LiFi routes through Jupiter
+  };
+
+  // Auto-register: brave-kyber, brave-velora, talisman-kyber, talisman-velora, dll.
+  ['brave', 'talisman'].forEach(function (provider) {
+    Object.entries(LIFI_DEX_MAP).forEach(function (_ref) {
+      var dexKey = _ref[0], lifiSlug = _ref[1][0], label = _ref[1][1];
+      dexStrategies[provider + '-' + dexKey] = createLiFiFilterStrategy(provider, lifiSlug, label);
+    });
+  });
+
+  // =============================
+  // Deny-based backup strategies — Enso & Nordstern
+  // =============================
+  const _LIFI_DENY_ALL_EXCEPT_ENSO = [
+    "1inch","aftermath","bebop","bitget","bluefin7k","cetus","dflow","dodo","eisen",
+    "fly","gluex","hyperbloom","hyperflow","hyperliquidSpotDex","hypertrade",
+    "jupiter","kumbaya","kuru","kyberswap","lifiIntentsDex","lifidexaggregator",
+    "liquidswap","merkle","momentum","monorail","nordstern","odos","okx",
+    "openocean","paraswap","sushiswap","titan"
+  ];
+  
+  const _LIFI_DENY_ALL_EXCEPT_NORDSTERN = [
+    "1inch","aftermath","bebop","bitget","bluefin7k","cetus","dflow","dodo","eisen",
+    "enso","fly","gluex","hyperbloom","hyperflow","hyperliquidSpotDex","hypertrade",
+    "jupiter","kumbaya","kuru","kyberswap","lifiIntentsDex","lifidexaggregator",
+    "liquidswap","merkle","momentum","monorail","odos","okx","openocean",
+    "paraswap","sushiswap","titan"
+  ];
+
+  function createLiFiDenyStrategy(provider, denyList, dexTitle) {
+    const endpointMap = {
+      brave: 'https://lifi.wallet.brave.com/v1/advanced/routes',
+      talisman: 'https://lifi.talisman.xyz/v1/advanced/routes'
+    };
+    const url = endpointMap[provider] || endpointMap.brave;
     return {
       buildRequest: ({ codeChain, sc_input, sc_output, sc_input_in, sc_output_in, amount_in_big, SavedSettingData, chainName }) => {
         const chainConfig = (root.CONFIG_CHAINS || {})[String(chainName || '').toLowerCase()];
@@ -1545,47 +1674,55 @@
         const isSolana = String(chainName || '').toLowerCase() === 'solana';
         const fromToken = isSolana ? sc_input_in : sc_input.toLowerCase();
         const toToken = isSolana ? sc_output_in : sc_output.toLowerCase();
-        const userAddr = isSolana ? (SavedSettingData?.walletSolana || 'So11111111111111111111111111111111111111112') : (SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000');
-        const params = new URLSearchParams({
-          fromChain: lifiChainId.toString(),
-          toChain: lifiChainId.toString(),
-          fromToken: fromToken,
-          toToken: toToken,
-          fromAmount: amount_in_big.toString(),
+        const userAddr = isSolana
+          ? (SavedSettingData?.walletSolana || 'So11111111111111111111111111111111111111112')
+          : (SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000');
+        const body = {
           fromAddress: userAddr,
-          toAddress: userAddr,
-          slippage: String(parseFloat(getSlippageValue()) / 100)
-        });
-        // Apply exchange filter if provided
-        if (allowExchanges) {
-          params.append('allowExchanges', Array.isArray(allowExchanges) ? allowExchanges.join(',') : allowExchanges);
-        }
-        return { url: `https://lifi.workers.madlads.com/quote?${params.toString()}`, method: 'GET' };
+          fromAmount: amount_in_big.toString(),
+          fromChainId: lifiChainId,
+          fromTokenAddress: fromToken,
+          toChainId: lifiChainId,
+          toTokenAddress: toToken,
+          options: {
+            integrator: 'jumper.exchange',
+            order: 'CHEAPEST',
+            maxPriceImpact: 0.4,
+            jitoBundle: true,
+            allowSwitchChain: true,
+            exchanges: { deny: denyList },
+            executionType: 'all'
+          }
+        };
+        return { url, method: 'POST', data: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } };
       },
       parseResponse: (response, { des_output, chainName }) => {
-        if (!response?.estimate?.toAmount) throw new Error(`BACKPACK-${dexTitleLabel || 'JUMPER'}: No valid quote received`);
-        const amount_out = parseFloat(response.estimate.toAmount) / Math.pow(10, des_output);
-        let gasCostUsd = 0;
-        if (response.estimate.gasCosts) gasCostUsd = response.estimate.gasCosts.reduce((sum, gc) => sum + parseFloat(gc.amountUSD || 0), 0);
-        const { FeeSwap, feeSource } = resolveFeeSwap(gasCostUsd, 0, chainName);
-
-        let dexTitle = dexTitleLabel || 'LIFI';
-        try {
-          if (!dexTitleLabel) dexTitle = String(response.toolDetails?.name || response.tool || 'BACKPACK').toUpperCase();
-        } catch (_) { }
-
-        const result = { amount_out, FeeSwap, feeSource, dexTitle, routeTool: `BACKPACK-${dexTitleLabel || 'JUMPER'}` };
+        const routes = response?.routes;
+        if (!routes || !Array.isArray(routes) || routes.length === 0) {
+          throw new Error(`${provider.toUpperCase()}-${dexTitle}: No routes found`);
+        }
+        const best = routes.find(r => r?.toAmount) || routes[0];
+        if (!best?.toAmount) throw new Error(`${provider.toUpperCase()}-${dexTitle}: No valid route`);
+        const amount_out = parseFloat(best.toAmount) / Math.pow(10, des_output);
+        if (!Number.isFinite(amount_out) || amount_out <= 0) {
+          throw new Error(`${provider.toUpperCase()}-${dexTitle}: invalid output amount`);
+        }
+        const { FeeSwap, feeSource } = resolveFeeSwap(parseFloat(best.gasCostUSD || 0), 0, chainName);
+        const actualTool = String(best.steps?.[0]?.toolDetails?.name || dexTitle).toUpperCase();
         return {
-          ...result,
-          subResults: [result],
-          isMultiDex: !dexTitleLabel
+          amount_out, FeeSwap, feeSource,
+          dexTitle: actualTool || dexTitle,
+          routeTool: `${provider.toUpperCase()}-${dexTitle}`
         };
       }
     };
   }
 
-  dexStrategies['backpack-jumper'] = createFilteredBackpackStrategy(null, null);
-  dexStrategies['backpack-flytrade'] = createFilteredBackpackStrategy('fly', 'FLYTRADE');
+  dexStrategies['brave-enso']         = createLiFiDenyStrategy('brave',    _LIFI_DENY_ALL_EXCEPT_ENSO,      'ENSO');
+  dexStrategies['talisman-enso']      = createLiFiDenyStrategy('talisman', _LIFI_DENY_ALL_EXCEPT_ENSO,      'ENSO');
+  dexStrategies['brave-nordstern']    = createLiFiDenyStrategy('brave',    _LIFI_DENY_ALL_EXCEPT_NORDSTERN, 'NORDSTERN');
+  dexStrategies['talisman-nordstern'] = createLiFiDenyStrategy('talisman', _LIFI_DENY_ALL_EXCEPT_NORDSTERN, 'NORDSTERN');
+
 
 
 
@@ -1733,6 +1870,50 @@
     }
   };
 
+  // GET https://www.okx.com/api/v6/dex/aggregator/quote — uses shared OKX pool, adds feePercent=0.6
+  dexStrategies['birdeye-okx'] = {
+    proxy: true,
+    buildRequest: ({ amount_in_big, codeChain, sc_input_in, sc_output_in }) => {
+      const selectedApiKey = getRandomApiKeyOKX(apiKeysOKXDEX);
+      const timestamp = new Date().toISOString();
+      const path = "/api/v6/dex/aggregator/quote";
+      const queryParams = `feePercent=0.6&fromTokenAddress=${sc_input_in}&toTokenAddress=${sc_output_in}&amount=${amount_in_big}&chainIndex=${codeChain}`;
+      const dataToSign = timestamp + "GET" + path + "?" + queryParams;
+      const signature = calculateSignature("OKX", selectedApiKey.secretKeyOKX, dataToSign);
+      return {
+        url: `https://www.okx.com${path}?${queryParams}`,
+        method: 'GET',
+        headers: {
+          "OK-ACCESS-KEY": selectedApiKey.ApiKeyOKX,
+          "OK-ACCESS-SIGN": signature,
+          "OK-ACCESS-PASSPHRASE": selectedApiKey.PassphraseOKX,
+          "OK-ACCESS-TIMESTAMP": timestamp,
+          "Content-Type": "application/json"
+        }
+      };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      const d0 = (Array.isArray(response?.data)) ? response.data[0] : (Array.isArray(response?.data?.data) ? response.data.data[0] : null);
+      if (!d0 || (!d0.toTokenAmount && !d0.routerResult?.toTokenAmount)) throw new Error("birdeye-okx: invalid response, missing toTokenAmount");
+      const amount_out = parseFloat(d0.toTokenAmount) / Math.pow(10, des_output);
+      if (!Number.isFinite(amount_out) || amount_out <= 0) throw new Error('birdeye-okx: invalid output amount');
+      let _calcUsd = 0;
+      try {
+        const gasUnitsRaw = parseFloat(d0.estimateGasFee || 0);
+        if (gasUnitsRaw > 0) {
+          const gasUnits = capGasUnits(gasUnitsRaw, chainName);
+          const allGasData = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage("ALL_GAS_FEES") : null;
+          if (allGasData) {
+            const gasInfo = allGasData.find(g => String(g.chain || '').toLowerCase() === String(chainName || '').toLowerCase());
+            if (gasInfo?.gwei && gasInfo?.tokenPrice) _calcUsd = (parseFloat(gasInfo.gwei) * gasUnits / 1e9) * parseFloat(gasInfo.tokenPrice);
+          }
+        }
+      } catch (_) { }
+      const { FeeSwap, feeSource } = resolveFeeSwap(0, _calcUsd, chainName);
+      return { amount_out, FeeSwap, feeSource, dexTitle: 'OKX', routeTool: 'BIRDEYE-OKX' };
+    }
+  };
+
   function createFilteredC98Strategy(backerName, dexTitle) {
     const NATIVE_TOKEN = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
     const NATIVE_SYMBOLS = { '1': 'ETH', '56': 'BNB', '137': 'MATIC', '42161': 'ETH', '8453': 'ETH', '10': 'ETH', '43114': 'AVAX' };
@@ -1763,6 +1944,94 @@
 
   dexStrategies['c98-okx'] = createFilteredC98Strategy('okx', 'OKX');
   dexStrategies['c98-matcha'] = createFilteredC98Strategy('0x', 'MATCHA');
+
+  dexStrategies['openocean'] = {
+    proxy: true,
+    buildRequest: ({ codeChain, chainName, sc_input_in, sc_output_in, amount_in_big, des_input, SavedSettingData, action, nameToken, namePair }) => {
+      const isSolana = String(chainName || '').toLowerCase() === 'solana';
+      const amountHuman = (parseFloat(amount_in_big) / Math.pow(10, des_input)).toString();
+
+      if (isSolana) {
+        // Solana: different endpoint and requires inTokenSymbol / outTokenSymbol
+        // referrer = Solana base58 wallet, account = dummy EVM address
+        const isTTP = String(action || '').toLowerCase() === 'tokentopair';
+        const inSymbol = String(isTTP ? (nameToken || '') : (namePair || ''));
+        const outSymbol = String(isTTP ? (namePair || '') : (nameToken || ''));
+        const params = new URLSearchParams({
+          quoteType: 'swap',
+          inTokenSymbol: inSymbol,
+          inTokenAddress: sc_input_in,
+          outTokenSymbol: outSymbol,
+          outTokenAddress: sc_output_in,
+          amountAll: amountHuman,
+          amount: String(amount_in_big),
+          gasPrice: '5000000000',
+          slippage: '100',
+          referrer: 'yEVG5DpokLuVRAqoWeKJANBY2wynzgTSXUbGz7aDKBq',
+          disabledDexIds: '',
+          disableRfq: '',
+          account: '0x0000000000000000000000000000000000000000',
+        });
+        return {
+          url: `https://ethapi.openocean.finance/v1/solana/quote?${params.toString()}`,
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json; charset=utf-8' }
+        };
+      }
+
+      // EVM chains
+      const chainId = codeChain || 1;
+      const wallet = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+      const params = new URLSearchParams({
+        quoteType: 'swap',
+        inTokenAddress: sc_input_in,
+        outTokenAddress: sc_output_in,
+        amountAll: amountHuman,
+        amount: String(amount_in_big),
+        gasPrice: '5000000000',
+        slippage: '50',
+        referrer: '0x3487ef9f9b36547e43268b8f0e2349a226c70b53',
+        disabledDexIds: '',
+        disableRfq: '',
+        account: wallet,
+        isSwapX: 'false'
+      });
+      return {
+        url: `https://open-api.openocean.finance/v4/app/${chainId}/quote?${params.toString()}`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' }
+      };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      const isSolana = String(chainName || '').toLowerCase() === 'solana';
+      const rawOut = response?.outAmount;
+      if (!rawOut) throw new Error('OpenOcean: missing outAmount in response');
+      const amount_out = parseFloat(rawOut) / Math.pow(10, des_output);
+      if (!Number.isFinite(amount_out) || amount_out <= 0) throw new Error('OpenOcean: invalid output amount');
+      let calcUsd = 0;
+      try {
+        if (isSolana) {
+          // Solana: fee is in lamports (from networkFee or gasUsd field)
+          const feeRaw = parseFloat(response?.gasUsd || response?.networkFee || 0);
+          if (feeRaw > 0) calcUsd = feeRaw;
+        } else {
+          // EVM: fee derived from estimatedGas × gwei × tokenPrice
+          const gasEstimate = parseFloat(response?.estimatedGas || 0);
+          if (gasEstimate > 0) {
+            const allGasData = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('ALL_GAS_FEES') : null;
+            if (allGasData) {
+              const gasInfo = allGasData.find(g => String(g.chain || '').toLowerCase() === String(chainName || '').toLowerCase());
+              if (gasInfo?.gwei && gasInfo?.tokenPrice) {
+                calcUsd = (gasEstimate * parseFloat(gasInfo.gwei) * parseFloat(gasInfo.tokenPrice)) / 1e9;
+              }
+            }
+          }
+        }
+      } catch (_) { }
+      const { FeeSwap, feeSource } = resolveFeeSwap(0, calcUsd, chainName);
+      return { amount_out, FeeSwap, feeSource, dexTitle: 'OPENOCEAN', routeTool: 'OPENOCEAN' };
+    }
+  };
 
   dexStrategies['c98-lifidex'] = {
     buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big, des_input, des_output, SavedSettingData }) => {
@@ -2417,6 +2686,115 @@
   };
 
   // =============================
+  // EISEN Strategy - Multi-DEX Aggregator
+  // =============================
+  dexStrategies.eisen = {
+    buildRequest: ({ codeChain, sc_input_in, sc_output_in, amount_in_big }) => {
+      const body = {
+        tokenInAddr: sc_input_in,
+        tokenOutAddr: sc_output_in,
+        from: "",
+        amount: amount_in_big.toString(),
+        maxEdge: "3",
+        maxSplit: "5",
+        withCycle: false,
+        dexIdFilter: [
+          "BabyDogeSwap", "Babyswap", "BakerySwap", "BISWAP", "BSCSwap", "Cone",
+          "CurveTwoCrypto", "FstSwap", "IZUMI", "Knightswap", "LFJV1", "LFJV2.1",
+          "MDex", "OrionProtocol", "PancakeswapV2", "PancakeSwapV3", "SquadSwapV2",
+          "SushiswapV2", "SushiswapV3", "ThenaV2", "UnchainX", "UniswapV2",
+          "UniswapV3", "UniswapV4", "WRAPPED_NATIVE"
+        ],
+        customTokens: []
+      };
+
+      return {
+        url: `https://api.hetz-01.eisenfinance.com/v1/chains/${codeChain}/v2/quote`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        },
+        data: JSON.stringify(body)
+      };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      // Eisen Response Format: { result: { dexAgg: { expectedAmountOut, gasFee } } }
+      const result = response?.result;
+      const dexAgg = result?.dexAgg;
+
+      if (!dexAgg || !dexAgg.expectedAmountOut) {
+        throw new Error("Invalid Eisen response: missing expectedAmountOut");
+      }
+
+      // 1. Calculate main output amount
+      const amount_out = parseFloat(dexAgg.expectedAmountOut) / Math.pow(10, des_output);
+
+      // 2. Resolve FeeSwap (Eisen gasFee is gas units, e.g. 750,000)
+      const gasUnitsRaw = parseInt(dexAgg.gasFee || 0);
+      const gasUnits = capGasUnits(gasUnitsRaw, chainName);
+      const calculatedFee = calculateGasFeeUSD(chainName, gasUnits, 0.1);
+      const { FeeSwap, feeSource } = resolveFeeSwap(0, calculatedFee, chainName);
+
+      return {
+        amount_out,
+        FeeSwap,
+        feeSource,
+        dexTitle: 'EISEN',
+        routeTool: 'EISEN'
+      };
+    }
+  };
+
+  // POST https://api.cow.fi/{chain}/api/v1/quote
+  dexStrategies['cowswap'] = {
+    proxy: false,
+    buildRequest: ({ sc_input_in, sc_output_in, amount_in_big, chainName, SavedSettingData }) => {
+      const wallet = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+      const chainSlugMap = { ethereum: 'mainnet', gnosis: 'xdai', arbitrum: 'arbitrum_one', bsc: 'bnb', base: 'base' };
+      const chainSlug = chainSlugMap[String(chainName || '').toLowerCase()] || 'mainnet';
+      const body = {
+        from: wallet,
+        sellToken: sc_input_in,
+        buyToken: sc_output_in,
+        receiver: wallet,
+        validFor: 1800,
+        appData: '{"appCode":"CoW Swap","environment":"production","metadata":{"orderClass":{"orderClass":"market"},"quote":{"slippageBips":42,"smartSlippage":true}},"version":"1.14.0"}',
+        appDataHash: '0x6e76141f124279e8cdaa1cb6436894e41612b8e8230323a1c73e6aee59a7b324',
+        priceQuality: 'optimal',
+        signingScheme: 'eip712',
+        kind: 'sell',
+        sellAmountBeforeFee: String(amount_in_big)
+      };
+      return {
+        url: `https://api.cow.fi/${chainSlug}/api/v1/quote`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        data: JSON.stringify(body)
+      };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      const quote = response?.quote;
+      if (!quote?.buyAmount) throw new Error('CoW Swap: missing buyAmount in response');
+      const amount_out = parseFloat(quote.buyAmount) / Math.pow(10, des_output);
+      if (!Number.isFinite(amount_out) || amount_out <= 0) throw new Error('CoW Swap: invalid output amount');
+      let _calcUsd = 0;
+      try {
+        const gasUnitsRaw = parseFloat(quote.gasAmount || 0);
+        if (gasUnitsRaw > 0) {
+          const gasUnits = capGasUnits(gasUnitsRaw, chainName);
+          const allGasData = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('ALL_GAS_FEES') : null;
+          if (allGasData) {
+            const gasInfo = allGasData.find(g => String(g.chain || '').toLowerCase() === String(chainName || '').toLowerCase());
+            if (gasInfo?.gwei && gasInfo?.tokenPrice) _calcUsd = (parseFloat(gasInfo.gwei) * gasUnits / 1e9) * parseFloat(gasInfo.tokenPrice);
+          }
+        }
+      } catch (_) { }
+      const { FeeSwap, feeSource } = resolveFeeSwap(0, _calcUsd, chainName);
+      return { amount_out, FeeSwap, feeSource, dexTitle: 'COWSWAP', routeTool: 'COWSWAP' };
+    }
+  };
+
+  // =============================
   // DFLOW Strategy - Solana DEX Aggregator
   // =============================
   // Official API: https://pond.dflow.net/build/trading-api/imperative/quote
@@ -3064,7 +3442,6 @@
   dexStrategies.metax = {
     execute: ({ chainName, sc_input_in, sc_output_in, amount_in_big, des_output, SavedSettingData }) => {
       return new Promise((resolve, reject) => {
-        // Chain ID mapping (EVM only)
         const metaxChainMap = {
           'ethereum': 1, 'eth': 1,
           'bsc': 56, 'bnb': 56, 'binance': 56,
@@ -3074,24 +3451,32 @@
           'base': 8453,
           'avalanche': 43114, 'avax': 43114,
           'zksync': 324,
-          'linea': 59144
+          'linea': 59144,
+          'solana': 1151111081099710  // Solana LiFi chain ID
         };
 
         const chain = String(chainName || '').toLowerCase();
         const chainId = metaxChainMap[chain];
         if (!chainId) return reject(new Error(`MetaX: Chain tidak didukung: ${chainName}`));
 
-        const walletAddr = (SavedSettingData?.walletMeta) || '0x0000000000000000000000000000000000000000';
-        const fromToken = String(sc_input_in || '').toLowerCase();
-        const toToken = String(sc_output_in || '').toLowerCase();
+        const isSolana = chain === 'solana';
+        // Solana: gunakan walletSolana, token address case-sensitive (base58)
+        const walletAddr = isSolana
+          ? (SavedSettingData?.walletSolana || '7fJWE8nTy26AijgN9JrvuDhXDbxyjTY2znH8qc9H6sQk')
+          : (SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000');
+        const fromToken = isSolana ? sc_input_in : String(sc_input_in || '').toLowerCase();
+        const toToken = isSolana ? sc_output_in : String(sc_output_in || '').toLowerCase();
         const srcAmount = amount_in_big.toString();
 
+        // Solana: gasIncluded=false, tanpa slippage param
         const url = `https://bridge.api.cx.metamask.io/getQuoteStream` +
           `?walletAddress=${walletAddr}&destWalletAddress=${walletAddr}` +
           `&srcChainId=${chainId}&destChainId=${chainId}` +
           `&srcTokenAddress=${fromToken}&destTokenAddress=${toToken}` +
           `&srcTokenAmount=${srcAmount}` +
-          `&insufficientBal=true&resetApproval=false&gasIncluded=true&gasIncluded7702=false&slippage=${getSlippageValue()}`;
+          `&insufficientBal=true&resetApproval=false` +
+          `&gasIncluded=${isSolana ? 'false' : 'true'}&gasIncluded7702=false` +
+          (isSolana ? '' : `&slippage=${getSlippageValue()}`);
 
         const quotes = [];
         let settled = false;
@@ -3269,17 +3654,25 @@
         };
 
         const chain = String(chainName || '').toLowerCase();
-        const chainId = onekeyChainMap[chain];
-        if (!chainId) return reject(new Error(`OneKey: Chain tidak didukung: ${chainName}`));
+        const isSolana = chain === 'solana';
 
-        const walletAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+        // Solana: networkId = 'sol--101', EVM: 'evm--{chainId}'
+        let networkId;
+        if (isSolana) {
+          networkId = 'sol--101';
+        } else {
+          const chainId = onekeyChainMap[chain];
+          if (!chainId) return reject(new Error(`OneKey: Chain tidak didukung: ${chainName}`));
+          networkId = `evm--${chainId}`;
+        }
+
         const NATIVE = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-        // OneKey pakai empty string untuk native token
-        const fromAddr = String(sc_input_in || '').toLowerCase() === NATIVE ? '' : sc_input_in;
+        // Solana: token address case-sensitive (base58), tidak ada native substitution
+        const fromAddr = isSolana ? sc_input_in
+          : (String(sc_input_in || '').toLowerCase() === NATIVE ? '' : sc_input_in);
         const toAddr = sc_output_in;
-        const networkId = `evm--${chainId}`;
 
-        // fromTokenAmount dalam human-readable (bukan wei)
+        // fromTokenAmount dalam human-readable (bukan lamports/wei)
         const fromAmountHuman = (parseFloat(amount_in_big.toString()) / Math.pow(10, des_input)).toString();
 
         const params = new URLSearchParams({
@@ -3289,13 +3682,18 @@
           fromNetworkId: networkId,
           toNetworkId: networkId,
           protocol: 'Swap',
-          userAddress: walletAddr,
           slippagePercentage: getSlippageValue(),
           autoSlippage: 'true',
-          receivingAddress: walletAddr,
           kind: 'sell',
           denySingleSwapProvider: ''
         });
+
+        // EVM only: userAddress dan receivingAddress
+        if (!isSolana) {
+          const walletAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+          params.set('userAddress', walletAddr);
+          params.set('receivingAddress', walletAddr);
+        }
 
         const url = `https://swap.onekeycn.com/swap/v1/quote/events?${params.toString()}`;
 
@@ -3459,14 +3857,21 @@
           };
 
           const chain = String(chainName || '').toLowerCase();
-          const chainId = onekeyChainMap[chain];
-          if (!chainId) return reject(new Error(`OneKey-${dexTitle}: Chain tidak didukung: ${chainName}`));
+          const isSolana = chain === 'solana';
 
-          const walletAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+          let networkId;
+          if (isSolana) {
+            networkId = 'sol--101';
+          } else {
+            const chainId = onekeyChainMap[chain];
+            if (!chainId) return reject(new Error(`OneKey-${dexTitle}: Chain tidak didukung: ${chainName}`));
+            networkId = `evm--${chainId}`;
+          }
+
           const NATIVE = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
-          const fromAddr = String(sc_input_in || '').toLowerCase() === NATIVE ? '' : sc_input_in;
+          const fromAddr = isSolana ? sc_input_in
+            : (String(sc_input_in || '').toLowerCase() === NATIVE ? '' : sc_input_in);
           const toAddr = sc_output_in;
-          const networkId = `evm--${chainId}`;
 
           const fromAmountHuman = (parseFloat(amount_in_big.toString()) / Math.pow(10, des_input)).toString();
 
@@ -3477,13 +3882,17 @@
             fromNetworkId: networkId,
             toNetworkId: networkId,
             protocol: 'Swap',
-            userAddress: walletAddr,
             slippagePercentage: getSlippageValue(),
             autoSlippage: 'true',
-            receivingAddress: walletAddr,
             kind: 'sell',
             denySingleSwapProvider: ''
           });
+
+          if (!isSolana) {
+            const walletAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+            params.set('userAddress', walletAddr);
+            params.set('receivingAddress', walletAddr);
+          }
 
           const url = `https://swap.onekeycn.com/swap/v1/quote/events?${params.toString()}`;
 
@@ -3593,6 +4002,136 @@
   dexStrategies['onekey-1inch'] = createFilteredOnekeyStrategy('swap1inch', '1INCH');    // OneKey → hanya provider 1inch
   dexStrategies['onekey-lifidex'] = createFilteredOnekeyStrategy('swaplifi', 'LIFIDX');  // OneKey → hanya provider LiFi/Jumper
   dexStrategies['onekey-odos'] = createFilteredOnekeyStrategy('swapodos', 'ODOS');      // OneKey → hanya provider Odos
+
+  // =============================
+  // CTRLFI Strategy - XDEFI/CTRL GraphQL Multi-Route Aggregator
+  // =============================
+  // Protokol: GraphQL POST
+  // Endpoint: https://gql-router.xdefi.services/graphql
+  // Query: routingV2.routeV6 — mengembalikan tradesRoute[] dari berbagai provider
+  // amountSource: jumlah token input dalam human-readable format
+  // EVM only — same-chain swap (srcChain === destChain)
+  dexStrategies.ctrlfi = {
+    buildRequest: ({ chainName, sc_input_in, sc_output_in, amount_in_big, des_input, SavedSettingData }) => {
+      const ctrlChainMap = {
+        'ethereum': 'ETH', 'eth': 'ETH',
+        'bsc': 'BSC', 'bnb': 'BSC', 'binance': 'BSC',
+        'polygon': 'POLYGON', 'matic': 'POLYGON',
+        'arbitrum': 'ARBITRUM', 'arb': 'ARBITRUM',
+        'base': 'BASE',
+        'optimism': 'OPTIMISM', 'op': 'OPTIMISM',
+        'avalanche': 'AVAX', 'avax': 'AVAX',
+        'solana': 'SOL', 'sol': 'SOL',
+      };
+
+      const chain = String(chainName || '').toLowerCase();
+      const ctrlChain = ctrlChainMap[chain];
+      if (!ctrlChain) throw new Error(`CTRL: Chain tidak didukung: ${chainName}`);
+
+      const isSolana = ctrlChain === 'SOL';
+      const evmAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+      const solAddr = SavedSettingData?.walletSolana || 'So11111111111111111111111111111111111111112';
+      const walletAddr = isSolana ? solAddr : evmAddr;
+
+      const amountHuman = (parseFloat(amount_in_big.toString()) / Math.pow(10, des_input)).toString();
+
+      const NATIVE = '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee';
+      const srcAddr = (!isSolana && String(sc_input_in || '').toLowerCase() === NATIVE)
+        ? `${ctrlChain}.${ctrlChain}`
+        : `${ctrlChain}.${sc_input_in}`;
+      const destAddr = (!isSolana && String(sc_output_in || '').toLowerCase() === NATIVE)
+        ? `${ctrlChain}.${ctrlChain}`
+        : `${ctrlChain}.${sc_output_in}`;
+
+      const addresses = [
+        { chain: 'ETH', address: evmAddr },
+        { chain: 'BSC', address: evmAddr },
+        { chain: 'POLYGON', address: evmAddr },
+        { chain: 'ARBITRUM', address: evmAddr },
+        { chain: 'BASE', address: evmAddr },
+        { chain: 'OPTIMISM', address: evmAddr },
+        { chain: 'SOL', address: solAddr },
+      ];
+
+      const GQL_QUERY = `query getRoute($srcToken: String!, $destToken: String!, $slippage: String, $addresses: [AddressRouteInputTypeV2!]!, $destAddress: String!, $infiniteApproval: Boolean, $referral: ReferralInputType, $isOptedIn: Boolean, $amountSource: String, $quoteOrigin: QuoteOrigin) {\n  routingV2 {\n    routeV6(\n      srcToken: $srcToken\n      destToken: $destToken\n      slippage: $slippage\n      addresses: $addresses\n      destAddress: $destAddress\n      infiniteApproval: $infiniteApproval\n      referral: $referral\n      isOptedIn: $isOptedIn\n      amountSource: $amountSource\n      quoteOrigin: $quoteOrigin\n    ) {\n      ... on RouteTypeV5 {\n        tradesRoute {\n          amountOut\n          fee { networkFeeDollar xdefiSwapFeeDollar }\n          provider { id name }\n        }\n      }\n      ... on RouteNotAvailableV2 { label reason }\n    }\n  }\n}`;
+
+      const payload = {
+        operationName: 'getRoute',
+        variables: {
+          srcToken: srcAddr,
+          destToken: destAddr,
+          amountSource: amountHuman,
+          slippage: String(getSlippageValue()),
+          addresses,
+          destAddress: walletAddr,
+          infiniteApproval: false,
+          referral: { medium: 'webapp' },
+          quoteOrigin: 'CTRL'
+        },
+        query: GQL_QUERY
+      };
+
+      return {
+        url: 'https://gql-router.xdefi.services/graphql',
+        method: 'POST',
+        data: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' }
+      };
+    },
+
+    parseResponse: (response, { chainName }) => {
+      const routeData = response?.data?.routingV2?.routeV6;
+      if (!routeData) throw new Error('CTRL: Tidak ada data route');
+      if (routeData.reason) throw new Error(`CTRL: ${routeData.label || 'Route tidak tersedia'} — ${routeData.reason}`);
+
+      const trades = routeData.tradesRoute;
+      if (!Array.isArray(trades) || trades.length === 0) throw new Error('CTRL: Tidak ada tradesRoute');
+
+      // ⚠️ CATATAN: CTRL API mengembalikan networkFeeDollar yang SANGAT BESAR
+      // (mencakup multi-step routing internal, bukan biaya gas aktual).
+      // → Gunakan getFeeSwap(chainName) saja, sama seperti Kyber.
+      const feeSwapChain = getFeeSwap(chainName);
+
+      const subResults = [];
+      for (const trade of trades) {
+        try {
+          const amtOut = parseFloat(trade.amountOut);
+          if (!Number.isFinite(amtOut) || amtOut <= 0) continue;
+
+          const providerName = String(trade.provider?.name || trade.provider?.id || 'CTRL').toUpperCase();
+          subResults.push({ amount_out: amtOut, FeeSwap: feeSwapChain, feeSource: 'fallback', dexTitle: providerName, routeTool: 'CTRLFI' });
+        } catch (_) { continue; }
+      }
+
+      if (subResults.length === 0) throw new Error('CTRL: Tidak ada quote valid');
+
+      const filtered = filterOffDexResults(subResults);
+      if (filtered.length === 0) throw new Error('CTRL: Semua provider terfilter oleh offDexResultScan');
+
+      filtered.forEach(r => { r.netValue = r.amount_out - r.FeeSwap; });
+      filtered.sort((a, b) => b.netValue - a.netValue);
+
+      const maxN = (() => {
+        try {
+          const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+          if (v > 0) return v;
+        } catch (_) { }
+        return (typeof window !== 'undefined' && window.CONFIG_DEXS?.ctrlfi?.maxProviders) || 3;
+      })();
+
+      const topN = filtered.slice(0, maxN);
+
+      return {
+        amount_out: topN[0].amount_out,
+        FeeSwap: topN[0].FeeSwap,
+        feeSource: topN[0].feeSource,
+        dexTitle: topN[0].dexTitle || 'CTRL',
+        routeTool: 'CTRLFI',
+        subResults: topN,
+        isMultiDex: true
+      };
+    }
+  };
 
   // =============================
   // RANGO Filtered Strategy Factory - Rango as REST API Provider
@@ -3759,6 +4298,101 @@
   dexStrategies['rubic-matcha'] = createFilteredRubicStrategy('ZEROX', 'MATCHA');  // Rubic uses 'ZEROX' for 0x
   dexStrategies['rubic-sushi'] = createFilteredRubicStrategy('SUSHISWAP', 'SUSHI');
   dexStrategies['rubic-uniswap'] = createFilteredRubicStrategy('UNISWAP_V3', 'UNISWAP');
+
+  // =============================
+  // Enso Finance Strategy — GET /api/v1/shortcuts/route
+  // Verified: base URL = https://api.enso.finance/api/v1/ (bukan /v1/)
+  //           param    = amountIn (bukan amount), routingStrategy=router
+  //           response = { amountOut: "...", gas: "..." }
+  // =============================
+  dexStrategies['enso'] = {
+    proxy: true,
+    buildRequest: ({ codeChain, sc_input, sc_output, amount_in_big, SavedSettingData }) => {
+      const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+      const params = new URLSearchParams({
+        chainId: String(codeChain),
+        fromAddress: userAddr,
+        tokenIn: sc_input,
+        tokenOut: sc_output,
+        amountIn: String(amount_in_big),
+        routingStrategy: 'router'
+      });
+      return {
+        url: `https://api.enso.finance/api/v1/shortcuts/route?${params.toString()}`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      const rawOut = response?.amountOut || response?.toAmount || response?.outputAmount;
+      if (!rawOut) throw new Error('Enso: missing amountOut in response');
+      const amount_out = parseFloat(rawOut) / Math.pow(10, des_output);
+      if (!Number.isFinite(amount_out) || amount_out <= 0) throw new Error('Enso: invalid output amount');
+      let calcUsd = 0;
+      try {
+        // response.gas = gas units (string, e.g. "731042")
+        const gasUnitsRaw = parseFloat(response?.gas || 0);
+        if (gasUnitsRaw > 0) {
+          const gasUnits = capGasUnits(gasUnitsRaw, chainName);
+          const allGasData = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('ALL_GAS_FEES') : null;
+          if (allGasData) {
+            const gasInfo = allGasData.find(g => String(g.chain || '').toLowerCase() === String(chainName || '').toLowerCase());
+            if (gasInfo?.gwei && gasInfo?.tokenPrice) calcUsd = (gasUnits * parseFloat(gasInfo.gwei) * parseFloat(gasInfo.tokenPrice)) / 1e9;
+          }
+        }
+      } catch (_) {}
+      const { FeeSwap, feeSource } = resolveFeeSwap(0, calcUsd, chainName);
+      return { amount_out, FeeSwap, feeSource, dexTitle: 'ENSO', routeTool: 'ENSO' };
+    }
+  };
+
+  // =============================
+  // Nordstern Strategy — GET /aggregator/{chain_id}
+  // Docs: https://docs.nordstern.finance/en/latest/usage.html#endpoint-get-optimal-swap-route
+  // =============================
+  dexStrategies['nordstern'] = {
+    proxy: false,
+    buildRequest: ({ codeChain, sc_input, sc_output, amount_in_big, SavedSettingData }) => {
+      const userAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+      const params = new URLSearchParams({
+        src: String(sc_input || '').toLowerCase(),
+        dst: String(sc_output || '').toLowerCase(),
+        amount: String(amount_in_big),
+        from: userAddr,
+        slippage: String(getSlippageValue())
+      });
+      return {
+        url: `https://api.nordstern.finance/aggregator/${Number(codeChain)}?${params.toString()}`,
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      };
+    },
+    parseResponse: (response, { des_output, chainName }) => {
+      const rawOut = response?.toAmount || response?.amountOut || response?.outputAmount || response?.outAmount;
+      if (!rawOut) throw new Error('Nordstern: missing toAmount in response');
+      const amount_out = parseFloat(rawOut) / Math.pow(10, des_output);
+      if (!Number.isFinite(amount_out) || amount_out <= 0) throw new Error('Nordstern: invalid output amount');
+
+      const directUsd = parseFloat(response?.gasUsd || response?.gas?.usd || response?.feeUsd || 0) || 0;
+      let calcUsd = 0;
+      try {
+        let gasUnitsRaw = parseFloat(response?.gasEstimate || response?.estimatedGas || response?.gas || response?.gasUnits || response?.gas?.amount || 0);
+        if ((!Number.isFinite(gasUnitsRaw) || gasUnitsRaw <= 0) && Array.isArray(response?.swaps)) {
+          gasUnitsRaw = response.swaps.reduce((sum, swap) => sum + (parseFloat(swap?.gasUnits || 0) || 0), 0);
+        }
+        if (gasUnitsRaw > 0) {
+          const gasUnits = capGasUnits(gasUnitsRaw, chainName);
+          const allGasData = (typeof getFromLocalStorage === 'function') ? getFromLocalStorage('ALL_GAS_FEES') : null;
+          if (allGasData) {
+            const gasInfo = allGasData.find(g => String(g.chain || '').toLowerCase() === String(chainName || '').toLowerCase());
+            if (gasInfo?.gwei && gasInfo?.tokenPrice) calcUsd = (gasUnits * parseFloat(gasInfo.gwei) * parseFloat(gasInfo.tokenPrice)) / 1e9;
+          }
+        }
+      } catch (_) {}
+      const { FeeSwap, feeSource } = resolveFeeSwap(directUsd, calcUsd, chainName);
+      return { amount_out, FeeSwap, feeSource, dexTitle: 'NORDSTERN', routeTool: 'NORDSTERN' };
+    }
+  };
 
   // Back-compat alias: support legacy 'kyberswap' key
   dexStrategies.kyberswap = dexStrategies.kyber;
@@ -4088,7 +4722,7 @@
               amount_out: amountOut,
               FeeSwap,
               feeSource,
-              dexTitle: `OKU-${routerName}`,
+              dexTitle: routerName,
               isMultiDex: true
             });
           }
@@ -4109,6 +4743,348 @@
           });
         } catch (e) {
           reject({ statusCode: 0, pesanDEX: `Oku Trade: ${e.message || 'Request failed'}` });
+        }
+      });
+    }
+  };
+
+  // =============================
+  // ZERION Strategy - Zerion Swap SSE Streaming Multi-Quote
+  // =============================
+  // Protokol: SSE via fetch + ReadableStream (bukan EventSource — perlu custom headers)
+  // Step 1: Lookup fungibleId canonical via GET /zpi/search/query/v1
+  // Step 2: Stream swap quotes via GET /transaction/stream-swap-quotes/v2 (SSE)
+  // amountHuman: konversi dari amount_in_big (wei BigInt) → human-readable
+  // outputAmount dari Zerion sudah human-readable, tidak perlu /10^decimals
+
+  const _zerionChainMap = {
+    'bsc': 'binance-smart-chain', 'bnb': 'binance-smart-chain', 'binance': 'binance-smart-chain',
+    'ethereum': 'ethereum', 'eth': 'ethereum',
+    'polygon': 'polygon', 'matic': 'polygon',
+    'arbitrum': 'arbitrum', 'arb': 'arbitrum',
+    'base': 'base'
+  };
+
+  const _zerionHeaders = {
+    'zerion-client-type': 'web-extension',
+    'zerion-client-version': '1.38.2'
+  };
+
+  // Cache fungibleId persistent (IndexedDB/localStorage)
+  const _zerionFungibleCache = (typeof getFromLocalStorage === 'function') ? (getFromLocalStorage('ZERION_FUNGIBLE_CACHE', {}) || {}) : {};
+  const _zerionFungibleInFlight = {}; // key → Promise (in-flight dedup)
+  // Expose ke window agar builder di config.js bisa baca fungibleId secara sync
+  root._zerionFungibleCache = _zerionFungibleCache;
+
+  // Semaphore lookup: maks 2 request fungibleId berjalan bersamaan
+  // (mencegah Cloudflare rate-limit karena terlalu banyak concurrent request)
+  let _zerionLookupActive = 0;
+  const _zerionLookupQueue = [];
+  function _zerionLookupAcquire() {
+    return new Promise(resolve => {
+      if (_zerionLookupActive < 2) { _zerionLookupActive++; resolve(); }
+      else _zerionLookupQueue.push(resolve);
+    });
+  }
+  function _zerionLookupRelease() {
+    const next = _zerionLookupQueue.shift();
+    if (next) next();
+    else _zerionLookupActive--;
+  }
+
+  // Helper: proxy base URL untuk SSE stream
+  function _zerionProxyBase() {
+    try {
+      if (typeof getCorsProxyUrl === 'function') return getCorsProxyUrl();
+      if (root.CONFIG_PROXY?.PREFIX) return root.CONFIG_PROXY.PREFIX;
+    } catch (_) { }
+    return 'https://proxykanan.awokawok.workers.dev/?';
+  }
+
+  function _zerionGetFungibleId(contractAddress, chainSlug) {
+    const key = `${chainSlug}:${contractAddress.toLowerCase()}`;
+
+    // 1. Cache hit — sudah punya hasil final (in-memory atau persistent storage)
+    if (_zerionFungibleCache[key]) return Promise.resolve(_zerionFungibleCache[key]);
+
+    // 1.5 Double check persistent storage jika memory cache belum sinkron
+    if (typeof getFromLocalStorage === 'function') {
+      const persistent = getFromLocalStorage('ZERION_FUNGIBLE_CACHE', {});
+      if (persistent && persistent[key]) {
+        _zerionFungibleCache[key] = persistent[key];
+        return Promise.resolve(persistent[key]);
+      }
+    }
+
+    // 2. In-flight dedup — ada request yang sedang berjalan untuk key yang sama
+    if (_zerionFungibleInFlight[key]) return _zerionFungibleInFlight[key];
+
+    // 3. Native token — tidak perlu request
+    if (contractAddress.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+      const nativeId = `${chainSlug}:native`;
+      _zerionFungibleCache[key] = nativeId;
+      return Promise.resolve(nativeId);
+    }
+
+    // 4. Buat request baru
+    //    Gunakan proxy biasa dari app (fetchWithProxy) agar CORS tidak memblokir lookup
+    const promise = (async () => {
+      await _zerionLookupAcquire();
+      try {
+        const lookupUrl = `https://app.zerion.io/zpi/search/query-fungibles/v1?currency=usd&limit=20&query=${contractAddress.toLowerCase()}&sort=-market_data.market_cap`;
+
+        const proxyFetch = (typeof fetchWithProxy === 'function') ? fetchWithProxy : (typeof root.fetchWithProxy === 'function') ? root.fetchWithProxy : null;
+
+        let res;
+        if (proxyFetch) {
+          // fetchWithProxy handles CORS proxying, timeouts, and retries automatically
+          res = await proxyFetch(lookupUrl, { headers: _zerionHeaders, timeout: 8000, retries: 1 });
+        } else {
+          // Fallback jika fetchWithProxy tidak tersedia
+          res = await fetch(lookupUrl, { headers: _zerionHeaders, signal: AbortSignal.timeout(8000) });
+          if (!res.ok) throw new Error(`Zerion search HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        const items = json?.data || [];
+
+        const matched = items.find(item => item.implementations?.[chainSlug]);
+        const best = matched || items[0];
+        if (!best?.id) throw new Error(`Zerion: fungibleId tidak ditemukan untuk ${contractAddress} di ${chainSlug}`);
+
+        _zerionFungibleCache[key] = best.id;
+
+        // Simpan ke persistent storage agar tidak perlu request lagi di sesi berikutnya
+        if (typeof saveToLocalStorage === 'function') {
+          saveToLocalStorage('ZERION_FUNGIBLE_CACHE', _zerionFungibleCache);
+        }
+
+        return best.id;
+      } catch (e) {
+        if (e.name === 'AbortError' || e.message?.includes('fungibleId tidak ditemukan')) throw e;
+        throw e;
+      } finally {
+        _zerionLookupRelease();
+        delete _zerionFungibleInFlight[key];
+      }
+    })();
+
+    _zerionFungibleInFlight[key] = promise;
+    return promise;
+  }
+
+  // Semaphore: maks 2 SSE connections aktif ke Zerion secara bersamaan
+  let _zerionActiveCount = 0;
+  const _zerionWaitQueue = [];
+
+  function _zerionAcquire() {
+    return new Promise(resolve => {
+      if (_zerionActiveCount < 2) { _zerionActiveCount++; resolve(); }
+      else _zerionWaitQueue.push(resolve);
+    });
+  }
+
+  function _zerionRelease() {
+    const next = _zerionWaitQueue.shift();
+    if (next) next();
+    else _zerionActiveCount--;
+  }
+
+  dexStrategies.zerion = {
+    execute: async ({ chainName, sc_input_in, sc_output_in, amount_in_big, des_input, SavedSettingData }) => {
+      const chain = String(chainName || '').toLowerCase();
+      const chainSlug = _zerionChainMap[chain];
+      if (!chainSlug) throw new Error(`Zerion: Chain tidak didukung: ${chainName}`);
+
+      const [fungibleIn, fungibleOut] = await Promise.all([
+        _zerionGetFungibleId(sc_input_in, chainSlug),
+        _zerionGetFungibleId(sc_output_in, chainSlug)
+      ]);
+
+      const walletAddr = SavedSettingData?.walletMeta || '0x0000000000000000000000000000000000000000';
+      const amountHuman = (parseFloat(amount_in_big.toString()) / Math.pow(10, des_input)).toString();
+      const slippage = typeof getSlippageValue === 'function' ? String(getSlippageValue()) : '1';
+
+      const sseUrl = `https://zpi.zerion.io/transaction/stream-swap-quotes/v2?${new URLSearchParams({
+        currency: 'usd', inputChain: chainSlug, from: walletAddr,
+        inputFungibleId: fungibleIn, outputFungibleId: fungibleOut,
+        inputAmount: amountHuman, slippage
+      }).toString()}`;
+
+      await _zerionAcquire();
+
+      return new Promise(async (resolve, reject) => {
+        const quotes = [];
+        let done = false;
+        const controller = new AbortController();
+
+        const closeAndRelease = () => {
+          try { controller.abort(); } catch (_) { }
+          _zerionRelease();
+        };
+
+        const buildTopN = () => {
+          const filtered = filterOffDexResults(quotes);
+          if (filtered.length === 0) return null;
+          filtered.forEach(r => { r.netValue = r.amount_out - r.FeeSwap; });
+          filtered.sort((a, b) => b.netValue - a.netValue);
+          const maxN = (() => {
+            try {
+              const v = parseInt((getFromLocalStorage('SETTING_SCANNER') || {}).metaDex?.topRoutes);
+              if (v > 0) return v;
+            } catch (_) { }
+            return (root.CONFIG_DEXS?.zerion?.maxProviders) || 3;
+          })();
+          return filtered.slice(0, maxN);
+        };
+
+        const finish = (reason) => {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          closeAndRelease();
+
+          if (quotes.length === 0) return reject(new Error(`Zerion: Tidak ada quote (${reason})`));
+
+          const topN = buildTopN();
+          if (!topN || topN.length === 0) return reject(new Error('Zerion: Semua provider terfilter oleh offDexResultScan'));
+
+          console.log(`[ZERION] Top ${topN.length} quotes (${reason}):`);
+          topN.forEach((r, i) => {
+            console.log(`  → #${i + 1} ${r.dexTitle}: out=${r.amount_out.toFixed(6)}, fee=$${r.FeeSwap.toFixed(4)} (${r.feeSource})`);
+          });
+
+          resolve({
+            amount_out: topN[0].amount_out,
+            FeeSwap: topN[0].FeeSwap,
+            feeSource: topN[0].feeSource,
+            dexTitle: topN[0].dexTitle || 'ZERION',
+            routeTool: 'ZERION',
+            subResults: topN,
+            isMultiDex: true
+          });
+        };
+
+        const timer = setTimeout(() => finish('timeout'), 8000);
+
+        // Normalisasi nama provider Zerion: API kadang pakai ID pendek (mis. "1in", "kyb")
+        // Map key: lowercase ID/name dari API, value: nama display uppercase
+        const _ZR_NAMES = {
+          '1in': '1INCH', '1inch': '1INCH', 'oneinch': '1INCH',
+          'kyb': 'KYBERSWAP', 'kyber': 'KYBERSWAP', 'kyberswap': 'KYBERSWAP',
+          '0x': '0X', '0x exchange': '0X', 'zeroex': '0X', 'zerox': '0X',
+          'paraswap': 'PARASWAP', 'velora': 'PARASWAP',
+          'uni': 'UNISWAP', 'uniswap': 'UNISWAP',
+          'ods': 'ODOS', 'odos': 'ODOS',
+          'relay': 'RELAY',
+          'socket': 'SOCKET',
+          'okx': 'OKX', 'okxdex': 'OKX',
+          'sushi': 'SUSHI', 'sushiswap': 'SUSHI',
+          'lifi': 'LIFI', 'lifidex': 'LIFI',
+          'dodo': 'DODO',
+          'enso': 'ENSO',
+          'openocean': 'OPENOCEAN',
+          'rango': 'RANGO',
+          'bungee': 'BUNGEE',
+          'debridge': 'DEBRIDGE',
+        };
+
+        const processItem = (q) => {
+          const qtyAfterFees = parseFloat(q.outputAmountAfterFees?.quantity || '0');
+          const qty = parseFloat(q.outputAmount?.quantity || '0');
+          const amount_out = qtyAfterFees > 0 ? qtyAfterFees : qty;
+          if (!amount_out || amount_out <= 0) return;
+
+          let feeUsdApi = 0;
+          if (q.protocolFee?.amount?.usdValue != null) feeUsdApi += parseFloat(q.protocolFee.amount.usdValue) || 0;
+          if (q.bridgeFee?.amount?.usdValue != null) feeUsdApi += parseFloat(q.bridgeFee.amount.usdValue) || 0;
+
+          const { FeeSwap, feeSource } = resolveFeeSwap(feeUsdApi, 0, chainName);
+
+          // Prioritas: name > id; normalisasi via map, fallback ke uppercase mentah
+          const nameRaw = String(q.contractMetadata?.name || '').trim();
+          const idRaw = String(q.contractMetadata?.id || '').trim();
+          const lookupKey = (nameRaw || idRaw).toLowerCase().replace(/\s+/g, '');
+          const dexTitle = _ZR_NAMES[lookupKey] || (nameRaw || idRaw || 'ZERION').toUpperCase();
+
+          console.log(`[ZERION] provider raw: name="${nameRaw}" id="${idRaw}" → ${dexTitle}`);
+
+          const existing = quotes.find(x => x.dexTitle === dexTitle);
+          if (!existing) {
+            quotes.push({ amount_out, FeeSwap, feeSource, dexTitle, routeTool: 'ZERION' });
+          } else if (amount_out > existing.amount_out) {
+            existing.amount_out = amount_out;
+            existing.FeeSwap = FeeSwap;
+            existing.feeSource = feeSource;
+          }
+        };
+
+        try {
+          // Route SSE melalui proxy agar CORS tidak blokir custom headers
+          const _zProxied = _zerionProxyBase() + encodeURIComponent(sseUrl);
+          const response = await fetch(_zProxied, {
+            headers: { ..._zerionHeaders, 'Accept': 'text/event-stream' },
+            signal: controller.signal
+          });
+          if (!response.ok) {
+            done = true; clearTimeout(timer); closeAndRelease();
+            return reject(new Error(`Zerion HTTP ${response.status}`));
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          let currentEvent = '';
+
+          while (!done) {
+            let chunk;
+            try { chunk = await reader.read(); } catch (_) { break; }
+            const { value, done: streamDone } = chunk;
+            if (streamDone) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            let streamEnded = false;
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('event:')) { currentEvent = trimmed.slice(6).trim(); continue; }
+              if (!trimmed.startsWith('data:')) continue;
+              if (currentEvent === 'end') { streamEnded = true; break; }
+              const dataStr = trimmed.replace(/^data:\s*/, '');
+              if (!dataStr || dataStr === 'null') continue;
+              try {
+                const msg = JSON.parse(dataStr);
+                if (!msg) continue;
+                const items = Array.isArray(msg) ? msg : (msg.data && Array.isArray(msg.data) ? msg.data : [msg]);
+                for (const item of items) { if (item) processItem(item.attributes || item); }
+              } catch (_) { }
+            }
+            if (streamEnded) break;
+          }
+
+          reader.cancel().catch(() => { });
+          finish('end');
+        } catch (err) {
+          if (!done) {
+            done = true; clearTimeout(timer); closeAndRelease();
+            if (quotes.length > 0) {
+              const topN = buildTopN();
+              if (topN && topN.length > 0) {
+                return resolve({
+                  amount_out: topN[0].amount_out,
+                  FeeSwap: topN[0].FeeSwap,
+                  feeSource: topN[0].feeSource,
+                  dexTitle: topN[0].dexTitle || 'ZERION',
+                  routeTool: 'ZERION',
+                  subResults: topN,
+                  isMultiDex: true
+                });
+              }
+            }
+            reject(new Error(`Zerion: ${err.name === 'AbortError' ? 'Koneksi di-abort' : err.message}`));
+          }
         }
       });
     }
@@ -4256,7 +5232,7 @@
           const strategy = dexStrategies[sKey];
           if (!strategy) return rej(new Error(`Unsupported strategy: ${sKey}`));
 
-          const requestParams = { chainName, sc_input, sc_output, amount_in_big, des_output, SavedSettingData, codeChain, action, des_input, sc_input_in, sc_output_in };
+          const requestParams = { chainName, sc_input, sc_output, amount_in_big, des_output, SavedSettingData, codeChain, action, des_input, sc_input_in, sc_output_in, nameToken: NameToken, namePair: NamePair };
 
           // ✅ SSE strategy (e.g. MetaMask Bridge) — has execute() instead of buildRequest()
           if (typeof strategy.execute === 'function') {
@@ -4478,20 +5454,25 @@
 
           // ✅ FIX: Allow fallback for timeout/network error on ALL DEXs with fallback strategy
           const isNoRespFallback = noResp && computedFallback && allowFallback;
+          // ✅ FIX: Also fallback when HTTP 200 but response is not JSON (proxy returns HTML error page)
+          // Common when CORS proxy blocks POST or upstream endpoint is unavailable (jQuery parsererror)
+          const isParseError = code === 200 && String(e1 && e1.textStatus || '').toLowerCase() === 'parsererror';
 
           // Fallback conditions (only if allowFallback is true):
           // 1. Bad Request (400) - Often means "no route found" or provider-specific issue
           // 2. Rate limit (429)
           // 3. Server error (500+)
           // 4. No response (timeout/network error) for ALL DEXs with fallback strategy
+          // 5. HTTP 200 parseerror - proxy/upstream returned non-JSON (HTML error page)
           const shouldFallback = computedFallback && (
             (Number.isFinite(code) && (code === 400 || code === 429 || code >= 500)) || // 400, 429 atau server error
-            isNoRespFallback // Atau no response (timeout/network error)
+            isNoRespFallback || // Atau no response (timeout/network error)
+            isParseError        // Atau HTTP 200 tapi non-JSON (proxy error page)
           );
           if (!shouldFallback) throw e1;
 
           // DEBUG: Log fallback trigger with mode info
-          const fallbackReason = code === 429 ? 'RATE_LIMIT' : code >= 500 ? `SERVER_ERROR_${code}` : 'TIMEOUT/NO_RESPONSE';
+          const fallbackReason = code === 429 ? 'RATE_LIMIT' : code >= 500 ? `SERVER_ERROR_${code}` : isParseError ? 'PARSE_ERROR_200' : 'TIMEOUT/NO_RESPONSE';
           console.warn(`[DEX FALLBACK] ${chainName?.toUpperCase() || 'CHAIN'} ${dexType.toUpperCase()}: mode='${mode}' selected='${selectedStrategy}' FAILED (${fallbackReason}), trying fallback='${computedFallback}'`);
 
           // Try fallback strategy
@@ -4513,9 +5494,11 @@
               // ✅ LEVEL 3: Coba alternativeStrategy jika rotation primary+secondary keduanya gagal
               const e2Code = Number(e2 && e2.statusCode) || 0;
               const noResp2 = !Number.isFinite(e2Code) || e2Code === 0;
+              const isParseError2 = e2Code === 200 && String(e2 && e2.textStatus || '').toLowerCase() === 'parsererror';
               const shouldTryAlternative = alternativeStrategy && allowFallback && (
                 (Number.isFinite(e2Code) && (e2Code === 400 || e2Code === 429 || e2Code >= 500)) ||
-                noResp2
+                noResp2 ||
+                isParseError2
               );
 
               if (shouldTryAlternative) {

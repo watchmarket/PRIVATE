@@ -1355,6 +1355,44 @@ async function deferredInit() {
         </label>`;
     }
 
+    function getDexSelectionLimit(isMetaDex) {
+        const key = isMetaDex ? 'LIMIT_METADEX' : 'LIMIT_DEX';
+        return Number(window.CONFIG_APP?.APP?.[key] || 0);
+    }
+
+    function getDexLimitBadge(isMetaDex, label = 'MAX') {
+        const limit = getDexSelectionLimit(isMetaDex);
+        if (limit <= 0) return '';
+        const cls = isMetaDex ? 'metadex-limit-info' : 'dex-limit-info';
+        return `<span class="${cls}">${label} ${limit}</span>`;
+    }
+
+    function enforceDexSelectionLimit($scope, labelSelector, changedVal, isMetaDex) {
+        const limit = getDexSelectionLimit(isMetaDex);
+        if (limit <= 0) return;
+
+        const $checkedDex = $scope.find(labelSelector).filter(function () {
+            const val = String($(this).attr('data-val') || '').toLowerCase();
+            const cfg = window.CONFIG_DEXS?.[val];
+            return !!cfg && !!cfg.isMetaDex === !!isMetaDex && $(this).find('input').prop('checked');
+        });
+
+        const excess = $checkedDex.length - limit;
+        if (excess <= 0) return;
+
+        let done = 0;
+        $checkedDex.each(function () {
+            if (done >= excess) return false;
+            if (String($(this).attr('data-val') || '').toLowerCase() === String(changedVal || '').toLowerCase()) return;
+            $(this).find('input').prop('checked', false);
+            $(this).css({
+                'border-color': isMetaDex ? '#c4b5fd' : 'transparent',
+                'background': 'white'
+            });
+            done++;
+        });
+    }
+
     /**
      * Update HANYA angka "TOTAL KOIN" di badge tanpa re-render seluruh filter card.
      * Digunakan saat delete koin selama scanning untuk menghindari refresh filter.
@@ -1504,7 +1542,12 @@ async function deferredInit() {
                 const id = `fc-cex-${cx}`; const cnt = byCex[cx] || 0; if (cnt === 0) return; const checked = cexSel.includes(cx.toUpperCase());
                 $secCex.append(chipHtml('fc-cex', id, cx, CONFIG_CEX[cx].WARNA, cnt, checked, cx, false));
             });
-            const $secDex = $('<div class="uk-flex uk-flex-middle" style="gap:8px;flex-wrap:wrap;"><span class="uk-text-bolder uk-text-danger">DEX:</span></div>');
+            const limitMetaDexInfo = Number(window.CONFIG_APP?.APP?.LIMIT_METADEX || 0);
+            const metaDexLimitBadge = (window.CONFIG_APP?.APP?.META_DEX === true && limitMetaDexInfo > 0)
+                ? `<span class="metadex-limit-info">MAX META-DEX: ${limitMetaDexInfo}</span>`
+                : '';
+            const dexLimitBadge = getDexLimitBadge(false, 'MAX DEX:');
+            const $secDex = $(`<div class="uk-flex uk-flex-middle" style="gap:8px;flex-wrap:wrap;"><span class="uk-text-bolder uk-text-danger">DEX:</span>${dexLimitBadge}${metaDexLimitBadge}</div>`);
             // ✅ Filter: Hanya tampilkan DEX asli (not disabled, not Meta-DEX, not Backend Provider)
             // Meta-DEX hanya muncul jika CONFIG_APP.APP.META_DEX === true
             // Backend Provider (lifi) tidak pernah muncul sebagai DEX column
@@ -1548,30 +1591,12 @@ async function deferredInit() {
             // Search input now in HTML (next to WALLET CEX checkbox)
             $wrap.append($right);
             $('#modal-filter-sections').off('change.multif').on('change.multif', 'label.fc-chain input, label.fc-cex input, label.fc-dex input', function () {
-                // LIMIT_METADEX: batasi jumlah META-DEX yang bisa dipilih
+                // LIMIT_DEX / LIMIT_METADEX: batasi jumlah DEX sesuai config.
                 const $lbl = $(this).closest('label');
                 if ($lbl.hasClass('fc-dex') && $(this).prop('checked')) {
                     const changedVal = $lbl.attr('data-val');
-                    if (window.CONFIG_DEXS?.[changedVal]?.isMetaDex) {
-                        const limitMeta = window.CONFIG_APP?.APP?.LIMIT_METADEX || 0;
-                        if (limitMeta > 0) {
-                            const $checkedMeta = $('#modal-filter-sections').find('label.fc-dex').filter(function () {
-                                return !!window.CONFIG_DEXS?.[$(this).attr('data-val')]?.isMetaDex && $(this).find('input').prop('checked');
-                            });
-                            const toUncheck = $checkedMeta.length - limitMeta;
-                            if (toUncheck > 0) {
-                                let done = 0;
-                                $checkedMeta.each(function () {
-                                    if (done >= toUncheck) return false;
-                                    if ($(this).attr('data-val') !== changedVal) {
-                                        $(this).find('input').prop('checked', false);
-                                        $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
-                                        done++;
-                                    }
-                                });
-                            }
-                        }
-                    }
+                    const isMetaDex = !!window.CONFIG_DEXS?.[changedVal]?.isMetaDex;
+                    enforceDexSelectionLimit($('#modal-filter-sections'), 'label.fc-dex', changedVal, isMetaDex);
                 }
 
                 const prev = getFilterMulti();
@@ -1653,7 +1678,8 @@ async function deferredInit() {
                 $secPair.append(chipHtml('sc-pair', id, p, pairColor, cnt, checked, undefined, false));
             });
             // DEX chips based on chain-allowed DEXes and filtered dataset
-            const $secDex = $('<div class="uk-flex uk-flex-middle" style="gap:8px;flex-wrap:wrap;"><span class="uk-text-bolder uk-text-danger">DEX:</span></div>');
+            const dexLimitBadge = getDexLimitBadge(false, 'MAX DEX:');
+            const $secDex = $(`<div class="uk-flex uk-flex-middle" style="gap:8px;flex-wrap:wrap;"><span class="uk-text-bolder uk-text-danger">DEX:</span>${dexLimitBadge}</div>`);
             const dexAllowed = ((CONFIG_CHAINS[chain] || {}).DEXS || []).map(x => String(x).toLowerCase());
             const byDex = flatPair.reduce((a, t) => {
                 (t.dexs || []).forEach(d => { const k = String(d.dex || '').toLowerCase(); if (!dexAllowed.includes(k)) return; a[k] = (a[k] || 0) + 1; });
@@ -1683,6 +1709,13 @@ async function deferredInit() {
             // Search input now in HTML (next to WALLET CEX checkbox)
             $wrap.append($right);
             $('#modal-filter-sections').off('change.scf').on('change.scf', 'label.sc-cex input, label.sc-pair input, label.sc-dex input', function () {
+                const $lbl = $(this).closest('label');
+                if ($lbl.hasClass('sc-dex') && $(this).prop('checked')) {
+                    const changedVal = $lbl.attr('data-val');
+                    const isMetaDex = !!window.CONFIG_DEXS?.[changedVal]?.isMetaDex;
+                    enforceDexSelectionLimit($('#modal-filter-sections'), 'label.sc-dex', changedVal, isMetaDex);
+                }
+
                 const prev = getFilterChain(chain);
                 const prevC = (prev.cex || []).map(String);
                 const prevP = (prev.pair || []).map(x => String(x).toUpperCase());
@@ -1942,14 +1975,14 @@ async function deferredInit() {
             // Build DEX section (shared between CEX and multichain)
             // ======== SECTION DEX (bukan MetaDEX) ========
             const $dexSection = $('<div class="filter-box filter-box-dex"></div>');
-            $dexSection.append($('<div class="filter-section-title">DEX</div>'));
+            $dexSection.append($(`<div class="filter-section-title">DEX${getDexLimitBadge(false)}</div>`));
             const $dexGrid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;"></div>');
             const metaDexEnabled = (CONFIG_APP && CONFIG_APP.APP && CONFIG_APP.APP.META_DEX === true);
 
             // ======== SECTION META-DEX (terpisah) ========
             const $metaDexSection = $('<div class="filter-box filter-box-metadex"></div>');
-            $metaDexSection.append($('<div class="filter-section-title" style="color:#7c3aed;">&#x26A1; META-DEX AGGREGATORS</div>'));
-            const $metaDexGrid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;"></div>');
+            $metaDexSection.append($(`<div class="filter-section-title" style="color:#7c3aed;">&#x26A1; META-DEX AGGREGATORS${getDexLimitBadge(true)}</div>`));
+            const $metaDexGrid = $('<div class="filter-metadex-row"></div>');
 
             Object.keys(CONFIG_DEXS || {}).forEach(dx => {
                 const dexConfig = CONFIG_DEXS[dx];
@@ -2126,30 +2159,12 @@ async function deferredInit() {
             $('#modal-summary-bar').empty().append($sum);
 
             $('#modal-filter-sections').off('change.multif').on('change.multif', 'label.fc-chain input, label.fc-cex input, label.fc-pair input, label.fc-dex input', function () {
-                // LIMIT_METADEX: batasi jumlah META-DEX yang bisa dipilih
+                // LIMIT_DEX / LIMIT_METADEX: batasi jumlah DEX sesuai config.
                 const $lbl2 = $(this).closest('label');
                 if ($lbl2.hasClass('fc-dex') && $(this).prop('checked')) {
                     const changedVal2 = $lbl2.attr('data-val');
-                    if (window.CONFIG_DEXS?.[changedVal2]?.isMetaDex) {
-                        const limitMeta2 = window.CONFIG_APP?.APP?.LIMIT_METADEX || 0;
-                        if (limitMeta2 > 0) {
-                            const $checkedMeta2 = $('#modal-filter-sections').find('label.fc-dex').filter(function () {
-                                return !!window.CONFIG_DEXS?.[$(this).attr('data-val')]?.isMetaDex && $(this).find('input').prop('checked');
-                            });
-                            const toUncheck2 = $checkedMeta2.length - limitMeta2;
-                            if (toUncheck2 > 0) {
-                                let done2 = 0;
-                                $checkedMeta2.each(function () {
-                                    if (done2 >= toUncheck2) return false;
-                                    if ($(this).attr('data-val') !== changedVal2) {
-                                        $(this).find('input').prop('checked', false);
-                                        $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
-                                        done2++;
-                                    }
-                                });
-                            }
-                        }
-                    }
+                    const isMetaDex2 = !!window.CONFIG_DEXS?.[changedVal2]?.isMetaDex;
+                    enforceDexSelectionLimit($('#modal-filter-sections'), 'label.fc-dex', changedVal2, isMetaDex2);
                 }
 
                 const prev = isCEXModeNow ? (typeof getFilterCEX === 'function' ? getFilterCEX(window.CEXModeManager.getSelectedCEX()) : {}) : getFilterMulti();
@@ -2314,7 +2329,7 @@ async function deferredInit() {
 
             // Col 3 (or col 2 in CEX mode): DEX column
             const $dexSection = $('<div class="filter-box filter-box-dex"></div>');
-            $dexSection.append($('<div class="filter-section-title">DEX</div>'));
+            $dexSection.append($(`<div class="filter-section-title">DEX${getDexLimitBadge(false)}</div>`));
             const $dexGrid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; align-items:flex-start;"></div>');
             const dexAllowed = ((CONFIG_CHAINS[chain] || {}).DEXS || []).map(x => String(x).toLowerCase());
             const byDex = flatPair.reduce((a, t) => {
@@ -2343,8 +2358,8 @@ async function deferredInit() {
             // Row 2: META-DEX (terpisah, section sendiri)
             if (window.CONFIG_APP?.APP?.META_DEX === true) {
                 const $metaDexSc = $('<div class="filter-box filter-box-metadex"></div>');
-                $metaDexSc.append($('<div class="filter-section-title" style="color:#7c3aed;">META-DEX</div>'));
-                const $metaGrid = $('<div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;"></div>');
+                $metaDexSc.append($(`<div class="filter-section-title" style="color:#7c3aed;">META-DEX${getDexLimitBadge(true)}</div>`));
+                const $metaGrid = $('<div class="filter-metadex-row"></div>');
                 const metaKeys = Object.keys(CONFIG_DEXS || {}).filter(k => {
                     const dcfg = CONFIG_DEXS[k];
                     if (!dcfg?.isMetaDex || dcfg?.disabled || dcfg?.isBackendProvider) return false;
@@ -2365,7 +2380,7 @@ async function deferredInit() {
                     const id = `modal-sc-dex-${dx}`;
                     const _mb2 = (typeof window.getMetaDexBadge === 'function') ? window.getMetaDexBadge(dx, '8px', 'solid') : `<span style="background:${col};color:#fff;padding:0 3px;border-radius:3px;font-size:8px;">MT</span>`;
                     $metaGrid.append($(`
-                        <label class="sc-dex" data-val="${dx}" data-color="${col}" for="${id}"
+                        <label class="sc-dex filter-chip meta-dex-chip" data-val="${dx}" data-color="${col}" for="${id}"
                                style="display:flex; align-items:center; gap:3px; padding:3px 8px; border-radius:3px; cursor:pointer;
                                       border:2px solid ${checked ? col : '#c4b5fd'}; background:${checked ? '#f5f3ff' : 'white'};">
                             <input type="checkbox" id="${id}" ${checked ? 'checked' : ''} style="width:11px; height:11px; margin:0;">
@@ -2400,30 +2415,12 @@ async function deferredInit() {
 
             // Event handler untuk filter changes
             $('#modal-filter-sections').off('change.scf').on('change.scf', 'label.sc-cex input, label.sc-pair input, label.sc-dex input', function () {
-                // LIMIT_METADEX: batasi jumlah META-DEX yang bisa dipilih
+                // LIMIT_DEX / LIMIT_METADEX: batasi jumlah DEX sesuai config.
                 const $lbl3 = $(this).closest('label');
                 if ($lbl3.hasClass('sc-dex') && $(this).prop('checked')) {
                     const changedVal3 = $lbl3.attr('data-val');
-                    if (window.CONFIG_DEXS?.[changedVal3]?.isMetaDex) {
-                        const limitMeta3 = window.CONFIG_APP?.APP?.LIMIT_METADEX || 0;
-                        if (limitMeta3 > 0) {
-                            const $checkedMeta3 = $('#modal-filter-sections').find('label.sc-dex').filter(function () {
-                                return !!window.CONFIG_DEXS?.[$(this).attr('data-val')]?.isMetaDex && $(this).find('input').prop('checked');
-                            });
-                            const toUncheck3 = $checkedMeta3.length - limitMeta3;
-                            if (toUncheck3 > 0) {
-                                let done3 = 0;
-                                $checkedMeta3.each(function () {
-                                    if (done3 >= toUncheck3) return false;
-                                    if ($(this).attr('data-val') !== changedVal3) {
-                                        $(this).find('input').prop('checked', false);
-                                        $(this).css({ 'border-color': '#c4b5fd', 'background': 'white' });
-                                        done3++;
-                                    }
-                                });
-                            }
-                        }
-                    }
+                    const isMetaDex3 = !!window.CONFIG_DEXS?.[changedVal3]?.isMetaDex;
+                    enforceDexSelectionLimit($('#modal-filter-sections'), 'label.sc-dex', changedVal3, isMetaDex3);
                 }
 
                 const prev = getFilterChain(chain);
@@ -4264,7 +4261,15 @@ async function deferredInit() {
         const keyLower = String(chainKey || '').toLowerCase();
         const cfg = (window.CONFIG_CHAINS || {})[keyLower];
         if (!cfg || !cfg.DATAJSON) throw new Error(`No datajson URL for ${String(chainKey || '').toUpperCase()}`);
-        const remoteTokens = await $.getJSON(cfg.DATAJSON);
+        let remoteTokens;
+        try {
+            remoteTokens = await $.getJSON(cfg.DATAJSON);
+        } catch (jqErr) {
+            // $.getJSON gagal → jqXHR bukan Error biasa
+            const status = jqErr?.status || '?';
+            const statusText = jqErr?.statusText || 'No response';
+            throw new Error(`File tidak ditemukan (${status} ${statusText}): ${cfg.DATAJSON}`);
+        }
         let raw = [];
         if (Array.isArray(remoteTokens)) raw = remoteTokens;
         else if (remoteTokens && Array.isArray(remoteTokens.token)) raw = remoteTokens.token;
@@ -4413,11 +4418,21 @@ async function deferredInit() {
                 $('#sync-modal-tbody').html('<tr><td colspan="7">Gagal memuat data setelah save</td></tr>');
             }
         } catch (error) {
-            // console.error('Fetch JSON failed:', error);
-            $('#sync-modal-tbody').html(`<tr><td colspan="7">Gagal mengambil data dari server: ${error.message}</td></tr>`);
+            // $.getJSON throw jQuery jqXHR (bukan Error biasa), tangkap dengan benar
+            let errMsg = 'Unknown error';
+            if (error && typeof error === 'object') {
+                if (error.message) errMsg = error.message;
+                else if (error.statusText) errMsg = `HTTP ${error.status || '?'}: ${error.statusText}`;
+                else if (error.status) errMsg = `HTTP ${error.status} — file tidak ditemukan`;
+                else errMsg = JSON.stringify(error).slice(0, 120);
+            } else if (typeof error === 'string') {
+                errMsg = error;
+            }
+            console.error('[SYNC] Fetch JSON failed:', error);
+            $('#sync-modal-tbody').html(`<tr><td colspan="7">Gagal mengambil data dari server: ${errMsg}</td></tr>`);
             $('#sync-snapshot-status').text('Gagal fetch');
             if (typeof toast !== 'undefined' && toast.error) {
-                toast.error(`Gagal: ${error.message || 'Unknown error'}`);
+                toast.error(`Gagal: ${errMsg}`);
             }
         }
     });
@@ -6024,13 +6039,13 @@ $(document).ready(function () {
             const dexColor = dexConfig.warna || '#333';
 
             $dex.append(`
-                <div class="uk-flex uk-flex-middle sync-dex-row" data-dex="${dx}" style="gap:6px; padding: 4px; border-left: 3px solid ${dexColor}; background: ${dexColor}08;">
+                <div class="uk-flex uk-flex-middle sync-dex-row" data-dex="${dx}" style="gap:8px; padding: 4px 6px; border-left: 3px solid ${dexColor}; background: ${dexColor}08;">
                     <label class="uk-margin-remove" style="display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" class="uk-checkbox sync-dex-checkbox" data-dex="${dx}" checked style="margin-right: 6px;">
+                        <input type="checkbox" class="uk-checkbox sync-dex-checkbox" data-dex="${dx}" checked style="margin-right: 8px; width:16px; height:16px;">
                     </label>
-                    <span class="uk-text-small uk-text-bold sync-dex-label" style="width:70px; color: ${dexColor};">${dx.toUpperCase()}</span>
-                    <input type="number" class="uk-input uk-form-small sync-dex-left" data-dex="${dx}" placeholder="Modal Kiri" value="100" style="flex: 1;">
-                    <input type="number" class="uk-input uk-form-small sync-dex-right" data-dex="${dx}" placeholder="Modal Kanan" value="100" style="flex: 1;">
+                    <span class="uk-text-bold sync-dex-label" style="width:80px; font-size:12px; color: ${dexColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${dx.toUpperCase()}</span>
+                    <input type="number" class="uk-input uk-form-small sync-dex-left" data-dex="${dx}" placeholder="L" value="100" style="flex: 1; height: 26px; font-size: 11px; padding: 0 6px;">
+                    <input type="number" class="uk-input uk-form-small sync-dex-right" data-dex="${dx}" placeholder="R" value="100" style="flex: 1; height: 26px; font-size: 11px; padding: 0 6px;">
                 </div>`);
         });
 
@@ -6047,20 +6062,20 @@ $(document).ready(function () {
             });
 
             if (metaAggs.length > 0) {
-                $dex.append(`<div style="border-top:1px dashed #c084fc; margin:6px 0 4px; padding-top:4px;"><span style="font-size:10px; color:#7c3aed; font-weight:700;">META-DEX AGGREGATOR</span></div>`);
+                $dex.append(`<div style="border-top:1px dashed #c084fc; margin:4px 0 2px; padding-top:2px;"><span style="font-size:9px; color:#7c3aed; font-weight:700;">META-DEX AGGREGATOR</span></div>`);
                 metaAggs.forEach(aggKey => {
                     const aggCfg = window.CONFIG_DEXS[aggKey] || {};
                     const aggLabel = (aggCfg.label || aggKey).toUpperCase();
                     const aggColor = aggCfg.warna || '#7c3aed';
                     const _mb3 = (typeof window.getMetaDexBadge === 'function') ? window.getMetaDexBadge(aggKey, '8px', 'solid') : '';
                     $dex.append(`
-                        <div class="uk-flex uk-flex-middle sync-dex-row" data-dex="${aggKey}" style="gap:6px; padding: 4px; border-left: 3px solid ${aggColor}; background: ${aggColor}08;">
+                        <div class="uk-flex uk-flex-middle sync-dex-row" data-dex="${aggKey}" style="gap:8px; padding: 4px 6px; border-left: 3px solid ${aggColor}; background: ${aggColor}08;">
                             <label class="uk-margin-remove" style="display: flex; align-items: center; cursor: pointer;">
-                                <input type="checkbox" class="uk-checkbox sync-metadex-checkbox" data-dex="${aggKey}" style="margin-right: 6px;">
+                                <input type="checkbox" class="uk-checkbox sync-metadex-checkbox" data-dex="${aggKey}" style="margin-right: 8px; width:16px; height:16px;">
                             </label>
-                            <span class="uk-text-small uk-text-bold sync-dex-label" style="width:70px; color: ${aggColor};">${aggLabel} ${_mb3}</span>
-                            <input type="number" class="uk-input uk-form-small sync-metadex-left" data-dex="${aggKey}" placeholder="Modal Kiri" value="100" style="flex: 1; border-color:${aggColor}55;">
-                            <input type="number" class="uk-input uk-form-small sync-metadex-right" data-dex="${aggKey}" placeholder="Modal Kanan" value="100" style="flex: 1; border-color:${aggColor}55;">
+                            <span class="uk-text-bold sync-dex-label" style="width:80px; font-size:12px; color: ${aggColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${aggLabel} ${_mb3}</span>
+                            <input type="number" class="uk-input uk-form-small sync-metadex-left" data-dex="${aggKey}" placeholder="L" value="100" style="flex: 1; height: 26px; font-size: 11px; padding: 0 6px; border-color:${aggColor}55;">
+                            <input type="number" class="uk-input uk-form-small sync-metadex-right" data-dex="${aggKey}" placeholder="R" value="100" style="flex: 1; height: 26px; font-size: 11px; padding: 0 6px; border-color:${aggColor}55;">
                         </div>`);
                 });
             }

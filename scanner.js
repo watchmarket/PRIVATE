@@ -341,6 +341,10 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
     }
     $('#autoRunCountdown').text('');
 
+    if (typeof window.validateDexSelectionBeforeScan === 'function' && !window.validateDexSelectionBeforeScan()) {
+        return;
+    }
+
     // ✅ Set window.SavedSettingData EARLY for other modules to access
     window.SavedSettingData = settings;
 
@@ -874,28 +878,40 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                 levels: parseInt($('#autoVolLevels').val()) || 1
             };
 
-            // Only fetch orderbook if AUTO LEVEL is enabled
+            // ✅ OPTIMIZED: Use already fetched volumes from getPriceCEX (DataCEX)
+            // This avoids redundant re-fetching, CORS issues, and already handles Indodax conversion.
             if (autoLevelEnabled && cexResult.ok) {
                 try {
                     const cexUpper = String(token.cex).toUpperCase();
                     const cexConfig = CONFIG_CEX[cexUpper];
 
                     if (cexConfig && cexConfig.ORDERBOOK) {
-                        const symbol = String(token.symbol_in || '').toUpperCase();
-                        const url = (typeof cexConfig.ORDERBOOK.urlTpl === 'function')
-                            ? cexConfig.ORDERBOOK.urlTpl({ symbol })
-                            : '';
+                        // Priority 1: Use existing volumes if available (converted to [price, amount] format)
+                        if (DataCEX.volumes_sellToken && DataCEX.volumes_buyToken) {
+                            DataCEX.orderbook = {
+                                asks: DataCEX.volumes_sellToken.map(v => [v.price, (v.price > 0 ? v.volume / v.price : 0)]),
+                                bids: DataCEX.volumes_buyToken.map(v => [v.price, (v.price > 0 ? v.volume / v.price : 0)])
+                            };
+                            console.log(`[Auto Level] Using existing volumes for ${token.symbol_in} on ${cexUpper}`);
+                        } else {
+                            // Priority 2: Fallback to re-fetch if volumes are missing
+                            const symbol = String(token.symbol_in || '').toUpperCase();
+                            const url = (typeof cexConfig.ORDERBOOK.urlTpl === 'function')
+                                ? cexConfig.ORDERBOOK.urlTpl({ symbol })
+                                : '';
 
-                        if (url) {
-                            const orderbookResponse = await $.getJSON(url);
-                            DataCEX.orderbook = (typeof parseOrderbook === 'function')
-                                ? parseOrderbook(cexUpper, orderbookResponse)
-                                : { asks: [], bids: [] };
+                            if (url) {
+                                // Use fetchWithProxy instead of $.getJSON for better compatibility (CORS)
+                                const response = await fetchWithProxy(url, { timeout: 8000 });
+                                const orderbookResponse = await response.json();
+                                DataCEX.orderbook = (typeof parseOrderbook === 'function')
+                                    ? parseOrderbook(cexUpper, orderbookResponse)
+                                    : { asks: [], bids: [] };
+                            }
                         }
                     }
                 } catch (err) {
-                    console.warn('[Auto Level] Failed to fetch orderbook:', err);
-                    // Silently fallback to fixed modal
+                    console.warn('[Auto Level] Failed to prepare orderbook data:', err);
                 }
             }
 
@@ -1177,11 +1193,19 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     }
                                 } catch (_) { }
 
-                                statusSpan.innerHTML = `<span class="uk-label uk-label-danger">ERROR</span> <a href="${dexLink}" target="_blank" rel="noopener" class="uk-link-muted" title="Check swap manually on DEX" style="font-size:0.9em;">🔗</a>`;
+                                // ✅ ENHANCEMENT: Show specific labels for common errors
+                                let labelText = 'ERROR';
+                                if (message) {
+                                    const msgLower = String(message).toLowerCase();
+                                    if (msgLower.includes('mismatched')) labelText = 'MISMATCH';
+                                    else if (msgLower.includes('no route') || msgLower.includes('not found')) labelText = 'NO ROUTE';
+                                }
+
+                                statusSpan.innerHTML = `<span class="uk-label uk-label-danger">${labelText}</span> <a href="${dexLink}" target="_blank" rel="noopener" class="uk-link-muted" title="Check swap manually on DEX" style="font-size:0.9em;">🔗</a>`;
                                 if (message) {
                                     statusSpan.title = String(message);
                                     setCellTitleByEl(cell, String(message));
-                                    // Ensure the visible ERROR/TIMEOUT badge also shows the tooltip itself
+                                    // Ensure the visible label also shows the tooltip itself
                                     try { const lab = statusSpan.querySelector('.uk-label'); if (lab) lab.setAttribute('title', String(message)); } catch (_) { }
                                 } else {
                                     statusSpan.removeAttribute('title');

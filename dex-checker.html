@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEX Checker - Multi-Integrator Verifier</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #ec4899;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border-color: #334155;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #60a5fa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        select,
+        input {
+            width: 100%;
+            background-color: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            background: #0f172a;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        .checkbox-item input {
+            display: none;
+        }
+
+        .checkbox-item.active {
+            border-color: var(--accent-primary);
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-primary);
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-primary), #2563eb);
+            color: white;
+            font-weight: 700;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .res-item {
+            background: #111827;
+            border-left: 4px solid var(--accent-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .res-item.error {
+            border-left-color: var(--error);
+        }
+
+        .res-item.success {
+            border-left-color: var(--success);
+        }
+
+        .res-main {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .res-title {
+            font-weight: 700;
+            color: var(--accent-secondary);
+        }
+
+        .res-meta {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .res-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--success);
+        }
+
+        .res-fee {
+            font-size: 0.8rem;
+            color: #fbbf24;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--accent-primary);
+        }
+
+        .proxy-info {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>DEX VERIFIER</h1>
+        <p class="subtitle">Manual Debugger for LiFi Integrators & Filters</p>
+
+        <div class="card">
+            <div class="grid">
+                <div class="form-group">
+                    <label>Chain</label>
+                    <select id="chain">
+                        <option value="56">BSC (56)</option>
+                        <option value="1">Ethereum (1)</option>
+                        <option value="137">Polygon (137)</option>
+                        <option value="42161">Arbitrum (42161)</option>
+                        <option value="8453">Base (8453)</option>
+                        <option value="43114">Avalanche AVAX (43114)</option>
+                        <option value="1399811149">Solana (LiFi ID)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount In</label>
+                    <input type="number" id="amount" value="1.0" step="0.0001">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Token IN (Address)</label>
+                <input type="text" id="tokenIn"
+                    placeholder="0x... (e.g. USDT BSC: 0x55d398326f99059fF775485246999027B3197955)"
+                    value="0x55d398326f99059fF775485246999027B3197955">
+            </div>
+
+            <div class="form-group">
+                <label>Token OUT (Address)</label>
+                <input type="text" id="tokenOut"
+                    placeholder="0x... (e.g. BNB BSC: 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c)"
+                    value="0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c">
+            </div>
+
+            <div class="form-group">
+                <label>1. Select Integrators</label>
+                <div class="checkbox-group" id="integrators">
+                    <div class="checkbox-item active"><input type="checkbox" value="brave" checked>BRAVE</div>
+                    <div class="checkbox-item active"><input type="checkbox" value="talisman" checked>TALISMAN</div>
+                    <div class="checkbox-item active"><input type="checkbox" value="zapper" checked>ZAPPER</div>
+                    <div class="checkbox-item active"><input type="checkbox" value="jumper" checked>JUMPER</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>2. Filter DEX Exchange (Optional)</label>
+                <div class="checkbox-group" id="exchanges">
+                    <div class="checkbox-item"><input type="checkbox" value="odos">ODOS</div>
+                    <div class="checkbox-item"><input type="checkbox" value="1inch">1INCH</div>
+                    <div class="checkbox-item"><input type="checkbox" value="kyberswap">KYBER</div>
+                    <div class="checkbox-item"><input type="checkbox" value="paraswap">VELORA</div>
+                    <div class="checkbox-item"><input type="checkbox" value="0x">MATCHA</div>
+                    <div class="checkbox-item"><input type="checkbox" value="okx">OKX</div>
+                    <div class="checkbox-item"><input type="checkbox" value="sushiswap">SUSHI</div>
+                    <div class="checkbox-item"><input type="checkbox" value="openocean">OPENOCEAN</div>
+                    <div class="checkbox-item"><input type="checkbox" value="fly">FLYTRADE</div>
+                    <div class="checkbox-item"><input type="checkbox" value="cowswap">COWSWAP</div>
+                    <div class="checkbox-item"><input type="checkbox" value="eisen">EISEN</div>
+                </div>
+            </div>
+
+            <button class="btn" id="checkBtn">Check Prices</button>
+            <div class="loader" id="loader">Fetching quotes from multiple nodes...</div>
+            <p class="proxy-info">Note: Requests are routed through a CORS proxy for stability.</p>
+        </div>
+
+        <div class="results" id="results">
+            <!-- Results will appear here -->
+        </div>
+    </div>
+
+    <script>
+        // Use proxy to avoid CORS
+        const PROXY = "https://yazid3.yazidcrypto7.workers.dev/?";
+
+        $(document).ready(function () {
+            // Handle custom checkbox styling
+            $('.checkbox-item').click(function () {
+                $(this).toggleClass('active');
+                const cb = $(this).find('input');
+                cb.prop('checked', !cb.prop('checked'));
+            });
+
+            $('#checkBtn').click(async function () {
+                const chainId = $('#chain').val();
+                const amount = $('#amount').val();
+                const tokenIn = $('#tokenIn').val().trim();
+                const tokenOut = $('#tokenOut').val().trim();
+
+                const selectedIntegrators = [];
+                $('#integrators input:checked').each(function () { selectedIntegrators.push($(this).val()); });
+
+                const selectedExchanges = [];
+                $('#exchanges input:checked').each(function () { selectedExchanges.push($(this).val()); });
+
+                if (!tokenIn || !tokenOut || selectedIntegrators.length === 0) {
+                    alert("Please fill all fields and select at least one integrator.");
+                    return;
+                }
+
+                $('#results').empty();
+                $('#loader').show();
+                $(this).prop('disabled', true).css('opacity', 0.5);
+
+                const tasks = [];
+                for (const integrator of selectedIntegrators) {
+                    if (selectedExchanges.length > 0) {
+                        for (const ex of selectedExchanges) {
+                            tasks.push(fetchQuote(integrator, chainId, tokenIn, tokenOut, amount, ex));
+                        }
+                    } else {
+                        tasks.push(fetchQuote(integrator, chainId, tokenIn, tokenOut, amount, null));
+                    }
+                }
+
+                await Promise.all(tasks);
+                $('#loader').hide();
+                $(this).prop('disabled', false).css('opacity', 1);
+            });
+        });
+
+        async function fetchQuote(integrator, chainId, fromToken, toToken, amount, exchange) {
+            const label = integrator.toUpperCase() + (exchange ? ` (${exchange.toUpperCase()})` : '');
+            const amountRaw = (parseFloat(amount) * 1e18).toString().split('.')[0]; // Assuming 18 decimals for simplicity in raw req
+
+            let url, options;
+            const isSolana = chainId === "1399811149";
+
+            try {
+                if (integrator === 'brave' || integrator === 'talisman') {
+                    const endpoint = integrator === 'brave'
+                        ? 'https://lifi.wallet.brave.com/v1/advanced/routes'
+                        : 'https://lifi.talisman.xyz/v1/advanced/routes';
+
+                    const body = {
+                        fromAmount: amountRaw,
+                        fromChainId: parseInt(chainId),
+                        fromTokenAddress: fromToken,
+                        toChainId: parseInt(chainId),
+                        toTokenAddress: toToken,
+                        options: {
+                            integrator: integrator,
+                            order: 'CHEAPEST'
+                        }
+                    };
+                    if (exchange) body.options.allowExchanges = [exchange];
+
+                    url = PROXY + endpoint;
+                    options = {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    };
+                } else if (integrator === 'zapper') {
+                    const params = new URLSearchParams({
+                        fromChain: chainId,
+                        toChain: chainId,
+                        fromToken: fromToken,
+                        toToken: toToken,
+                        fromAmount: amountRaw,
+                        integrator: 'zapper'
+                    });
+                    if (exchange) params.append('allowExchanges', exchange);
+
+                    url = PROXY + `https://zapper.xyz/api/lifi/quote?${params.toString()}`;
+                    options = { method: 'GET' };
+                } else if (integrator === 'jumper') {
+                    const params = new URLSearchParams({
+                        fromChain: chainId,
+                        toChain: chainId,
+                        fromToken: fromToken,
+                        toToken: toToken,
+                        fromAmount: amountRaw,
+                        fromAddress: '0x0000000000000000000000000000000000000000',
+                        toAddress: '0x0000000000000000000000000000000000000000'
+                    });
+                    if (exchange) params.append('allowExchanges', exchange);
+
+                    url = PROXY + `https://lifi.workers.madlads.com/quote?${params.toString()}`;
+                    options = { method: 'GET' };
+                }
+
+                const response = await fetch(url, options);
+                const data = await response.json();
+
+                if (data.error || (data.routes && data.routes.length === 0)) {
+                    renderResult(label, "No Route / Error", "N/A", "error", "", exchange);
+                } else {
+                    let out = 0, fee = 0, dex = "LIFI";
+                    if (data.routes) {
+                        out = data.routes[0].toAmount;
+                        fee = data.routes[0].gasCostUSD;
+                        dex = data.routes[0].steps[0].toolDetails.name;
+                    } else if (data.estimate) {
+                        out = data.estimate.toAmount;
+                        fee = data.estimate.gasCosts ? data.estimate.gasCosts.reduce((s, g) => s + parseFloat(g.amountUSD), 0) : 0;
+                        dex = data.toolDetails ? data.toolDetails.name : (data.tool || "LIFI");
+                    }
+
+                    // Display normalized (assume 18 for now, simplified for debugger)
+                    const normalizedOut = (parseFloat(out) / 1e18).toFixed(6);
+                    renderResult(label, normalizedOut, fee, "success", dex, exchange);
+                }
+            } catch (e) {
+                renderResult(label, "Failed to connect", "N/A", "error", "", exchange);
+            }
+        }
+
+        function renderResult(integrator, val, fee, type, realDex = "", expectedExchange = null) {
+            const statusClass = type === "error" ? "error" : "success";
+            
+            // Check for mismatch
+            let mismatchLabel = '';
+            if (realDex && expectedExchange) {
+                const actual = realDex.toUpperCase();
+                const expected = expectedExchange.toUpperCase();
+                if (!actual.includes(expected) && !expected.includes(actual)) {
+                    mismatchLabel = `<span style="color: var(--error); font-weight: bold; margin-left: 10px;">⚠️ MISMATCH!</span>`;
+                }
+            }
+
+            const dexInfo = realDex ? `<span class="res-meta">Real Provider: ${realDex.toUpperCase()} ${mismatchLabel}</span>` : '';
+            const html = `
+                <div class="res-item ${statusClass}">
+                    <div class="res-main">
+                        <span class="res-title">${integrator}</span>
+                        ${dexInfo}
+                    </div>
+                    <div style="text-align: right">
+                        <div class="res-val">${val}</div>
+                        <div class="res-fee">Fee: $${parseFloat(fee).toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+            $('#results').append(html);
+        }
+    </script>
+</body>
+
+</html>

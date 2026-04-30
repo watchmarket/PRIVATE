@@ -53,34 +53,40 @@ async function getUserIP() {
  * Stores 'PRICE_RATE_USDT' for IDR conversions (e.g., INDODAX display).
  */
 async function getRateUSDT() {
-  const url = "https://www.tokocrypto.site/api/v3/depth?symbol=USDTIDR&limit=5";
-  try {
-    const response = await fetchWithProxy(url, { timeout: 10000 });
-    const data = await response.json();
-    
-    if (data && data.bids && data.bids.length > 0) {
-      const topBid = parseFloat(data.bids[0][0]); // harga beli tertinggi
+  const urls = [
+    "https://www.tokocrypto.site/api/v3/depth?symbol=USDTIDR&limit=5",
+    "https://indodax.com/api/depth/usdtidr"
+  ];
+
+  for (const url of urls) {
+    try {
+      const response = await fetchWithProxy(url, { timeout: 10000 });
+      const data = await response.json();
+      
+      let topBid = 0;
+      if (url.includes('tokocrypto')) {
+        if (data && data.bids && data.bids.length > 0) {
+          topBid = parseFloat(data.bids[0][0]);
+        }
+      } else if (url.includes('indodax')) {
+        if (data && data.buy && data.buy.length > 0) {
+          topBid = parseFloat(data.buy[0][0]);
+        }
+      }
 
       if (!isNaN(topBid) && topBid > 0) {
         saveToLocalStorage('PRICE_RATE_USDT', topBid);
-        console.log('[getRateUSDT] ✅ Updated:', topBid);
-      } else {
-        console.error("[getRateUSDT] Failed to parse rate:", data);
-        if (typeof toast?.error === 'function') {
-          toast.error('Gagal parse kurs USDT/IDR dari Tokocrypto.');
-        }
+        console.log(`[getRateUSDT] ✅ Updated from ${url.includes('tokocrypto') ? 'Tokocrypto' : 'Indodax'}:`, topBid);
+        return; // Success, exit function
       }
-    } else {
-      console.error("[getRateUSDT] Invalid data structure:", data);
-      if (typeof toast?.error === 'function') {
-        toast.error('Struktur data kurs dari Tokocrypto tidak valid.');
-      }
+    } catch (error) {
+      console.warn(`[getRateUSDT] Fetch failed for ${url}:`, error.message);
     }
-  } catch (error) {
-    console.error("[getRateUSDT] Fetch error:", error.message);
-    if (typeof toast?.error === 'function') {
-      toast.error('Gagal mengambil kurs USDT/IDR dari Tokocrypto.');
-    }
+  }
+
+  console.error("[getRateUSDT] All sources failed to provide a valid rate.");
+  if (typeof toast?.error === 'function') {
+    toast.error('Gagal mengambil kurs USDT/IDR dari semua sumber (Tokocrypto & Indodax).');
   }
 }
 
@@ -156,13 +162,12 @@ async function feeGasGwei() {
   const chainInfos = chains.map(name => {
     const data = getChainData(name);
     if (!data) return null;
-    // RPC: ambil dari RPCManager (user settings) → DEFAULT_RPC di config → skip jika kosong
-    const rpc = data.RPC
-      || (window.CONFIG_CHAINS?.[name]?.DEFAULT_RPC)
-      || '';
+    // RPC pool: [DEFAULT_RPC, ...FALLBACK_RPCS] via RPCManager
+    const rpcPool = (window.RPCManager?.getRPCPool?.(name) || []);
+    const rpc = rpcPool[0] || data.RPC || (window.CONFIG_CHAINS?.[name]?.DEFAULT_RPC) || '';
     // GASLIMIT: baca dari CONFIG_CHAINS langsung (bukan getChainData yang tidak expose GASLIMIT)
     const gasLimit = (window.CONFIG_CHAINS?.[name]?.GASLIMIT) || data.GASLIMIT || 200000;
-    return rpc ? { ...data, rpc, symbol: data.BaseFEEDEX.replace('USDT', ''), gasLimit } : null;
+    return rpc ? { ...data, rpc, rpcPool, chainName: name, symbol: data.BaseFEEDEX.replace('USDT', ''), gasLimit } : null;
   }).filter(c => c && c.rpc && c.symbol);
 
   const symbols = [...new Set(chainInfos.map(c => c.BaseFEEDEX.toUpperCase()))];
@@ -178,23 +183,58 @@ async function feeGasGwei() {
       const price = tokenPrices[chain.symbol.toUpperCase()];
       if (!price) return null;
       const chainKey = String(chain.Kode_Chain || chain.key || chain.symbol || '').toLowerCase();
+      // Coba semua RPC dalam pool (primary → fallback) sebelum menyerah ke Blocknative
+      const rpcPool = Array.isArray(chain.rpcPool) && chain.rpcPool.length ? chain.rpcPool : [chain.rpc];
+      let rpcResult = null;
+      for (const rpcUrl of rpcPool) {
+        try {
+          const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+          const block = await web3.eth.getBlock('pending');
+
+          // Deteksi EIP-1559: baseFeePerGas harus ada dan > 0 (BSC = 0 = legacy)
+          const baseFeeWei = block?.baseFeePerGas ? Number(block.baseFeePerGas) : 0;
+          const isEIP1559 = baseFeeWei > 0;
+
+          let gwei;
+          if (isEIP1559) {
+            gwei = (baseFeeWei / 1e9) * 1.1;
+          } else {
+            const gasPriceWei = Number(await web3.eth.getGasPrice());
+            gwei = gasPriceWei / 1e9;
+          }
+
+          const gasUSD = (gwei * chain.gasLimit * price) / 1e9;
+          rpcResult = {
+            chain: String(chain.Nama_Chain || '').toLowerCase(),
+            chainKey,
+            key: chain.key || chain.symbol,
+            symbol: chain.symbol,
+            tokenPrice: price,
+            gwei,
+            gasUSD,
+            isEIP1559,
+            source: 'rpc'
+          };
+          break; // berhasil, hentikan iterasi
+        } catch {
+          window.RPCManager?.reportRPCFailure?.(chain.chainName || chainKey, rpcUrl);
+          // lanjut ke RPC berikutnya
+        }
+      }
+      if (rpcResult) return rpcResult;
+      // Semua RPC gagal — fallback ke Blocknative
       try {
-        const web3 = new Web3(new Web3.providers.HttpProvider(chain.rpc));
-        const block = await web3.eth.getBlock('pending');
+        const chainId = chain.Kode_Chain || chain.chainId;
+        if (!chainId) return null;
+        const gasData = await fetchGasBlocknative(chainId);
+        if (!gasData) return null;
 
-        // Deteksi EIP-1559: baseFeePerGas harus ada dan > 0 (BSC = 0 = legacy)
-        const baseFeeWei = block?.baseFeePerGas ? Number(block.baseFeePerGas) : 0;
-        const isEIP1559 = baseFeeWei > 0;
+        let gwei = gasData.gwei;
 
-        let gwei;
-        if (isEIP1559) {
-          // EIP-1559 chain (ETH, Polygon, Arbitrum, Base):
-          // baseFee + estimasi priority tip ~10%
-          gwei = (baseFeeWei / 1e9) * 1.1;
-        } else {
-          // Legacy chain (BSC): pakai eth_gasPrice langsung, TANPA multiplier
-          const gasPriceWei = Number(await web3.eth.getGasPrice());
-          gwei = gasPriceWei / 1e9;
+        // BSC guard: Blocknative untuk BSC kadang tidak akurat (terlalu tinggi)
+        if (String(chainKey).toLowerCase() === 'bsc' && gwei > 0.5) {
+          console.warn(`[Blocknative] BSC gas override: ${gwei} -> 0.1 gwei (Blocknative BSC inaccurate)`);
+          gwei = 0.1;
         }
 
         const gasUSD = (gwei * chain.gasLimit * price) / 1e9;
@@ -206,39 +246,10 @@ async function feeGasGwei() {
           tokenPrice: price,
           gwei,
           gasUSD,
-          isEIP1559,
-          source: 'rpc'
+          isEIP1559: gasData.baseFeeGwei > 0,
+          source: gasData.source
         };
-      } catch {
-        // ✅ FALLBACK: RPC gagal — coba Blocknative
-        try {
-          const chainId = chain.Kode_Chain || chain.chainId;
-          if (!chainId) return null;
-          const gasData = await fetchGasBlocknative(chainId);
-          if (!gasData) return null;
-
-          let gwei = gasData.gwei;
-
-          // BSC guard: Blocknative untuk BSC kadang tidak akurat (terlalu tinggi)
-          if (String(chainKey).toLowerCase() === 'bsc' && gwei > 0.5) {
-            console.warn(`[Blocknative] BSC gas override: ${gwei} -> 0.1 gwei (Blocknative BSC inaccurate)`);
-            gwei = 0.1;
-          }
-
-          const gasUSD = (gwei * chain.gasLimit * price) / 1e9;
-          return {
-            chain: String(chain.Nama_Chain || '').toLowerCase(),
-            chainKey,
-            key: chain.key || chain.symbol,
-            symbol: chain.symbol,
-            tokenPrice: price,
-            gwei,
-            gasUSD,
-            isEIP1559: gasData.baseFeeGwei > 0,
-            source: gasData.source
-          };
-        } catch { return null; }
-      }
+      } catch { return null; }
     }));
     saveToLocalStorage('ALL_GAS_FEES', gasResults.filter(Boolean));
   } catch (err) { console.error('Gagal ambil harga token gas:', err); }

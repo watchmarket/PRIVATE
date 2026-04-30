@@ -18,7 +18,6 @@
        cex==='BITGET'  ? `https://www.bitget.com/spot/${T}USDT` :
        cex==='BYBIT'   ? `https://www.bybit.com/trade/spot/${T}/USDT` :
        cex==='INDODAX' ? `https://indodax.com/market/${T}IDR` :
-       cex==='HTX'     ? `https://www.htx.com/trade/${T.toLowerCase()}_usdt` :
        cex==='OKX'     ? `https://www.okx.com/trade-spot/${T.toLowerCase()}-usdt` : '#');
     const tradePair = (P === 'USDT') ? '#' :
       (cex==='GATE'    ? `https://www.gate.com/trade/${P}_USDT` :
@@ -28,7 +27,6 @@
        cex==='BITGET'  ? `https://www.bitget.com/spot/${P}USDT` :
        cex==='BYBIT'   ? `https://www.bybit.com/trade/spot/${P}/USDT` :
        cex==='INDODAX' ? `https://indodax.com/market/${P}IDR` :
-       cex==='HTX'     ? `https://www.htx.com/trade/${P.toLowerCase()}_usdt` :
        cex==='OKX'     ? `https://www.okx.com/trade-spot/${P.toLowerCase()}-usdt` : '#');
     // Build distinct DP/WD URLs for token and pair
     const withdrawTokenUrl =
@@ -39,7 +37,6 @@
        cex==='BITGET'  ? `https://www.bitget.com/asset/withdraw?coin=${T}` :
        cex==='BYBIT'   ? `https://www.bybit.com/user/assets/withdraw?coin=${T}` :
        cex==='INDODAX' ? `https://indodax.com/finance/${T}#kirim` :
-       cex==='HTX'     ? `https://www.htx.com/en-us/finance/withdraw/${T.toLowerCase()}` :
        cex==='OKX'     ? `https://www.okx.com/balance/withdrawal/${T.toLowerCase()}` : '#');
     const withdrawPairUrl =
       (cex==='GATE'    ? `https://www.gate.com/myaccount/withdraw/${P}` :
@@ -49,7 +46,6 @@
        cex==='BITGET'  ? `https://www.bitget.com/asset/withdraw?coin=${P}` :
        cex==='BYBIT'   ? `https://www.bybit.com/user/assets/withdraw?coin=${P}` :
        cex==='INDODAX' ? `https://indodax.com/finance/${P}#kirim` :
-       cex==='HTX'     ? `https://www.htx.com/en-us/finance/withdraw/${P.toLowerCase()}` :
        cex==='OKX'     ? `https://www.okx.com/balance/withdrawal/${P.toLowerCase()}` : '#');
     const depositTokenUrl =
       (cex==='GATE'    ? `https://www.gate.com/myaccount/deposit/${T}` :
@@ -59,7 +55,6 @@
        cex==='BITGET'  ? `https://www.bitget.com/asset/deposit?coin=${T}` :
        cex==='BYBIT'   ? `https://www.bybit.com/user/assets/deposit?coin=${T}` :
        cex==='INDODAX' ? `https://indodax.com/finance/${T}` :
-       cex==='HTX'     ? `https://www.htx.com/en-us/finance/deposit/${T.toLowerCase()}` :
        cex==='OKX'     ? `https://www.okx.com/balance/recharge/${T.toLowerCase()}` : '#');
     const depositPairUrl =
       (cex==='GATE'    ? `https://www.gate.com/myaccount/deposit/${P}` :
@@ -69,7 +64,6 @@
        cex==='BITGET'  ? `https://www.bitget.com/asset/deposit?coin=${P}` :
        cex==='BYBIT'   ? `https://www.bybit.com/user/assets/deposit?coin=${P}` :
        cex==='INDODAX' ? `https://indodax.com/finance/${P}` :
-       cex==='HTX'     ? `https://www.htx.com/en-us/finance/deposit/${P.toLowerCase()}` :
        cex==='OKX'     ? `https://www.okx.com/balance/recharge/${P.toLowerCase()}` : '#');
     return {
       tradeToken: tradeToken,

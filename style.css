@@ -1040,8 +1040,8 @@ input[type="radio"],
 
 /* Compact DEX config list - 1 DEX per row */
 #sync-modal #sync-dex-config {
-    max-height: 280px;
-    gap: 4px;
+    max-height: 60vh;
+    gap: 2px;
     display: flex;
     flex-direction: column;
 }
@@ -1350,6 +1350,44 @@ input[type="radio"],
     font-size: 12px;
     border-bottom: 2px solid #e5e5e5;
     padding-bottom: 4px;
+}
+
+.metadex-limit-info {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: #ede9fe;
+    color: #6d28d9;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.dex-limit-info {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.dark-mode .metadex-limit-info {
+    background: rgba(124, 58, 237, 0.18);
+    color: #c4b5fd;
+}
+
+.dark-mode .dex-limit-info {
+    background: rgba(34, 197, 94, 0.16);
+    color: #86efac;
 }
 
 .filter-chip {
@@ -2631,6 +2669,18 @@ body.dark-mode .db-table-title .uk-badge {
     color: white !important;
 }
 
+/* CTRL (XDEFI) badge color */
+.bg-ctrlfi {
+    background-color: #808080 !important;
+    color: white !important;
+}
+
+/* Zerion badge color */
+.bg-zerion {
+    background-color: #0052ff !important;
+    color: white !important;
+}
+
 /* LBank CEX badge color */
 .bg-lbank {
     background-color: #3461ff !important;
@@ -2640,6 +2690,12 @@ body.dark-mode .db-table-title .uk-badge {
 /* Sushi badge color */
 .bg-sushi {
     background-color: #fa52a0 !important;
+    color: white !important;
+}
+
+/* Wowmax badge color */
+.bg-womax {
+    background-color: #ff7a00 !important;
     color: white !important;
 }
 
@@ -3009,6 +3065,16 @@ body.dark-mode .sub-dex-name {
 
 .bg-dflow {
     background-color: #00d4aa !important;
+    color: #1a1a1a !important;
+}
+
+.bg-enso {
+    background-color: #6c63ff !important;
+    color: white !important;
+}
+
+.bg-nordstern {
+    background-color: #00b4d8 !important;
     color: #1a1a1a !important;
 }
 
@@ -3583,6 +3649,28 @@ body.cex-mode-active .header-card {
 .filter-box-metadex {
     background: #faf5ff;
     border-color: #e9d5ff;
+}
+
+.filter-metadex-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+}
+
+.filter-metadex-row .filter-chip {
+    flex: 0 0 auto;
+    min-width: 150px;
+    max-width: 190px;
+    white-space: nowrap;
+}
+
+.filter-metadex-row .chip-label,
+.filter-metadex-row .chip-count {
+    white-space: nowrap;
 }
 
 .filter-box-pair {

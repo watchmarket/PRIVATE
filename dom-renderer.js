@@ -22,24 +22,32 @@ function getMetaDexBadge(dexKey, size = '9px', style = 'solid') {
   const cfg = (typeof window !== 'undefined' && window.CONFIG_DEXS) ? window.CONFIG_DEXS[key] : null;
   if (!cfg || !cfg.isMetaDex) return '';
 
-  // Per-provider badge definition
-  const BADGES = {
-    metax: { label: 'MT', color: '#ec7506' },  // MetaMask orange
-    lifi: { label: 'JM', color: '#7c3aed' },  // Jumper purple
-    dzap: { label: 'DZ', color: '#d9dc36' },  // DZAP yellow
-    rubic: { label: 'RB', color: '#24cc59' },  // Rubic green
-    onekey: { label: 'KY', color: '#00b812' },  // OneKey green
-    debridge: { label: 'DB', color: '#d7ca0e' },  // deBridge
+  // 1. DYNAMIC CONFIG: Use badge and warna from CONFIG_DEXS if available
+  const badgeLabel = cfg?.badge || cfg?.raw?.badge;
+  const badgeColor = cfg?.color || cfg?.warna || cfg?.raw?.warna;
+
+  // 2. FALLBACK: Hardcoded list for backward compatibility
+  const FALLBACK_BADGES = {
+    metax: { label: 'MT', color: '#ec7506' },
+    lifi: { label: 'JM', color: '#7c3aed' },
+    dzap: { label: 'DZ', color: '#d9dc36' },
+    rubic: { label: 'RB', color: '#24cc59' },
+    onekey: { label: '1K', color: '#00b812' },
+    debridge: { label: 'DB', color: '#d7ca0e' },
+    ctrlfi: { label: 'CT', color: '#666' },
+    zerion: { label: 'ZR', color: '#0052ff' },
+    okutrade: { label: 'OT', color: '#3498db' },
   };
 
-  const badge = BADGES[key] || { label: 'MT', color: '#888' };
-  const bg = style === 'glass'
-    ? 'rgba(255,255,255,0.22)'
-    : badge.color;
-  const textColor = '#fff';
-  const border = style === 'glass' ? `1px solid ${badge.color}` : 'none';
+  const fb = FALLBACK_BADGES[key] || { label: 'MT', color: '#888' };
+  const label = badgeLabel || fb.label;
+  const color = badgeColor || fb.color;
 
-  return `<span style="background:${bg};color:${textColor};border:${border};border-radius:3px;padding:0 3px;font-size:${size};font-weight:bold;vertical-align:middle;letter-spacing:0.3px;">${badge.label}</span>`;
+  const bg = style === 'glass' ? 'rgba(255,255,255,0.22)' : color;
+  const textColor = '#fff';
+  const border = style === 'glass' ? `1px solid ${color}` : 'none';
+
+  return `<span style="background:${bg};color:${textColor};border:${border};border-radius:3px;padding:0 3px;font-size:${size};font-weight:bold;vertical-align:middle;letter-spacing:0.3px;">${label}</span>`;
 }
 
 // Expose globally so ui.js / main.js can call it too
@@ -70,9 +78,27 @@ function getMonitoringColumnSpec(dexList) {
   const spec = [];
   const activeDexList = Array.isArray(dexList) ? dexList : [];
   spec.push({ type: 'orderbook-left', label: 'ORDERBOOK', classes: 'uk-text-center uk-text-bolder th-orderbook' });
-  activeDexList.forEach(d => { const cfgLbl = window.CONFIG_DEXS?.[String(d).toLowerCase()]?.label; const lbl = cfgLbl ? String(cfgLbl).toUpperCase() : String(d).toUpperCase(); spec.push({ type: 'dex', side: 'left', key: String(d).toLowerCase(), label: lbl, classes: 'uk-text-center uk-text-small th-dex' }); });
+  activeDexList.forEach(d => {
+    const dk = String(d).toLowerCase();
+    const cfg = window.CONFIG_DEXS?.[dk];
+    let lbl = (cfg && cfg.label) ? String(cfg.label).toUpperCase() : String(d).toUpperCase();
+    if (cfg && cfg.isMetaDex) {
+      const badge = typeof getMetaDexBadge === 'function' ? getMetaDexBadge(dk, '8px', 'solid') : '';
+      if (badge) lbl = `${badge} ${lbl}`;
+    }
+    spec.push({ type: 'dex', side: 'left', key: dk, label: lbl, classes: 'uk-text-center uk-text-small th-dex' });
+  });
   spec.push({ type: 'detail', label: 'DETAIL TOKEN', classes: 'uk-text-center uk-text-bolder th-detail' });
-  activeDexList.forEach(d => { const cfgLbl = window.CONFIG_DEXS?.[String(d).toLowerCase()]?.label; const lbl = cfgLbl ? String(cfgLbl).toUpperCase() : String(d).toUpperCase(); spec.push({ type: 'dex', side: 'right', key: String(d).toLowerCase(), label: lbl, classes: 'uk-text-center uk-text-small th-dex' }); });
+  activeDexList.forEach(d => {
+    const dk = String(d).toLowerCase();
+    const cfg = window.CONFIG_DEXS?.[dk];
+    let lbl = (cfg && cfg.label) ? String(cfg.label).toUpperCase() : String(d).toUpperCase();
+    if (cfg && cfg.isMetaDex) {
+      const badge = typeof getMetaDexBadge === 'function' ? getMetaDexBadge(dk, '8px', 'solid') : '';
+      if (badge) lbl = `${badge} ${lbl}`;
+    }
+    spec.push({ type: 'dex', side: 'right', key: dk, label: lbl, classes: 'uk-text-center uk-text-small th-dex' });
+  });
   spec.push({ type: 'orderbook-right', label: 'ORDERBOOK', classes: 'uk-text-center uk-text-bolder th-orderbook' });
   return spec;
 }
@@ -185,7 +211,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                         data-chain="${String(data.chain).toUpperCase()}"
                         data-row-index="${rowIndex}"
                         style="text-align: center; vertical-align: middle;${extraBg}">
-                    <strong class="uk-align-center" style="display:inline-block; margin:0;">${dexName.toUpperCase().substring(0, 6)} [$${modal}]</strong></br>
+                    <strong class="uk-align-center" style="display:inline-block; margin:0;">${dexName.toUpperCase().substring(0, 8)} [$${modal}]</strong></br>
                         <span class="dex-status uk-text-muted"> 🔒 </span>
                     </td>`;
       } else {
@@ -217,7 +243,7 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
                         data-chain="${String(data.chain).toUpperCase()}"
                         data-row-index="${rowIndex}"
                         style="text-align: center; vertical-align: middle;${extraBg}">
-                    <strong class="uk-align-center" style="display:inline-block; margin:0;">${dexNamem.toUpperCase().substring(0, 6)} [$${modalMeta}]</strong></br>
+                    <strong class="uk-align-center" style="display:inline-block; margin:0;">${dexNamem.toUpperCase().substring(0, 8)} [$${modalMeta}]</strong></br>
                         <span class="dex-status uk-text-muted"> 🔒 </span>
                     </td>`;
         } else {
@@ -496,8 +522,8 @@ function loadKointoTable(filteredData, tableBodyId = 'dataTableBody') {
       const jumperChainId = String(data.chain || '').toLowerCase() === 'solana' ? 1151111081099710 : chainConfig.Kode_Chain;
       const linkJumper = createHoverLink(`https://jumper.exchange/?fromChain=${jumperChainId}&fromToken=${data.sc_in}&toChain=${jumperChainId}&toToken=${data.sc_out}`, '#JMX', 'uk-text-warning');
 
-      // Oku: https://oku.trade/swap?inputChain=ethereum&inToken=0x...&outToken=0x...
-      const linkOKU = createHoverLink(`https://oku.trade/swap?inputChain=${chainConfig.Nama_Chain}&inToken=${data.sc_in}&outToken=${data.sc_out}`, '#OKU', 'uk-text-primary');
+      // Oku: https://oku.trade/swap?inputChain=ethereum&inToken=0x...&outToken=0x...&inAmount=%22111%22&isExactOut=false
+      const linkOKU = createHoverLink(`https://oku.trade/swap?inputChain=${chainConfig.Nama_Chain.toLowerCase()}&inToken=${data.sc_in}&outToken=${data.sc_out}&inAmount=%22111%22&isExactOut=false`, '#OKU', 'uk-text-primary');
       // Rango: Multi-chain aggregator (requires blockchain name mapping)
       const rangoChainMap = { 'bsc': 'BSC', 'ethereum': 'ETH', 'polygon': 'POLYGON', 'arbitrum': 'ARBITRUM', 'base': 'BASE', 'optimism': 'OPTIMISM', 'avalanche': 'AVAX_CCHAIN', 'solana': 'SOLANA' };
       const rangoChain = rangoChainMap[String(data.chain || '').toLowerCase()] || String(data.chain || '').toUpperCase();
@@ -1412,7 +1438,7 @@ function DisplayPNL(data) {
         const dexNameStrong = $mainCell.find('strong').first();
         if (dexNameStrong.length) {
           // ✅ FIX: Use dexTitle from strategy response if available, otherwise fallback to dextype
-          const displayName = data.dexTitle ? String(data.dexTitle).toUpperCase().substring(0, 6) : String(dextype || '').toUpperCase().substring(0, 6);
+          const displayName = data.dexTitle ? String(data.dexTitle).toUpperCase().substring(0, 8) : String(dextype || '').toUpperCase().substring(0, 8);
           const warningIcon = isInsufficientVolume ? '⚠️' : '';
 
           // ✅ NEW: Show checkmark if sufficient, actual modal + warning if insufficient
@@ -1457,7 +1483,7 @@ function DisplayPNL(data) {
         const dexNameStrong = $mainCell.find('strong').first();
         if (dexNameStrong.length) {
           // ✅ FIX: Use dexTitle from strategy response if available
-          const displayName = data.dexTitle ? String(data.dexTitle).toUpperCase().substring(0, 6) : String(dextype || '').toUpperCase().substring(0, 6);
+          const displayName = data.dexTitle ? String(data.dexTitle).toUpperCase().substring(0, 8) : String(dextype || '').toUpperCase().substring(0, 8);
 
           // Check if volume sufficient for AUTO VOL
           const warningIcon = isInsufficientVolume ? '⚠️' : '';
@@ -1618,7 +1644,7 @@ function DisplayPNL(data) {
         // Colors & names
         const pnlColor = subPnl >= 0 ? '#28a745' : '#dc3545';
         const providerName = String(subRes.dexTitle || subRes.dexName || subRes.provider || subRes.dexId || '').toUpperCase();
-        const displayName = providerName.length > 10 ? providerName.substring(0, 10) : providerName;
+        const displayName = providerName.length > 8 ? providerName.substring(0, 8) : providerName;
         // ⚠️ Dynamic border: hanya tampilkan border jika bukan kolom terakhir
         const borderRight = idx < (maxProviders - 1) ? 'border-right: 1px solid #dee2e6;' : '';
 
@@ -1859,12 +1885,12 @@ function DisplayPNL(data) {
         }
       }
 
-      // Background hijau muncul setiap ada sinyal selisih (bestPnl > 0)
-      const shouldHighlight = hasSignal;  // Background hijau saat ada sinyal
+      // Outer cell: hanya border saat ada sinyal — background hijau ditangani per sub-kolom
+      // Jika hanya 1 provider profit, hanya sub-kolom itu yang hijau, outer cell tidak ikut hijau
+      const shouldHighlight = hasSignal;
 
       if (shouldHighlight) {
-        const multiDexGreen = isDarkMode() ? '#eeffdd' : '#ddf0b7ff';
-        el.style.cssText = `text-align:center;vertical-align:middle;background-color:${multiDexGreen}!important;font-weight:bolder!important;border:2px solid black !important`;
+        el.style.cssText = `text-align:center;vertical-align:middle;font-weight:bolder!important;border:2px solid black !important`;
         el.classList.add('dex-cell-highlight');
       } else {
         el.style.cssText = 'text-align:center;vertical-align:middle;';
@@ -2281,8 +2307,9 @@ function DisplayPNL(data) {
   const netClass = (pnl >= 0.02) ? 'uk-text-success' : 'uk-text-danger';
   const bracket = `[${bruto.toFixed(2)} ~ <b style="font-size: larger;">${feeAll.toFixed(2)}</b>]`;
 
-  // Background hijau muncul setiap ada sinyal selisih (pnl > 0)
-  const shouldHighlight = hasSignal;  // Background hijau saat ada sinyal (pnl > 0)
+  // Background hijau muncul setiap ada sinyal selisih (PNL > 0)
+  // Sesuai request: Konsisten dengan MetaDEX (JUMPX) yang tetap ijo walau volume kurang/di bawah filter
+  const shouldHighlight = hasSignal;
   const chainColorHexHL = getChainColorHexByName(nameChain);
   const modeNowHL = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
   const isMultiModeHL = String(modeNowHL.type).toLowerCase() !== 'single';
@@ -2379,7 +2406,8 @@ function DisplayPNL(data) {
 
   // ✅ FIXED: Sinyal hanya dikirim jika PNL > 0, highlight sesuai filter
   // passSignal: untuk highlight (PNL > filter dan volume OK jika dicentang)
-  const passSignal = (!checkVol && passPNL) || (checkVol && passPNL && volOK);
+  // FIX: Sinyal HIJAU hanya jika volume cukup (volumeSufficient)
+  const passSignal = ((!checkVol && passPNL) || (checkVol && passPNL && volOK)) && volumeSufficient;
 
   // ✅ AUTO VOLUME: Always show signal if PNL > 0, but pass volume flag for warning indicator
   // Kirim sinyal jika PNL > 0 (profit positif), dengan flag volume insufficiency
@@ -2473,7 +2501,31 @@ function DisplayPNL(data) {
 
 
   // Render akhir
-  const dexNameAndModal = ($mainCell.find('strong').first().prop('outerHTML')) || '';
+  // ✅ AUTO VOLUME: Update header (DEX [Modal]) with status
+  let dexNameAndModal = '';
+  const $strong = $mainCell.find('strong').first();
+
+  if ($strong.length) {
+    if (data.autoLevelEnabled) {
+      const actualModal = data.autoVolResult?.actualModal || 0;
+      const maxModal = data.maxModal || 0;
+
+      // Use DEX (column name) instead of dexLabel (which might be the provider/routeTool)
+      const label = (typeof DEX !== 'undefined') ? DEX : 'DEX';
+
+      if (volumeSufficient) {
+        // Sufficient: [Modal] ✅
+        $strong.css('color', ''); // Reset
+        $strong.html(`${label.substring(0, 8)} [$${maxModal.toFixed(0)}] ✅`);
+      } else {
+        // Insufficient: [Modal] | Actual$ ⚠️
+        $strong.css('color', ''); // Label & Target modal stay default
+        $strong.html(`${label.substring(0, 8)} [$${maxModal.toFixed(0)}] | <span style="color:#ff8c00; font-weight:900;">${actualModal.toFixed(0)}$ ⚠️</span>`);
+      }
+    }
+    dexNameAndModal = $strong.prop('outerHTML') || '';
+  }
+
   const modeNow = (typeof getAppMode === 'function') ? getAppMode() : { type: 'multi' };
   const resultWrapClass = (lower(modeNow.type) === 'single') ? 'uk-text-dark' : 'uk-text-primary';
   const boldStyle = shouldHighlight ? 'font-weight:bolder;' : '';
@@ -2640,7 +2692,7 @@ function InfoSinyal(DEXPLUS, TokenPair, PNL, totalFee, cex, NameToken, NamePair,
   // DEX→CEX (PairToToken) = merah (#FF0000)
   const dexBadgeColor = (trx === "TokentoPair") ? "#00AA00" : "#FF0000";
   const dexInfoDisplay = isMetaDex && providerInfo
-    ? ` <span style="color:${dexBadgeColor}; font-size:11px; font-weight:bold;">[${providerInfo}]</span>`
+    ? ` <span style="color:${dexBadgeColor}; font-size:11px; font-weight:bold;">[${String(providerInfo).toUpperCase().substring(0, 8)}]</span>`
     : '';
 
   const sLink = `

@@ -78,9 +78,9 @@
             <img class="icon" id="darkModeToggle" title="GANTI MODE TERANG/GELAP" width="24px"
               src="assets/icons/dark-mode.png" />
 
- <a href="extra/index.html" target="_blank" rel="noopener noreferrer" title="APLIKASI EKSTRA"><img class="icon" width="24"
-                src="assets/icons/extra.png" />
-              
+            <a href="extra/index.html" target="_blank" rel="noopener noreferrer" title="APLIKASI EKSTRA"><img
+                class="icon" width="24" src="assets/icons/extra.png" />
+
             </a>
           </div>
 
@@ -132,8 +132,8 @@
               </label>
 
               <div class="scanner-control-inline" id="autoVolLevelInput" style="display:none;">
-                <input id="autoVolLevels" class="uk-input uk-form-small" type="number" min="1" max="4" value="1"
-                  placeholder="1-4" style="width:50px; border: 2px solid #2563eb;">
+                <input id="autoVolLevels" class="uk-input uk-form-small" type="number" min="1" max="5" value="1"
+                  placeholder="1-5" style="width:50px; border: 2px solid #2563eb;">
               </div>
 
 
@@ -699,144 +699,160 @@
           <span id="sync-snapshot-status" class="uk-text-bold"></span>
         </div>
 
+        <!-- MAIN 2-COLUMN LAYOUT -->
         <div class="uk-grid-small" uk-grid>
 
-          <!-- Kolom kiri (lebih kecil) -->
-          <div class="uk-width-1-3@m">
-            <div class="uk-card uk-card-default uk-card-body uk-padding-small">
-              <h6 class="uk-heading-bullet uk-margin-small uk-text-bolder">1. Exchanger</h6>
-              <div id="sync-filter-cex" class="uk-flex uk-flex-wrap" style="gap:6px; max-height:200px; overflow:auto;">
-              </div>
+          <!-- LEFT COLUMN: 1. CEX & 2. TABLE (Wider - 3/4) -->
+          <div class="uk-width-expand@m">
 
-              <!-- Snapshot Button -->
-              <div class="uk-margin-small-top">
-                <button id="refresh-snapshot-btn" class="uk-button uk-button-primary uk-button-small uk-width-1-1"
+            <!-- 1. Exchanger (Compact) -->
+            <div class="uk-card uk-card-default uk-card-body uk-padding-small uk-margin-small-bottom">
+              <div class="uk-flex uk-flex-between uk-flex-middle">
+                <span class="uk-heading-bullet uk-text-bolder" style="font-size: 13px;">1. Pilih Exchanger (CEX)</span>
+                <button id="refresh-snapshot-btn" class="uk-button uk-button-primary"
+                  style="height: 22px; line-height: 22px; font-size: 10px; padding: 0 8px; border-radius: 4px;"
                   type="button">
-                  <span uk-icon="icon: play; ratio: 0.85"></span> SNAPSHOT [UPDATE KOIN]
+                  <span uk-icon="icon: play; ratio: 0.7"></span> SNAPSHOT [UPDATE]
                 </button>
               </div>
-
-              <h6 class="uk-heading-bullet uk-margin-small  uk-text-bolder">3. Pair DEX</h6>
-              <div id="sync-filter-pair" class="uk-flex uk-flex-wrap" style="gap:6px; max-height:200px; overflow:auto;">
-              </div>
-
-              <div id="sync-non-config"
-                class="uk-card uk-card-default uk-card-body uk-padding-small uk-margin-small-top" style="display:none;">
-                <h6 class="uk-margin-remove">Detail Pair NON</h6>
-                <div class="uk-margin-small">
-                  <label class="uk-form-label uk-text-small">Nama Pair</label>
-                  <input id="sync-non-pair-name" class="uk-input uk-form-small" type="text" placeholder="Contoh: USDT">
-                </div>
-                <div class="uk-margin-small">
-                  <label class="uk-form-label uk-text-small">SC Pair</label>
-                  <input id="sync-non-pair-sc" class="uk-input uk-form-small" type="text"
-                    placeholder="Alamat kontrak pair">
-                </div>
-                <div class="uk-margin-small">
-                  <label class="uk-form-label uk-text-small">Desimal Pair</label>
-                  <input id="sync-non-pair-des" class="uk-input uk-form-small" type="number" min="0" placeholder="18">
-                </div>
-              </div>
-
-              <h6 class="uk-heading-bullet uk-margin-small  uk-text-bolder">4. DEX &amp; Modal <span
-                  class="uk-text-meta"></span></h6>
-              <div id="sync-dex-config" class="uk-flex uk-flex-column"
-                style="gap:6px; max-height:500px; overflow-y:auto; overflow-x:hidden;"></div>
+              <div id="sync-filter-cex" class="uk-flex uk-flex-wrap uk-margin-small-top"
+                style="gap:8px; max-height:50px; overflow:auto; padding: 2px;"></div>
             </div>
-          </div>
 
-          <!-- Kolom kanan (lebih lebar) -->
-          <div class="uk-width-2-3@m">
+            <!-- 2. Pilih Koin & Tabel -->
             <div class="uk-card uk-card-default uk-card-body uk-padding-small">
-              <!-- Row 1: Header + Pilihan Mode -->
-              <!-- Row 2: Filters -->
+              <!-- Filter Bar (Inside Table Card) -->
+              <span class="uk-heading-bullet uk-text-bolder" style="font-size: 13px;">2. Tabel Pilihan Koin [ <span
+                  id="sync-selected-count" class="uk-text-small uk-badge">0</span> ]</span>
               <div class="uk-flex uk-flex-between uk-flex-middle uk-margin-small-bottom"
-                style="padding:6px 10px; background:#f8f9fa; border-radius:4px;">
-                <div class="uk-flex uk-flex-middle" style="gap:12px;">
-                  <span class="uk-text-bold" style="font-size:12px;">Filter Harga:</span>
-                  <label class="uk-margin-remove"><input type="radio" name="sync-price-filter" value="all"
-                      class="uk-radio" checked> Semua</label>
-                  <label class="uk-margin-remove"><input type="radio" name="sync-price-filter" value="with-price"
-                      class="uk-radio"> Berharga</label>
-                </div>
-                <div class="uk-flex uk-flex-middle" style="gap:8px;">
-                  <span class="uk-text-bold" style="font-size:12px;">Wallet CEX:</span>
-                  <label class="uk-margin-remove">
+                style="padding:4px 8px; background:#f8f9fa; border: 1px solid #eee; border-radius:4px;">
+
+
+                <div class="uk-flex uk-flex-middle" style="gap:10px;">
+                  <span class="uk-text-bold" style="font-size:11px;">Tampil:</span>
+                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
+                      name="sync-price-filter" value="all" class="uk-radio" checked> Semua</label>
+                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
+                      name="sync-price-filter" value="with-price" class="uk-radio"> Berharga</label>
+                  <span style="color:#ddd; margin:0 2px;">|</span>
+                  <span class="uk-text-bold" style="font-size:11px;">Wallet CEX:</span>
+                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;">
                     <input type="checkbox" id="sync-wallet-filter" class="uk-checkbox"> WD &amp; DP <span
                       class="uk-text-bolder uk-text-success">[ON]</span>
                   </label>
                 </div>
-              </div>
-              <div class="uk-flex uk-flex-between uk-flex-middle uk-margin-small">
-                <h6 class="uk-margin-remove uk-text-bolder">2. Pilih Koin [ <span id="sync-selected-count"
-                    class="uk-text-small uk-badge">0</span> ]</h6>
                 <div class="uk-flex uk-flex-middle" style="gap:8px;">
-                  <span class="uk-text-small uk-text-bold">Pilihan:</span>
-                  <label class="uk-margin-remove"><input type="radio" name="sync-pick-mode" value="all"
-                      class="uk-radio"> Semua</label>
-                  <label class="uk-margin-remove"><input type="radio" name="sync-pick-mode" value="selected"
-                      class="uk-radio"> Dipilih</label>
-                  <label class="uk-margin-remove"><input type="radio" name="sync-pick-mode" value="snapshot"
-                      class="uk-radio"> Snapshot</label>
-                  <label class="uk-margin-remove"><input type="radio" name="sync-pick-mode" value="clear"
-                      class="uk-radio"> Hapus</label>
+                  <span class="uk-text-small uk-text-bold" style="font-size:10px;">Pilih:</span>
+                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
+                      name="sync-pick-mode" value="all" class="uk-radio"> Semua</label>
+                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
+                      name="sync-pick-mode" value="selected" class="uk-radio"> Dipilih</label>
+                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
+                      name="sync-pick-mode" value="snapshot" class="uk-radio"> Snapshot</label>
+                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
+                      name="sync-pick-mode" value="clear" class="uk-radio"> Batal</label>
                 </div>
               </div>
 
 
-
               <div class="uk-overflow-auto uk-margin-small-top"
-                style="max-height:55vh; border:1px solid #ddd; border-radius:4px;">
+                style="max-height:58vh; border:1px solid #ddd; border-radius:4px;">
                 <table id="sync-table" class="uk-table uk-table-divider uk-table-hover uk-table-small uk-margin-remove">
-                  <thead style="position:sticky; top:0; background:#fff; z-index:1;">
+                  <thead
+                    style="position:sticky; top:0; background:#fff; z-index:1; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                     <tr>
-                      <th>✓</th>
-                      <th data-sort-key="default" class="sync-sortable">No <span class="sync-sort-indicator"></span>
-                      </th>
-                      <th data-sort-key="cex" class="sync-sortable">CEX <span class="sync-sort-indicator"></span></th>
-                      <th data-sort-key="token" class="sync-sortable">Nama Koin <span
-                          class="sync-sort-indicator"></span></th>
-                      <th data-sort-key="sc" class="sync-sortable">Smart Contract <span
-                          class="sync-sort-indicator"></span></th>
-                      <th data-sort-key="wallet" class="sync-sortable uk-text-center"
-                        title="Wallet Status: WD (Withdraw) | DP (Deposit)">WD | DP <span
-                          class="sync-sort-indicator"></span></th>
-                      <th data-sort-key="price" class="sync-sortable">Price <span class="sync-sort-indicator"></span>
-                      </th>
+                      <th style="width:20px;">✓</th>
+                      <th style="width:30px;" data-sort-key="default" class="sync-sortable">No</th>
+                      <th style="width:80px;" data-sort-key="cex" class="sync-sortable">CEX</th>
+                      <th data-sort-key="token" class="sync-sortable">Koin</th>
+                      <th data-sort-key="sc" class="sync-sortable">Smart Contract</th>
+                      <th style="width:60px;" data-sort-key="wallet" class="sync-sortable uk-text-center">WD|DP</th>
+                      <th style="width:100px;" data-sort-key="price" class="sync-sortable">Price</th>
                     </tr>
                   </thead>
-                  <tbody id="sync-modal-tbody">
-                    <!-- token rows -->
-                  </tbody>
+                  <tbody id="sync-modal-tbody"></tbody>
                 </table>
               </div>
             </div>
           </div>
 
+          <!-- RIGHT COLUMN: 3. PAIR & 4. DEX (Narrower - 1/4) -->
+          <div class="uk-width-1-4@m">
+
+            <!-- 3. Pair DEX (Compact) -->
+            <div class="uk-card uk-card-default uk-card-body uk-padding-small uk-margin-small-bottom">
+              <span class="uk-heading-bullet uk-text-bolder" style="font-size: 13px;">3. Pilih Pair DEX</span>
+              <div id="sync-filter-pair" class="uk-flex uk-flex-wrap uk-margin-small-top"
+                style="gap:8px; max-height:60px; overflow:auto; padding: 2px;"></div>
+
+              <div id="sync-non-config"
+                class="uk-margin-small-top uk-padding-small uk-background-muted uk-border-rounded"
+                style="display:none;">
+                <h6 class="uk-margin-remove uk-text-small uk-text-bold" style="font-size:10px;">Detail Pair NON</h6>
+                <div class="uk-grid-collapse" uk-grid>
+                  <div class="uk-width-1-1 uk-margin-small-bottom">
+                    <input id="sync-non-pair-sc" class="uk-input uk-form-small" type="text" placeholder="SC Pair"
+                      style="font-size:10px; height:24px;">
+                  </div>
+                  <div class="uk-width-1-2 uk-padding-remove-right">
+                    <input id="sync-non-pair-name" class="uk-input uk-form-small" type="text" placeholder="Nama"
+                      style="font-size:10px; height:24px;">
+                  </div>
+                  <div class="uk-width-1-2 uk-padding-small-left">
+                    <input id="sync-non-pair-des" class="uk-input uk-form-small" type="number" min="0" placeholder="Des"
+                      style="font-size:10px; height:24px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. DEX & Modal + Action Buttons -->
+            <div class="uk-card uk-card-default uk-card-body uk-padding-small uk-flex uk-flex-column"
+              style="min-height: 450px;">
+              <span class="uk-heading-bullet uk-text-bolder" style="font-size: 13px;">4. Tentukan DEX &amp; Modal</span>
+              <div id="sync-dex-config"
+                class="uk-flex-expand uk-overflow-auto uk-margin-small-top uk-margin-small-bottom"
+                style="max-height: 58vh; padding-right: 2px;">
+                <!-- DEX list populated here -->
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="uk-padding-small uk-background-muted uk-border-rounded">
+                <div class="uk-grid-collapse uk-child-width-1-2" uk-grid>
+                  <div style="padding-right:2px;">
+                    <button class="uk-button uk-button-danger uk-width-1-1 uk-modal-close"
+                      style="height: 28px; line-height: 28px; font-size: 10px; padding: 0;"
+                      type="button">CANCEL</button>
+                  </div>
+                  <div style="padding-left:2px;">
+                    <button id="sync-save-btn" class="uk-button uk-button-primary uk-width-1-1"
+                      style="height: 28px; line-height: 28px; font-size: 10px; padding: 0;" type="button">SAVE
+                      KOIN</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
-
-
-      </div>
-
-      <!-- FOOTER -->
-      <div class="uk-modal-footer uk-text-right uk-padding-small">
-        <button class="uk-button uk-button-danger uk-button-small uk-modal-close" type="button">Cancel</button>
-        <button id="sync-save-btn" class="uk-button uk-button-primary uk-button-small" type="button">SAVE KOIN</button>
       </div>
 
     </div>
 
-    <!-- Sync Processing Overlay -->
-    <div id="sync-overlay" class="uk-flex uk-flex-middle uk-flex-center"
-      style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999;">
-      <div class="uk-card uk-card-default uk-card-body uk-text-center" style="min-width:320px;">
-        <div class="uk-margin-small" uk-spinner="ratio: 0.9"></div>
-        <div class="uk-margin-small msg uk-text-bold uk-text-large">Memproses...</div>
-        <div class="uk-text-meta phase uk-margin-small">Phase</div>
-        <progress id="sync-ov-progress" class="uk-progress uk-margin-small-top" value="0" max="100"></progress>
-        <div class="uk-text-meta counter">0 / 0 (0%)</div>
-      </div>
+  </div>
+
+  <!-- Sync Processing Overlay -->
+  <div id="sync-overlay" class="uk-flex uk-flex-middle uk-flex-center"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999;">
+    <div class="uk-card uk-card-default uk-card-body uk-text-center" style="min-width:320px;">
+      <div class="uk-margin-small" uk-spinner="ratio: 0.9"></div>
+      <div class="uk-margin-small msg uk-text-bold uk-text-large">Memproses...</div>
+      <div class="uk-text-meta phase uk-margin-small">Phase</div>
+      <progress id="sync-ov-progress" class="uk-progress uk-margin-small-top" value="0" max="100"></progress>
+      <div class="uk-text-meta counter">0 / 0 (0%)</div>
     </div>
+  </div>
   </div>
 
   <!-- Modal: Bulk Modal Editor (Single Chain Only) -->
@@ -1140,7 +1156,8 @@
         <h4 class="uk-modal-title uk-margin-remove"><span uk-icon="database"></span> Backup & Restore Database</h4>
       </div>
       <div class="uk-modal-body uk-padding-small">
-        <p class="uk-text-small">Gunakan fitur ini untuk mencadangkan seluruh data aplikasi (IndexedDB) ke file JSON dan
+        <p class="uk-text-small">Gunakan fitur ini untuk mencadangkan seluruh data aplikasi (IndexedDB) ke file JSON
+          dan
           memulihkannya kembali.</p>
         <div class="uk-margin-small">
           <button id="btnBackupDb" class="uk-button uk-button-primary uk-button-small"><span uk-icon="download"></span>

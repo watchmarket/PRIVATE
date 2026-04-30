@@ -1,0 +1,583 @@
+[
+  {
+    "cex": "BINANCE",
+    "nama_token": "Catizen",
+    "ticker": "CATI",
+    "sc": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7",
+    "decimals": 9
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Dogs",
+    "ticker": "DOGS",
+    "sc": "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS",
+    "decimals": 9
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Hamster Kombat",
+    "ticker": "HMSTR",
+    "sc": "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo",
+    "decimals": 9
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Notcoin",
+    "ticker": "NOT",
+    "sc": "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT",
+    "decimals": 9
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "TetherUS",
+    "ticker": "USDT",
+    "sc": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "CATI",
+    "ticker": "CATI",
+    "sc": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7",
+    "decimals": 9
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "DOGS",
+    "ticker": "DOGS",
+    "sc": "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS",
+    "decimals": 9
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "DUCK",
+    "ticker": "DUCK",
+    "sc": "EQDWXjnVWheFemaAaFn-Cp4nDehvGllrXOZ8wqHm8sDEwn_c",
+    "decimals": 9
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "HMSTR",
+    "ticker": "HMSTR",
+    "sc": "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo",
+    "decimals": 9
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "NOT",
+    "ticker": "NOT",
+    "sc": "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT",
+    "decimals": 9
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "TAC",
+    "ticker": "TAC",
+    "sc": "EQBE_gBrU3mPI9hHjlJoR_kYyrhQgyCFD6EUWfa42W8T7EBP",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "VERT",
+    "ticker": "VERT",
+    "sc": "EQDfglfrf0Os38cKPHaOKqQenJpls2s0cey8acQFjPC_VERT",
+    "decimals": 9
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "CATI",
+    "ticker": "CATI",
+    "sc": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7",
+    "decimals": 9
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "DOGS",
+    "ticker": "DOGS",
+    "sc": "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS",
+    "decimals": 9
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "HMSTR",
+    "ticker": "HMSTR",
+    "sc": "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo",
+    "decimals": 9
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "MAJOR",
+    "ticker": "MAJOR",
+    "sc": "EQCuPm01HldiduQ55xaBF_1kaW_WAUy5DHey8suqzU_MAJOR",
+    "decimals": 9
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "NOT",
+    "ticker": "NOT",
+    "sc": "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT",
+    "decimals": 9
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "TAC",
+    "ticker": "TAC",
+    "sc": "EQBE_gBrU3mPI9hHjlJoR_kYyrhQgyCFD6EUWfa42W8T7EBP",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "USDE",
+    "ticker": "USDE",
+    "sc": "EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f",
+    "decimals": 6
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+    "decimals": 6
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "XAUT",
+    "ticker": "XAUT",
+    "sc": "EQA1R_LuQCLHlMgOo1S4G7Y7W1cd0FrAkbA10Zq7rddKxi9k",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Blum",
+    "ticker": "BLUM",
+    "sc": "EQCAj5oiRRrXokYsg_B-e0KG9xMwh5upr5I8HQzErm0_BLUM",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Catizen",
+    "ticker": "CATI",
+    "sc": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "DOGS",
+    "ticker": "DOGS",
+    "sc": "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "DuckChain",
+    "ticker": "DUCK",
+    "sc": "EQDWXjnVWheFemaAaFn-Cp4nDehvGllrXOZ8wqHm8sDEwn_c",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Povel Durev",
+    "ticker": "DUREV",
+    "sc": "EQB02DJ0cdUD4iQDRbBv4aYG3htePHBRK1tGeRtCnatescK0",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "EVAA Protocol",
+    "ticker": "EVAA",
+    "sc": "EQBKMfjX_a_dsOLm-juxyVZytFP7_KKnzGv6J01kGc72gVBp",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Goats",
+    "ticker": "GOATS",
+    "sc": "EQC2CUQqMJuVkO_ioXE9MvW9ckNBuxqFB7Xce7BgwFnWagem",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Hamster Kombat",
+    "ticker": "HMSTR",
+    "sc": "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Holdcoin",
+    "ticker": "HOLD",
+    "sc": "EQCz_xK2vAf6DHSrmSQ3mV-uEigJbKPP0tWUpqkqYW-RHoLD",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "INVITE",
+    "ticker": "INVITE",
+    "sc": "EQArj5fhHcPz-ljkMBNcduQhiO8Wl4JmFX_9a-25DfUMQhxK",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Major",
+    "ticker": "MAJOR",
+    "sc": "EQCuPm01HldiduQ55xaBF_1kaW_WAUy5DHey8suqzU_MAJOR",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "MissionPawsible",
+    "ticker": "MISSION",
+    "sc": "EQDDhgqmuh16lpAaTvAqzQ-zo7_HqjrUNJxmIhFeXwVUSUAe",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Ton Station",
+    "ticker": "MRSOON",
+    "sc": "EQCwe0g3cEFhsz4VK5nrtOZBkFeSISxhCVUqvON7Im__SOON",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "NikolAI",
+    "ticker": "NIKO",
+    "sc": "EQDo8QC6mVi7Gq6uGWDF4XVp3cZ4wKZ-bqKBkmhVMPm-1ojm",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Notcoin",
+    "ticker": "NOT",
+    "sc": "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "PinGo",
+    "ticker": "PINGO",
+    "sc": "EQCRWpQQmfSglpLp6D5Xebix50AStBxjfQQNkssFP_IsiQc3",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Capybobo",
+    "ticker": "PYBOBO",
+    "sc": "EQD3-DscdjEM95zRmW936vGVr6O7uFJ1W6a8--7-Vg3rtfGy",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Resistance Dog",
+    "ticker": "REDO",
+    "sc": "EQBZ_cafPyDr5KUTs0aNxh0ZTDhkpEZONmLJA2SNGlLm4Cko",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Storm Trade",
+    "ticker": "STORM",
+    "sc": "EQBsosmcZrD6FHijA7qWGLw5wo_aH8UN435hi935jJ_STORM",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Ethena USDe",
+    "ticker": "USDE",
+    "sc": "EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Tether",
+    "ticker": "USDT",
+    "sc": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Vertus",
+    "ticker": "VERT",
+    "sc": "EQDfglfrf0Os38cKPHaOKqQenJpls2s0cey8acQFjPC_VERT",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "WatBird",
+    "ticker": "WAT",
+    "sc": "EQCEqz2x3-Ub_EO4Y5798NNoqKw1tP_tJ6b9y-X0C4uvs8Zf",
+    "decimals": 9
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "X Empire",
+    "ticker": "X",
+    "sc": "EQB4zZusHsbU2vVTPqjhlokIOoiZhEdCMT703CWEzhTOo__X",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Amocucinare",
+    "ticker": "AMORE",
+    "sc": "EQC7js8NLX3v57ZuRmuusNtMSBdki4va_qyL7sAwdmosf_xK",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Battery",
+    "ticker": "BATTERY",
+    "sc": "EQANmbmdEDsMtvSFIPjJyjL9NKBlREBbIV-fMwuSGCVBIjCC",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "BCAT",
+    "ticker": "BCAT",
+    "sc": "EQBh2zUdhhZJis8Pb_Yn-vhQoNkhUus3g7G_fRRrUrOSw-ZE",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "BELUGA",
+    "ticker": "BELUGA",
+    "sc": "EQB3_aNocywnRPQRUSmNJD7aY7eEIRFQ7jax0klMDp5gOMWp",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Blum",
+    "ticker": "BLUM",
+    "sc": "EQCAj5oiRRrXokYsg_B-e0KG9xMwh5upr5I8HQzErm0_BLUM",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Bombie",
+    "ticker": "BOMB",
+    "sc": "EQAQZEf6A-BfN8wYVnjdyPWpCXwkTSjhfF5ZWP7AjReM4eEI",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Carrot Rush",
+    "ticker": "CARROT",
+    "sc": "EQDLuwRUoTBgg7qclDnySAhFylTeQOjM9orICCPnV5vuz1G6",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Catizen",
+    "ticker": "CATI",
+    "sc": "EQD-cvR0Nz6XAyRBvbhz-abTrRC6sI5tvHvvpeQraV9UAAD7",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DOGS",
+    "ticker": "DOGS",
+    "sc": "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSFE_jpptRAYBmcG_DOGS",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DPENGU",
+    "ticker": "DPENGU",
+    "sc": "EQDzyp48zpKgzB5xtOq6gmI9H23IwsOG2fh99pvXw-dSMti1",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "DuckChain",
+    "ticker": "DUCK",
+    "sc": "EQDWXjnVWheFemaAaFn-Cp4nDehvGllrXOZ8wqHm8sDEwn_c",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "EVAA-TONCOIN",
+    "ticker": "EVAA",
+    "sc": "EQBKMfjX_a_dsOLm-juxyVZytFP7_KKnzGv6J01kGc72gVBp",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "ForTON",
+    "ticker": "FRT",
+    "sc": "EQA1EIDrR33zgL21rwDIfGo7h4ETWieentUvg7jIT-3aP5GG",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SQUID MEME",
+    "ticker": "GAME",
+    "sc": "EQAKpERMdgBE4TV7bcSPyQMeYAQ2xfR6vFNNQd99cx3kzzyf",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Gram",
+    "ticker": "GRAM",
+    "sc": "EQC47093oX5Xhb0xuk2lCr2RhS8rj-vul61u4W2UH5ORmG_O",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Hamster Kombat",
+    "ticker": "HMSTR",
+    "sc": "EQAJ8uWd7EBqsmpSWaRdf_I-8R8-XHwh3gsNKhy-UrdrPcUo",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "JetTon Game",
+    "ticker": "JETTON",
+    "sc": "EQAQXlWJvGbbFfE8F3oS8s87lIgdovS455IsWFaRdmJetTon",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "LITR",
+    "ticker": "LITR",
+    "sc": "EQAuLb7CVa_3OLRsPisEBrZrhwlWV2INgwwesJ-hKKH3Qnj0",
+    "decimals": 8
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Major",
+    "ticker": "MAJOR",
+    "sc": "EQCuPm01HldiduQ55xaBF_1kaW_WAUy5DHey8suqzU_MAJOR",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SOON",
+    "ticker": "MRSOON",
+    "sc": "EQCwe0g3cEFhsz4VK5nrtOZBkFeSISxhCVUqvON7Im__SOON",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Notcoin",
+    "ticker": "NOT",
+    "sc": "EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "PenguVerse",
+    "ticker": "PGVERSE",
+    "sc": "EQCtsnJ8Kv3jHsmqeveLVoYMBEkOpeWbAfFARrGkOQ80EuvO",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "PMM",
+    "ticker": "PMM",
+    "sc": "EQAnMYFiwh91WRb-9bVraLsslyPEfaaWOOojSQSWgBfFVTuM",
+    "decimals": 16
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "PX",
+    "ticker": "PX",
+    "sc": "EQB420yQsZobGcy0VYDfSKHpG2QQlw-j1f_tPu1J488I__PX",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Capybobo",
+    "ticker": "PYBOBO",
+    "sc": "EQD3-DscdjEM95zRmW936vGVr6O7uFJ1W6a8--7-Vg3rtfGy",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Resistance Dog",
+    "ticker": "REDO",
+    "sc": "EQBZ_cafPyDr5KUTs0aNxh0ZTDhkpEZONmLJA2SNGlLm4Cko",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "SOEX",
+    "ticker": "SOEX",
+    "sc": "EQCPrad8ocDuIp4bAbGbxdA7BWdWE2Gs4OiAL7Yrrtu6BQMI",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Storm Trade",
+    "ticker": "STORM",
+    "sc": "EQBsosmcZrD6FHijA7qWGLw5wo_aH8UN435hi935jJ_STORM",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "TAC",
+    "ticker": "TAC",
+    "sc": "EQBE_gBrU3mPI9hHjlJoR_kYyrhQgyCFD6EUWfa42W8T7EBP",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Tonny",
+    "ticker": "TONNY",
+    "sc": "EQC7ilfUj2egjitpNBgW86I3Zr1lJEnqf1MwscMc59HjaU_U",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Ethena USDe",
+    "ticker": "USDE",
+    "sc": "EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Tether",
+    "ticker": "USDT",
+    "sc": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Vertus",
+    "ticker": "VERT",
+    "sc": "EQDfglfrf0Os38cKPHaOKqQenJpls2s0cey8acQFjPC_VERT",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "VPEPE",
+    "ticker": "VPEPE",
+    "sc": "EQAITZsV1vXWVoNt__xZi40xh6ung6_unawW3ma1QRKHw06W",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "WOLFTON",
+    "ticker": "WOLFTON",
+    "sc": "EQATUaH1RszAxpEFMzPA0N7uwOxLVNH5pTOsxanx3KHBRSLQ",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "X Empire",
+    "ticker": "XEMPIRE",
+    "sc": "EQB4zZusHsbU2vVTPqjhlokIOoiZhEdCMT703CWEzhTOo__X",
+    "decimals": 9
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "XP8",
+    "ticker": "XP8",
+    "sc": "EQAIK9sA6xo2mM1BybZcuBKbm1j5Ocu0jaeg__Lh7RJ_JuuG",
+    "decimals": 9
+  }
+]

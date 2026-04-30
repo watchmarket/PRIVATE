@@ -1627,18 +1627,23 @@
         // ===========================================
 
         try {
-            // Use RPCManager for RPC access (auto fallback to defaults)
-            const rpc = (typeof window !== 'undefined' && window.RPCManager && typeof window.RPCManager.getRPC === 'function')
-                ? window.RPCManager.getRPC(chainKey)
-                : null;
+            // Use RPCManager for RPC pool (primary + fallback)
+            const rpcPool = (typeof window !== 'undefined' && window.RPCManager?.getRPCPool)
+                ? window.RPCManager.getRPCPool(chainKey)
+                : [];
+            const rpcSingle = (typeof window !== 'undefined' && window.RPCManager?.getRPC)
+                ? window.RPCManager.getRPC(chainKey) : null;
+            const pool = rpcPool.length ? rpcPool : (rpcSingle ? [rpcSingle] : []);
 
-            if (!rpc) {
+            if (!pool.length) {
                 throw new Error(`No RPC configured for chain ${chainKey}`);
             }
 
             // Create fetch promise and store it for deduplication
             const fetchPromise = (async () => {
-                try {
+                let lastRpcError;
+                for (const rpc of pool) {
+                  try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
@@ -1764,7 +1769,7 @@
                         }
                         // ===================================
 
-                        return result;
+                        return result; // RPC berhasil, keluar loop
                     } catch (fetchError) {
                         clearTimeout(timeoutId);
                         if (fetchError.name === 'AbortError') {
@@ -1772,10 +1777,15 @@
                         }
                         throw fetchError;
                     }
-                } finally {
-                    // Remove from pending requests when done
-                    WEB3_PENDING_REQUESTS.delete(requestKey);
-                }
+                  } catch (rpcErr) {
+                    // RPC ini gagal — coba fallback berikutnya
+                    window.RPCManager?.reportRPCFailure?.(chainKey, rpc);
+                    lastRpcError = rpcErr;
+                  }
+                } // end for loop
+                // Semua RPC habis
+                WEB3_PENDING_REQUESTS.delete(requestKey);
+                throw lastRpcError || new Error(`All RPCs failed for chain ${chainKey}`);
             })();
 
             // Store promise for deduplication

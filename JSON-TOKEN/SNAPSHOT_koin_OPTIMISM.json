@@ -1,0 +1,317 @@
+[
+  {
+    "cex": "BINANCE",
+    "nama_token": "Axelar",
+    "ticker": "AXL",
+    "sc": "0x23ee2343b892b1bb63503a4fabc840e0e2c6810f",
+    "decimals": 6
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Curve",
+    "ticker": "CRV",
+    "sc": "0x0994206dfe8de6ec6920ff4d779b0d950605fb53",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Cyber",
+    "ticker": "CYBER",
+    "sc": "0x14778860e937f509e651192a90589de711fb88a9",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Hyperlane",
+    "ticker": "HYPER",
+    "sc": "0x9923db8d7fbacc2e69e87fad19b886c81cd74979",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Optimism",
+    "ticker": "OP",
+    "sc": "0x4200000000000000000000000000000000000042",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Synthetix Network Token",
+    "ticker": "SNX",
+    "sc": "0x8700daec35af8ff88c16bdf0418774cb3d7599b4",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Synapse",
+    "ticker": "SYN",
+    "sc": "0x5a5fff6f753d7c11a56a52fe47a177a87e431655",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+    "decimals": 6
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "TetherUS",
+    "ticker": "USDT",
+    "sc": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+    "decimals": 6
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Velodrome Finance",
+    "ticker": "VELODROME",
+    "sc": "0x9560e827af36c94d2ac33a39bce1fe78631088db",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "WalletConnect",
+    "ticker": "WCT",
+    "sc": "0xef4461891dfb3ac8572ccf7c794664a8dd927945",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "Worldcoin",
+    "ticker": "WLD",
+    "sc": "0xdc6ff44d5d932cbd77b52e5612ba0529dc6226f1",
+    "decimals": 18
+  },
+  {
+    "cex": "BINANCE",
+    "nama_token": "LayerZero",
+    "ticker": "ZRO",
+    "sc": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "CYBER",
+    "ticker": "CYBER",
+    "sc": "0x14778860e937f509e651192a90589de711fb88a9",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "OP",
+    "ticker": "OP",
+    "sc": "0x4200000000000000000000000000000000000042",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+    "decimals": 6
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "VELODROME",
+    "ticker": "VELODROME",
+    "sc": "0x9560e827af36c94d2ac33a39bce1fe78631088db",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "WCT",
+    "ticker": "WCT",
+    "sc": "0xef4461891dfb3ac8572ccf7c794664a8dd927945",
+    "decimals": 18
+  },
+  {
+    "cex": "BITGET",
+    "nama_token": "WLD",
+    "ticker": "WLD",
+    "sc": "0xdc6ff44d5d932cbd77b52e5612ba0529dc6226f1",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "CYBER",
+    "ticker": "CYBER",
+    "sc": "0x14778860e937f509e651192a90589de711fb88a9",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "OP",
+    "ticker": "OP",
+    "sc": "0x4200000000000000000000000000000000000042",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+    "decimals": 6
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "USDT",
+    "ticker": "USDT",
+    "sc": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+    "decimals": 6
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "WCT",
+    "ticker": "WCT",
+    "sc": "0xef4461891dfb3ac8572ccf7c794664a8dd927945",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "WLD",
+    "ticker": "WLD",
+    "sc": "0xdc6ff44d5d932cbd77b52e5612ba0529dc6226f1",
+    "decimals": 18
+  },
+  {
+    "cex": "BYBIT",
+    "nama_token": "ZRO",
+    "ticker": "ZRO",
+    "sc": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Across Protocol",
+    "ticker": "ACX",
+    "sc": "0xff733b2a3557a7ed6697007ab5d11b79fdd1b76b",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Cyber",
+    "ticker": "CYBER",
+    "sc": "0x14778860e937f509e651192a90589de711fb88a9",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Optimism",
+    "ticker": "OP",
+    "sc": "0x4200000000000000000000000000000000000042",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Synthetix",
+    "ticker": "SNX",
+    "sc": "0x8700daec35af8ff88c16bdf0418774cb3d7599b4",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "USDCoin",
+    "ticker": "USDC",
+    "sc": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Tether",
+    "ticker": "USDT",
+    "sc": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Velodrome",
+    "ticker": "VELODROME",
+    "sc": "0x9560e827af36c94d2ac33a39bce1fe78631088db",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Axelar",
+    "ticker": "WAXL",
+    "sc": "0x23ee2343b892b1bb63503a4fabc840e0e2c6810f",
+    "decimals": 6
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "WalletConnect",
+    "ticker": "WCT",
+    "sc": "0xef4461891dfb3ac8572ccf7c794664a8dd927945",
+    "decimals": 18
+  },
+  {
+    "cex": "GATE",
+    "nama_token": "Worldcoin",
+    "ticker": "WLD",
+    "sc": "0xdc6ff44d5d932cbd77b52e5612ba0529dc6226f1",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Across Protocol",
+    "ticker": "ACX",
+    "sc": "0xff733b2a3557a7ed6697007ab5d11b79fdd1b76b",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "CyberConnect",
+    "ticker": "CYBER",
+    "sc": "0x14778860e937f509e651192a90589de711fb88a9",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Optimism",
+    "ticker": "OP",
+    "sc": "0x4200000000000000000000000000000000000042",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "USDC",
+    "ticker": "USDC",
+    "sc": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Tether",
+    "ticker": "USDT",
+    "sc": "0x94b008aa00579c1307b0ef2c499ad98a8ce58e58",
+    "decimals": 6
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Velodrome Finance",
+    "ticker": "VELODROME",
+    "sc": "0x9560e827af36c94d2ac33a39bce1fe78631088db",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "WalletConnect",
+    "ticker": "WCT",
+    "sc": "0xef4461891dfb3ac8572ccf7c794664a8dd927945",
+    "decimals": 18
+  },
+  {
+    "cex": "MEXC",
+    "nama_token": "Worldcoin",
+    "ticker": "WLD",
+    "sc": "0xdc6ff44d5d932cbd77b52e5612ba0529dc6226f1",
+    "decimals": 18
+  }
+]
