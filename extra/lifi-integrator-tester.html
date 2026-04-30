@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LiFi Integrator Tester</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --line: #d9dee7;
+      --text: #17202f;
+      --muted: #667085;
+      --brand: #1464d2;
+      --ok: #087443;
+      --bad: #b42318;
+      --warn: #b54708;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+
+    .col-2 { grid-column: span 2; }
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #344054;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid #c8ced8;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #fff;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+    }
+
+    input.mono,
+    textarea,
+    code,
+    pre {
+      font-family: var(--mono);
+    }
+
+    textarea {
+      min-height: 78px;
+      resize: vertical;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check input {
+      width: auto;
+      min-height: auto;
+    }
+
+    button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 6px;
+      padding: 8px 14px;
+      background: var(--brand);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.secondary {
+      background: #344054;
+    }
+
+    button.ghost {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #eef2f7;
+      color: #344054;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .num {
+      text-align: right;
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .ok {
+      background: #dcfae6;
+      color: var(--ok);
+    }
+
+    .bad {
+      background: #fee4e2;
+      color: var(--bad);
+    }
+
+    .warn {
+      background: #fef0c7;
+      color: var(--warn);
+    }
+
+    details {
+      margin-top: 8px;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--brand);
+      font-weight: 700;
+    }
+
+    pre {
+      max-height: 360px;
+      overflow: auto;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #101828;
+      color: #f2f4f7;
+      font-size: 12px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        padding: 14px;
+      }
+
+      .col-2,
+      .col-3,
+      .col-4,
+      .col-6,
+      .col-8 {
+        grid-column: span 12;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .matrix-table th,
+    .matrix-table td {
+      border: 1px solid var(--line);
+      padding: 12px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .matrix-table th {
+      background: #f8fafc;
+      font-weight: 700;
+      color: #344054;
+    }
+
+    .matrix-table td:first-child {
+      text-align: left;
+      background: #f8fafc;
+      font-weight: 700;
+      width: 120px;
+    }
+
+    .matrix-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .best-cell {
+      background: #ecfdf3 !important;
+      border: 2px solid #12b76a !important;
+    }
+
+    .amount-large {
+      font-size: 15px;
+      font-weight: 900;
+      font-family: var(--mono);
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>LiFi Integrator Tester</h1>
+    <div class="sub">Menguji beberapa endpoint berbasis LiFi dengan koin dan jumlah yang sama. Mapping filter DEX mengikuti <code>LIFI_DEX_MAP</code> di <code>services/dex.js</code>.</div>
+
+    <section class="panel">
+      <div class="grid">
+        <div class="col-3">
+          <label for="preset">Preset</label>
+          <select id="preset"></select>
+        </div>
+        <div class="col-2">
+          <label for="chainId">Chain ID LiFi</label>
+          <input id="chainId" class="mono" value="56">
+        </div>
+        <div class="col-2">
+          <label for="amount">Amount In</label>
+          <input id="amount" class="mono" value="10">
+        </div>
+        <div class="col-2">
+          <label for="fromDecimals">Decimals In</label>
+          <input id="fromDecimals" class="mono" type="number" min="0" max="36" value="18">
+        </div>
+        <div class="col-2">
+          <label for="toDecimals">Decimals Out</label>
+          <input id="toDecimals" class="mono" type="number" min="0" max="36" value="18">
+        </div>
+        <div class="col-1">
+          <label for="slippage">Slip %</label>
+          <input id="slippage" class="mono" value="0.5">
+        </div>
+
+        <div class="col-6">
+          <label for="fromToken">Token In</label>
+          <input id="fromToken" class="mono" value="0x55d398326f99059fF775485246999027B3197955">
+        </div>
+        <div class="col-6">
+          <label for="toToken">Token Out</label>
+          <input id="toToken" class="mono" value="0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c">
+        </div>
+
+        <div class="col-6">
+          <label for="fromAddress">From Address</label>
+          <input id="fromAddress" class="mono" value="0x0000000000000000000000000000000000000000">
+        </div>
+        <div class="col-6">
+          <label for="corsProxy">CORS Proxy Prefix</label>
+          <input id="corsProxy" class="mono" value="https://yazid3.yazidcrypto7.workers.dev/?">
+        </div>
+
+        <div class="col-12">
+          <label>Integrator</label>
+          <div id="integrators" class="checks"></div>
+        </div>
+
+        <div class="col-12">
+          <label>Filter DEX LiFi</label>
+          <div class="row" style="margin-bottom:8px">
+            <button class="ghost" id="selectCommon" type="button">Pilih Umum</button>
+            <button class="ghost" id="selectAllDex" type="button">Pilih Semua</button>
+            <button class="ghost" id="clearDex" type="button">Kosongkan</button>
+            <span class="muted small">Kosongkan untuk request tanpa <code>allowExchanges</code>. Jika memilih banyak DEX, setiap integrator akan diuji per DEX.</span>
+          </div>
+          <div id="dexFilters" class="checks"></div>
+        </div>
+
+        <div class="col-12">
+          <div class="row">
+            <button id="runBtn" type="button">Run Test</button>
+            <button id="copyConfigBtn" class="secondary" type="button">Copy Request Config</button>
+            <button id="clearResultsBtn" class="ghost" type="button">Clear Result</button>
+            <span id="runState" class="muted"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="row" style="justify-content:space-between; margin-bottom:10px">
+        <strong>Hasil Matrix & Raw Log</strong>
+        <span id="summary" class="muted small">Belum ada test.</span>
+      </div>
+      <div id="matrixContainer" style="overflow-x: auto;"></div>
+      
+      <details>
+        <summary style="margin-bottom: 12px;">Lihat Raw Log Lengkap</summary>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Integrator</th>
+              <th>Filter</th>
+              <th>Actual Tool</th>
+              <th class="num">Amount Out</th>
+              <th class="num">Gas USD</th>
+              <th class="num">Time</th>
+              <th>Endpoint / Raw</th>
+          </tr>
+        </thead>
+        <tbody id="results">
+          <tr>
+            <td colspan="8" class="muted">Klik Run Test untuk memulai.</td>
+          </tr>
+        </tbody>
+      </table>
+      </details>
+    </section>
+  </main>
+
+  <script>
+    const LIFI_DEX_MAP = {
+      kyber: ['kyberswap', 'KYBER'],
+      velora: ['paraswap', 'VELORA'],
+      odos: ['odos', 'ODOS'],
+      matcha: ['0x', 'MATCHA'],
+      okx: ['okx', 'OKX'],
+      sushi: ['sushiswap', 'SUSHI'],
+      openocean: ['openocean', 'OPENOCEAN'],
+      flytrade: ['fly', 'FLYTRADE'],
+      '1inch': ['1inch', '1INCH'],
+      eisen: ['eisen', 'EISEN'],
+      cowswap: ['cow', 'COWSWAP'],
+      jupiter: ['jupiter', 'JUPITER']
+    };
+
+    const INTEGRATORS = [
+      { key: 'brave', label: 'BRAVE', method: 'POST', endpoint: 'https://lifi.wallet.brave.com/v1/advanced/routes' },
+      { key: 'talisman', label: 'TALISMAN', method: 'POST', endpoint: 'https://lifi.talisman.xyz/v1/advanced/routes' },
+      { key: 'zapper', label: 'ZAPPER', method: 'GET', endpoint: 'https://zapper.xyz/api/lifi/quote' },
+      { key: 'backpack', label: 'BACKPACK', method: 'GET', endpoint: 'https://lifi.workers.madlads.com/quote' }
+    ];
+
+    const PRESETS = {
+      'bsc-usdt-bnb': {
+        label: 'BSC USDT -> BNB',
+        chainId: '56',
+        amount: '10',
+        fromDecimals: 18,
+        toDecimals: 18,
+        fromToken: '0x55d398326f99059fF775485246999027B3197955',
+        toToken: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'
+      },
+      'polygon-usdt-usdc': {
+        label: 'Polygon USDT -> USDC',
+        chainId: '137',
+        amount: '10',
+        fromDecimals: 6,
+        toDecimals: 6,
+        fromToken: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+        toToken: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359'
+      },
+      'arbitrum-usdt-eth': {
+        label: 'Arbitrum USDT -> ETH',
+        chainId: '42161',
+        amount: '10',
+        fromDecimals: 6,
+        toDecimals: 18,
+        fromToken: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+        toToken: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1'
+      },
+      'base-usdc-eth': {
+        label: 'Base USDC -> ETH',
+        chainId: '8453',
+        amount: '10',
+        fromDecimals: 6,
+        toDecimals: 18,
+        fromToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        toToken: '0x4250000000000000000000000000000000000006'
+      },
+      'solana-usdt-sol': {
+        label: 'Solana USDT -> SOL',
+        chainId: '1151111081099710',
+        amount: '10',
+        fromDecimals: 6,
+        toDecimals: 9,
+        fromToken: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
+        toToken: 'So11111111111111111111111111111111111111112',
+        fromAddress: 'So11111111111111111111111111111111111111112'
+      }
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[ch]));
+    }
+
+    function amountToRaw(amount, decimals) {
+      const clean = String(amount || '0').trim();
+      if (!/^\d+(\.\d+)?$/.test(clean)) throw new Error('Amount harus angka positif');
+      const dec = Math.max(0, Number(decimals) || 0);
+      const parts = clean.split('.');
+      const whole = parts[0] || '0';
+      const frac = (parts[1] || '').slice(0, dec).padEnd(dec, '0');
+      return (BigInt(whole) * (10n ** BigInt(dec)) + BigInt(frac || '0')).toString();
+    }
+
+    function rawToAmount(raw, decimals) {
+      if (!raw) return '';
+      const dec = Math.max(0, Number(decimals) || 0);
+      const n = BigInt(String(raw));
+      const base = 10n ** BigInt(dec);
+      const whole = n / base;
+      const frac = String(n % base).padStart(dec, '0').replace(/0+$/, '');
+      return frac ? `${whole}.${frac}` : String(whole);
+    }
+
+    function shortJson(data) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    function selectedValues(selector) {
+      return $(`${selector} input:checked`).map(function () {
+        return $(this).val();
+      }).get();
+    }
+
+    function getFormConfig() {
+      const fromDecimals = Number($('#fromDecimals').val());
+      const toDecimals = Number($('#toDecimals').val());
+      const amountRaw = amountToRaw($('#amount').val(), fromDecimals);
+      return {
+        chainId: Number($('#chainId').val()),
+        amount: $('#amount').val(),
+        amountRaw,
+        fromDecimals,
+        toDecimals,
+        fromToken: $('#fromToken').val().trim(),
+        toToken: $('#toToken').val().trim(),
+        fromAddress: $('#fromAddress').val().trim() || '0x0000000000000000000000000000000000000000',
+        slippageFraction: (Number($('#slippage').val()) || 0.5) / 100,
+        corsProxy: $('#corsProxy').val().trim(),
+        integrators: selectedValues('#integrators'),
+        dexKeys: selectedValues('#dexFilters')
+      };
+    }
+
+    function getToolName(data) {
+      return data?.routes?.[0]?.steps?.[0]?.toolDetails?.name
+        || data?.routes?.[0]?.steps?.[0]?.tool
+        || data?.toolDetails?.name
+        || data?.tool
+        || '';
+    }
+
+    function getOutputRaw(data) {
+      return data?.routes?.[0]?.toAmount || data?.estimate?.toAmount || '';
+    }
+
+    function getGasUsd(data) {
+      if (data?.routes?.[0]?.gasCostUSD != null) return Number(data.routes[0].gasCostUSD);
+      if (Array.isArray(data?.estimate?.gasCosts)) {
+        return data.estimate.gasCosts.reduce((sum, item) => sum + Number(item.amountUSD || 0), 0);
+      }
+      return 0;
+    }
+
+    function looksMismatched(actualTool, dexKey) {
+      if (!dexKey || !actualTool) return false;
+      const expected = String(LIFI_DEX_MAP[dexKey]?.[1] || dexKey).toUpperCase();
+      const slug = String(LIFI_DEX_MAP[dexKey]?.[0] || dexKey).toUpperCase();
+      const actual = String(actualTool).toUpperCase();
+      return !(actual.includes(expected) || expected.includes(actual) || actual.includes(slug) || slug.includes(actual));
+    }
+
+    function buildRequest(integratorKey, dexKey, cfg) {
+      const integrator = INTEGRATORS.find(item => item.key === integratorKey);
+      if (!integrator) throw new Error(`Integrator tidak dikenal: ${integratorKey}`);
+
+      const exchangeSlug = dexKey ? LIFI_DEX_MAP[dexKey][0] : '';
+
+      if (integrator.method === 'POST') {
+        const body = {
+          fromAddress: cfg.fromAddress,
+          fromAmount: cfg.amountRaw,
+          fromChainId: cfg.chainId,
+          fromTokenAddress: cfg.fromToken,
+          toChainId: cfg.chainId,
+          toTokenAddress: cfg.toToken,
+          options: {
+            integrator: integrator.key,
+            order: 'CHEAPEST',
+            slippage: cfg.slippageFraction,
+            maxPriceImpact: 0.4,
+            jitoBundle: true,
+            allowSwitchChain: true,
+            executionType: 'all'
+          }
+        };
+        if (exchangeSlug) body.options.allowExchanges = [exchangeSlug];
+        return {
+          integrator,
+          label: integrator.label,
+          dexKey,
+          filterLabel: dexKey ? LIFI_DEX_MAP[dexKey][1] : 'ANY',
+          endpoint: integrator.endpoint,
+          ajax: {
+            url: cfg.corsProxy ? cfg.corsProxy + integrator.endpoint : integrator.endpoint,
+            method: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(body),
+            timeout: 20000
+          },
+          requestBody: body
+        };
+      }
+
+      const params = new URLSearchParams({
+        fromChain: String(cfg.chainId),
+        toChain: String(cfg.chainId),
+        fromToken: cfg.fromToken,
+        toToken: cfg.toToken,
+        fromAmount: cfg.amountRaw,
+        fromAddress: cfg.fromAddress,
+        toAddress: cfg.fromAddress,
+        slippage: String(cfg.slippageFraction)
+      });
+      if (integrator.key === 'zapper') {
+        params.set('integrator', 'zapper');
+        params.set('fee', '0.004');
+      }
+      if (exchangeSlug) params.append('allowExchanges', exchangeSlug);
+
+      const endpointWithQuery = `${integrator.endpoint}?${params.toString()}`;
+      return {
+        integrator,
+        label: integrator.label,
+        dexKey,
+        filterLabel: dexKey ? LIFI_DEX_MAP[dexKey][1] : 'ANY',
+        endpoint: endpointWithQuery,
+        ajax: {
+          url: cfg.corsProxy ? cfg.corsProxy + endpointWithQuery : endpointWithQuery,
+          method: 'GET',
+          dataType: 'json',
+          timeout: 20000
+        },
+        requestBody: null
+      };
+    }
+
+    async function runOne(request, cfg, dexKey) {
+      const started = performance.now();
+      try {
+        const data = await $.ajax(request.ajax);
+        const elapsed = Math.round(performance.now() - started);
+        const outputRaw = getOutputRaw(data);
+        if (!outputRaw) throw new Error(data?.message || data?.error || 'Response tidak punya toAmount');
+
+        const actualTool = getToolName(data) || 'LIFI';
+        const mismatch = looksMismatched(actualTool, dexKey);
+        return {
+          ok: true,
+          mismatch,
+          request,
+          dexKey,
+          actualTool,
+          amountOut: rawToAmount(outputRaw, cfg.toDecimals),
+          gasUsd: getGasUsd(data),
+          elapsed,
+          raw: data
+        };
+      } catch (xhrOrError) {
+        const elapsed = Math.round(performance.now() - started);
+        const response = xhrOrError?.responseJSON || xhrOrError?.responseText || xhrOrError?.message || xhrOrError;
+        return {
+          ok: false,
+          mismatch: false,
+          request,
+          dexKey,
+          actualTool: '',
+          amountOut: '',
+          gasUsd: 0,
+          elapsed,
+          raw: response,
+          error: typeof response === 'string' ? response : (response?.message || response?.error || 'Request gagal')
+        };
+      }
+    }
+
+    function renderResults(rows) {
+      const sorted = rows.slice().sort((a, b) => {
+        if (a.ok !== b.ok) return a.ok ? -1 : 1;
+        return Number(b.amountOut || 0) - Number(a.amountOut || 0);
+      });
+
+      // Build Matrix
+      const integrators = selectedValues('#integrators');
+      const dexKeys = selectedValues('#dexFilters').length ? selectedValues('#dexFilters') : [null];
+      
+      let matrixHtml = '';
+      if (integrators.length > 0 && dexKeys.length > 0) {
+        matrixHtml += `
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Filter DEX</th>
+                ${integrators.map(i => `<th>${escapeHtml(i.toUpperCase())}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        dexKeys.forEach(dexKey => {
+          const filterLabel = dexKey ? (LIFI_DEX_MAP[dexKey] ? LIFI_DEX_MAP[dexKey][1] : dexKey) : 'ANY';
+          matrixHtml += `<tr><td>${escapeHtml(filterLabel)}</td>`;
+          
+          let maxAmount = -1;
+          integrators.forEach(intKey => {
+            const row = rows.find(r => r.request.integrator.key === intKey && r.dexKey === dexKey);
+            if (row && row.ok && !row.mismatch) {
+              maxAmount = Math.max(maxAmount, Number(row.amountOut || 0));
+            }
+          });
+          
+          integrators.forEach(intKey => {
+            const row = rows.find(r => r.request.integrator.key === intKey && r.dexKey === dexKey);
+            if (!row) {
+              matrixHtml += `<td class="muted">-</td>`;
+            } else if (!row.ok) {
+              matrixHtml += `<td><span class="status bad">ERROR</span></td>`;
+            } else if (row.mismatch) {
+              matrixHtml += `<td>
+                <span class="status warn" style="margin-bottom:4px">MISMATCH</span><br>
+                <span class="muted small">${escapeHtml(row.actualTool)}</span>
+              </td>`;
+            } else {
+              const isBest = Number(row.amountOut) === maxAmount && maxAmount > 0;
+              const cellClass = isBest ? 'best-cell' : '';
+              matrixHtml += `<td class="${cellClass}">
+                <div class="matrix-cell">
+                  <div class="amount-large" style="color: ${isBest ? 'var(--ok)' : 'var(--text)'}">${escapeHtml(row.amountOut)}</div>
+                  <div class="muted small">Gas: $${Number(row.gasUsd).toFixed(4)}</div>
+                  <div class="muted small" style="font-size:10px">${row.elapsed}ms</div>
+                </div>
+              </td>`;
+            }
+          });
+          matrixHtml += `</tr>`;
+        });
+        matrixHtml += `</tbody></table>`;
+      }
+      $('#matrixContainer').html(matrixHtml);
+
+      $('#results').empty();
+      for (const row of sorted) {
+        const statusClass = row.ok ? (row.mismatch ? 'warn' : 'ok') : 'bad';
+        const statusText = row.ok ? (row.mismatch ? 'MISMATCH' : 'OK') : 'ERROR';
+        const raw = typeof row.raw === 'string' ? row.raw : shortJson(row.raw);
+        const requestInfo = {
+          method: row.request.integrator.method,
+          endpoint: row.request.endpoint,
+          body: row.request.requestBody
+        };
+        $('#results').append(`
+          <tr>
+            <td><span class="status ${statusClass}">${statusText}</span></td>
+            <td><strong>${escapeHtml(row.request.label)}</strong></td>
+            <td>${escapeHtml(row.request.filterLabel)}</td>
+            <td>${escapeHtml(row.actualTool || row.error || '-')}</td>
+            <td class="num">${escapeHtml(row.amountOut || '-')}</td>
+            <td class="num">${row.ok ? '$' + Number(row.gasUsd || 0).toFixed(4) : '-'}</td>
+            <td class="num">${row.elapsed} ms</td>
+            <td>
+              <div class="small muted">${escapeHtml(row.request.endpoint)}</div>
+              <details>
+                <summary>Request</summary>
+                <pre>${escapeHtml(shortJson(requestInfo))}</pre>
+              </details>
+              <details>
+                <summary>Raw response</summary>
+                <pre>${escapeHtml(raw)}</pre>
+              </details>
+            </td>
+          </tr>
+        `);
+      }
+
+      const okCount = rows.filter(row => row.ok).length;
+      const mismatchCount = rows.filter(row => row.mismatch).length;
+      $('#summary').text(`${okCount}/${rows.length} sukses, ${mismatchCount} mismatch filter.`);
+    }
+
+    function setPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+      $('#chainId').val(p.chainId);
+      $('#amount').val(p.amount);
+      $('#fromDecimals').val(p.fromDecimals);
+      $('#toDecimals').val(p.toDecimals);
+      $('#fromToken').val(p.fromToken);
+      $('#toToken').val(p.toToken);
+      $('#fromAddress').val(p.fromAddress || '0x0000000000000000000000000000000000000000');
+    }
+
+    function initUi() {
+      Object.entries(PRESETS).forEach(([key, p]) => {
+        $('#preset').append(`<option value="${escapeHtml(key)}">${escapeHtml(p.label)}</option>`);
+      });
+
+      INTEGRATORS.forEach(item => {
+        $('#integrators').append(`
+          <label class="check">
+            <input type="checkbox" value="${escapeHtml(item.key)}" checked>
+            ${escapeHtml(item.label)}
+          </label>
+        `);
+      });
+
+      Object.entries(LIFI_DEX_MAP).forEach(([key, item]) => {
+        $('#dexFilters').append(`
+          <label class="check" title="${escapeHtml(item[0])}">
+            <input type="checkbox" value="${escapeHtml(key)}">
+            ${escapeHtml(item[1])}
+          </label>
+        `);
+      });
+
+      $('#preset').on('change', function () {
+        setPreset($(this).val());
+      });
+
+      $('#selectCommon').on('click', function () {
+        $('#dexFilters input').prop('checked', false);
+        ['kyber', 'odos', 'matcha', 'okx', 'openocean'].forEach(key => {
+          $(`#dexFilters input[value="${key}"]`).prop('checked', true);
+        });
+      });
+
+      $('#selectAllDex').on('click', function () {
+        $('#dexFilters input').prop('checked', true);
+      });
+
+      $('#clearDex').on('click', function () {
+        $('#dexFilters input').prop('checked', false);
+      });
+
+      $('#clearResultsBtn').on('click', function () {
+        $('#matrixContainer').empty();
+        $('#results').html('<tr><td colspan="8" class="muted">Belum ada test.</td></tr>');
+        $('#summary').text('Belum ada test.');
+      });
+
+      $('#copyConfigBtn').on('click', async function () {
+        try {
+          const cfg = getFormConfig();
+          await navigator.clipboard.writeText(shortJson(cfg));
+          $('#runState').text('Config tersalin ke clipboard.');
+        } catch (e) {
+          $('#runState').text(`Gagal copy config: ${e.message}`);
+        }
+      });
+
+      $('#runBtn').on('click', async function () {
+        const btn = $(this);
+        try {
+          const cfg = getFormConfig();
+          if (!cfg.fromToken || !cfg.toToken) throw new Error('Token in/out wajib diisi');
+          if (!cfg.integrators.length) throw new Error('Pilih minimal 1 integrator');
+
+          const dexKeys = cfg.dexKeys.length ? cfg.dexKeys : [null];
+          const requests = [];
+          cfg.integrators.forEach(integratorKey => {
+            dexKeys.forEach(dexKey => requests.push(buildRequest(integratorKey, dexKey, cfg)));
+          });
+
+          btn.prop('disabled', true);
+          $('#runState').text(`Running ${requests.length} request...`);
+          $('#results').html('<tr><td colspan="8" class="muted">Mengambil quote...</td></tr>');
+
+          const rows = await Promise.all(requests.map(req => runOne(req, cfg, req.dexKey)));
+          renderResults(rows);
+          $('#runState').text('Selesai.');
+        } catch (e) {
+          $('#runState').text(e.message);
+        } finally {
+          btn.prop('disabled', false);
+        }
+      });
+
+      setPreset('bsc-usdt-bnb');
+    }
+
+    $(initUi);
+  </script>
+</body>
+
+</html>
