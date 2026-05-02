@@ -502,7 +502,7 @@
                 // Step 1: Daftar koin tradeable via Public API
                 let publicList = {};
                 try {
-                    const pubResp = await $.ajax({ url: 'https://indodax.com/api/summaries' });
+                    const pubResp = await fetchJsonWithProxy('https://indodax.com/api/summaries');
                     publicList = pubResp?.tickers || {};
                 } catch (pubErr) {
                     console.warn('[INDODAX] Failed to fetch /api/summaries:', pubErr?.message || pubErr);
@@ -523,16 +523,16 @@
                         // INDODAX pakai HMAC-SHA512
                         const sign = CryptoJS.HmacSHA512(body, indodaxCreds.ApiSecret)
                             .toString(CryptoJS.enc.Hex);
-                        const tapiResp = await $.ajax({
-                            url: 'https://indodax.com/tapi',
+                        const tapiRaw = await fetchWithProxy('https://indodax.com/tapi', {
                             method: 'POST',
-                            data: body,
+                            body: body,
                             headers: {
                                 'Key': indodaxCreds.ApiKey,
                                 'Sign': sign,
                                 'Content-Type': 'application/x-www-form-urlencoded'
                             }
                         });
+                        const tapiResp = await tapiRaw.json();
                         if (tapiResp?.success === 1 && tapiResp?.return?.network) {
                             networkMap = tapiResp.return.network || {};
                             hasNetworkInfo = Object.keys(networkMap).length > 0;

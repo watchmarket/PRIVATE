@@ -303,13 +303,16 @@
     function chainRegex(chainKey) {
         const synonyms = getChainSynonyms(chainKey);
         if (!synonyms.length) return null;
-        const alt = synonyms.map(escapeRegex).join('|');
+        // Gunakan ^...$ untuk exact matching agar 'LINEAETH' tidak kena match 'ETH'
+        const alt = synonyms.map(s => `^${escapeRegex(s)}$`).join('|');
         return new RegExp(alt, 'i');
     }
 
     function matches(chainKey, net) {
         const rx = chainRegex(chainKey);
-        return rx ? rx.test(String(net || '')) : true;
+        // Trim input agar matching lebih akurat
+        const input = String(net || '').trim();
+        return rx ? rx.test(input) : true;
     }
 
     function matchesCex(chainKey, net) {
@@ -729,8 +732,8 @@
                     sc_out: String(token.sc_out || '').trim(),
                     des_out: Number(token.des_out || 0),
                     token_name: token.token_name || token.name || token.symbol_in,
-                    deposit: (token.deposit !== undefined && token.deposit !== null) ? token.deposit : (token.depositEnable ? '1' : '0'),
-                    withdraw: (token.withdraw !== undefined && token.withdraw !== null) ? token.withdraw : (token.withdrawEnable ? '1' : '0'),
+                    deposit: cexUpper === 'INDODAX' ? '1' : ((token.deposit !== undefined && token.deposit !== null) ? token.deposit : (token.depositEnable ? '1' : '0')),
+                    withdraw: cexUpper === 'INDODAX' ? '1' : ((token.withdraw !== undefined && token.withdraw !== null) ? token.withdraw : (token.withdrawEnable ? '1' : '0')),
                     feeWD: token.feeWD || token.feeWDs || 0,
                     tradeable: token.tradeable,
                     current_price: Number.isFinite(Number(token.current_price)) ? Number(token.current_price) : 0,
@@ -1064,47 +1067,10 @@
                             }
                         });
 
-                        // STEP 2: DATAJSON recovery for rejected tokens
-                        // If a rejected token's symbol exists in DATAJSON for this chain,
-                        // it means the token IS on this chain — CEX just uses a different network name
-                        let recovered = [];
-                        if (chainRejected.length > 0) {
-                            try {
-                                const tokenDbMap = await loadChainTokenDatabase(chainKey);
-                                if (tokenDbMap.size > 0) {
-                                    const allChainKeys = Object.keys(
-                                        (typeof window !== 'undefined' && window.CHAIN_SYNONYMS) ? window.CHAIN_SYNONYMS : {}
-                                    );
-                                    chainRejected.forEach(item => {
-                                        const symbol = String(item.tokenName || '').toUpperCase();
-                                        if (tokenDbMap.has(symbol)) {
-                                            // Guard 1: skip if item.chain matches a different canonical chain
-                                            // (e.g. AI/BSC should NOT be recovered into ETH snapshot)
-                                            const itemChain = String(item.chain || '');
-                                            const belongsToOtherChain = allChainKeys.some(
-                                                otherKey => otherKey !== chainKey && matchesCex(otherKey, itemChain)
-                                            );
-                                            if (belongsToOtherChain) return;
-
-                                            const dbEntry = tokenDbMap.get(symbol);
-                                            recovered.push({
-                                                ...item,
-                                                contractAddress: dbEntry.sc,
-                                                _recoveredFromDb: true
-                                            });
-                                        }
-                                    });
-                                    if (recovered.length > 0) {
-                                        console.log(`[${cexUpper}] ✅ DATAJSON recovery: ${recovered.length} tokens recovered from ${chainRejected.length} rejected`);
-                                    }
-                                }
-                            } catch (dbErr) {
-                                console.warn(`[${cexUpper}] DATAJSON recovery failed:`, dbErr.message);
-                            }
-                        }
-
-                        // STEP 3: Combine matched + recovered, then map to snapshot format
-                        const allValid = [...chainMatched, ...recovered];
+                        // STEP 2: Only use tokens that directly match the target chain via CEX data.
+                        // Recovery from DATAJSON is intentionally disabled: if CEX says a token
+                        // is on a different chain, trust CEX and exclude the token.
+                        const allValid = [...chainMatched];
                         coins = allValid.map(item => {
                             const symbol = String(item.tokenName || '').toUpperCase();
                             const lookupKey = `${cexUpper}_${symbol}`;
@@ -2228,11 +2194,16 @@
 
                 // Process batch with STAGGERED delays to prevent RPC rate limit
                 // Each token in batch starts with incremental delay (0ms, 150ms, 300ms, ...)
+                const web3CountBefore = web3FetchCount;
                 const batchResults = await Promise.allSettled(
                     batch.map(async (token, batchIndex) => {
-                        // STAGGERED DELAY: Token 0=0ms, Token 1=150ms, Token 2=300ms, dst
-                        // Ini mencegah semua request dikirim bersamaan ke RPC
-                        if (batchIndex > 0 && WEB3_REQUEST_DELAY > 0) {
+                        // STAGGERED DELAY: hanya jika token kemungkinan butuh Web3 call
+                        // Token yang sudah ada decimals di cache/DB tidak perlu delay
+                        const tokenSc = String(token.sc_in || '').toLowerCase().trim();
+                        const tokenHasDecimals = Number(token.des_in) > 0;
+                        const tokenInCache = !!(snapshotMap[tokenSc]?.des_in > 0);
+                        const tokenMayNeedWeb3 = !tokenHasDecimals && !tokenInCache;
+                        if (batchIndex > 0 && WEB3_REQUEST_DELAY > 0 && tokenMayNeedWeb3) {
                             await sleep(batchIndex * WEB3_REQUEST_DELAY);
                         }
 
@@ -2345,8 +2316,10 @@
                     );
                 }
 
-                // Delay between batches (except for last batch) - RATE LIMIT PROTECTION
-                if (batchEnd < allTokens.length && BATCH_DELAY > 0) {
+                // Delay between batches - HANYA jika batch ini ada Web3 call (rate limit protection)
+                // Jika semua token dari cache/DB, tidak perlu delay
+                const batchHadWeb3Calls = web3FetchCount > web3CountBefore;
+                if (batchEnd < allTokens.length && BATCH_DELAY > 0 && batchHadWeb3Calls) {
                     // Update overlay dengan info jeda
                     if (window.SnapshotOverlay) {
                         window.SnapshotOverlay.updateMessage(
@@ -2731,6 +2704,7 @@
                 totalInDatabase: mergedTokens.length,
                 tokens: enrichedTokens,
                 cexSources: selectedCex,
+                failedCexes: failedCexList,
                 statistics: {
                     cached: cachedCount,
                     web3: web3FetchCount,
@@ -2916,10 +2890,11 @@
                                     }
 
                                     // Build dataCexs format for compatibility with wallet-exchanger.js
+                                    // INDODAX: no REST API for wallet status, always treat as enabled
                                     const dataCexs = {};
                                     dataCexs[cexUpper] = {
-                                        withdrawToken: item.withdrawEnable || false,
-                                        depositToken: item.depositEnable || false,
+                                        withdrawToken: isIndodax ? true : (item.withdrawEnable || false),
+                                        depositToken: isIndodax ? true : (item.depositEnable || false),
                                         withdrawPair: true, // Not available from wallet API
                                         depositPair: true   // Not available from wallet API
                                     };
@@ -2932,8 +2907,8 @@
                                         sc_in: contractAddress, // Use contract address from CEX API
                                         des_in: existing?.des_in || existing?.decimals || '',
                                         decimals: existing?.des_in || existing?.decimals || '',
-                                        deposit: item.depositEnable ? '1' : '0',
-                                        withdraw: item.withdrawEnable ? '1' : '0',
+                                        deposit: isIndodax ? '1' : (item.depositEnable ? '1' : '0'),
+                                        withdraw: isIndodax ? '1' : (item.withdrawEnable ? '1' : '0'),
                                         feeWD: parseFloat(item.feeWDs || 0),
                                         current_price: existing?.current_price || 0,
                                         dataCexs: dataCexs // Add dataCexs for compatibility

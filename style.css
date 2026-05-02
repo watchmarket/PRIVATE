@@ -3746,3 +3746,33 @@ body.cex-mode-active .header-card {
     width: 9px !important;
     height: 9px !important;
 }
+
+/* ===== Sync Modal: WD / DP Checkbox Filter Labels ===== */
+.sync-wallet-label {
+    transition: opacity 0.15s;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* ===== Sync Modal: Clear/Batal Button ===== */
+.sync-clear-btn {
+    border: 1px solid #ddd;
+    background: none;
+    padding: 1px 7px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 4px;
+    color: #bbb;
+    line-height: 1.6;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.sync-clear-btn:hover {
+    color: #f44336;
+    border-color: #f44336;
+    background: #fff5f5;
+}
+.sync-clear-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+}

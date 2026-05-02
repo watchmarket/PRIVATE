@@ -77,7 +77,7 @@ function clearDexTickerById(id) {
 // when the user switches to another tab.
 // _workerTimer is a drop-in replacement for setTimeout/clearTimeout.
 // Falls back to native setTimeout if Worker creation fails (e.g. strict CSP).
-(function() {
+(function () {
     'use strict';
     try {
         const workerCode = `
@@ -101,28 +101,28 @@ function clearDexTickerById(id) {
         URL.revokeObjectURL(blobUrl);
         let _counter = 0;
         const _cbs = {};
-        worker.onmessage = function(e) {
+        worker.onmessage = function (e) {
             const cb = _cbs[e.data.id];
-            if (cb) { delete _cbs[e.data.id]; try { cb(); } catch(_) {} }
+            if (cb) { delete _cbs[e.data.id]; try { cb(); } catch (_) { } }
         };
         window._workerTimer = {
-            setTimeout: function(fn, ms) {
+            setTimeout: function (fn, ms) {
                 const id = ++_counter;
                 _cbs[id] = fn;
                 worker.postMessage({ cmd: 'set', id: id, ms: Math.max(0, ms || 0) });
                 return id;
             },
-            clearTimeout: function(id) {
+            clearTimeout: function (id) {
                 if (!id) return;
                 delete _cbs[id];
-                try { worker.postMessage({ cmd: 'clear', id: id }); } catch(_) {}
+                try { worker.postMessage({ cmd: 'clear', id: id }); } catch (_) { }
             }
         };
-    } catch(e) {
+    } catch (e) {
         // Fallback: use native setTimeout (may throttle in background tabs)
         window._workerTimer = {
-            setTimeout: function(fn, ms) { return setTimeout(fn, ms); },
-            clearTimeout: function(id) { clearTimeout(id); }
+            setTimeout: function (fn, ms) { return setTimeout(fn, ms); },
+            clearTimeout: function (id) { clearTimeout(id); }
         };
     }
 })();
@@ -1350,7 +1350,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const dx = String(dex).toUpperCase();
                                     const nameIn = String(isKiri ? token.symbol_in : token.symbol_out).toUpperCase();
                                     const nameOut = String(isKiri ? token.symbol_out : token.symbol_in).toUpperCase();
-                                    
+
                                     // Ambil data dari hasil kalkulasi resmi (calculateResult)
                                     const modal = update.Modal || 0;
                                     const amtIn = update.amount_in || 0;
@@ -1360,7 +1360,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const profitLoss = update.profitLoss || 0;
                                     const pnlPct = update.profitLossPercent || 0;
                                     const effDexPerToken = update.dexUsdRate || 0;
-                                    
+
                                     // Fee data from update
                                     const feeSwap = update.FeeSwap || 0;
                                     const feeWD = update.FeeWD || 0;
@@ -1370,9 +1370,9 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const feeTransfer = update.feeTransfer || 0;
 
                                     const feeSrc = String(finalDexRes.feeSource || 'fallback').toLowerCase();
-                                    const feeSrcLbl = feeSrc === 'api'  ? '✅ dari API'
-                                                    : feeSrc === 'calc' ? 'dari kalkulasi gas'
-                                                    :                     '⚠️ estimasi fallback';
+                                    const feeSrcLbl = feeSrc === 'api' ? '✅ dari API'
+                                        : feeSrc === 'calc' ? 'dari kalkulasi gas'
+                                            : '⚠️ estimasi fallback';
 
                                     const toIDR = (v) => { try { return (typeof formatIDRfromUSDT === 'function') ? formatIDRfromUSDT(Number(v) || 0) : ''; } catch (_) { return ''; } };
                                     const buyPriceCEX = Number(update.priceBuyToken_CEX || 0);
@@ -1387,7 +1387,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                     const sellIdrLine = isKiri
                                         ? `    💱 Harga Jual (${dx}): ~$${effDexPerToken.toFixed(6)} USDT | ${toIDR(effDexPerToken)}`
                                         : `    💱 Harga Jual (${ce}): $${sellPriceCEX.toFixed(6)} USDT | ${toIDR(sellPriceCEX)}`;
-                                    
+
                                     const nowStr = (new Date()).toLocaleTimeString();
                                     const viaName = (function () {
                                         try {
@@ -1466,7 +1466,7 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                         `    🚀 PROFIT : ${profitLoss >= 0 ? '+' : ''}${profitLoss.toFixed(2)} USDT`,
                                         `idCELL: ${idCELL}`,
                                     ].filter(Boolean).join('\n');
-                                    
+
                                     setCellTitleById(idCELL, lines);
                                     try { if (window.SCAN_LOG_ENABLED) console.log(lines); } catch (_) { }
                                 } catch (_) { }
@@ -1923,14 +1923,28 @@ async function startScanner(tokensToScan, settings, tableBodyId) {
                                 const missing = [];
                                 if (wdToken === false) missing.push(`WD ${sym1Meta}`);
                                 if (dpPair === false) missing.push(`DP ${sym2Meta}`);
-                                markMetaSkip(missing.join(' & ') + ' OFF');
+
+                                let skipReason = 'CEX Wallet OFF: ' + missing.join(' & ');
+                                if (missing.length === 1) {
+                                    skipReason = wdToken === false
+                                        ? `CEX Wallet OFF: WD ${sym1Meta} - Tidak bisa kirim Token dari CEX ke DEX`
+                                        : `CEX Wallet OFF: DP ${sym2Meta} - Tidak bisa setor Pair hasil swap kembali ke CEX`;
+                                }
+                                markMetaSkip(skipReason);
                                 return;
                             }
                             if (!isKiriMeta && (wdPair === false || dpToken === false)) {
                                 const missing = [];
                                 if (wdPair === false) missing.push(`WD ${sym1Meta}`);
                                 if (dpToken === false) missing.push(`DP ${sym2Meta}`);
-                                markMetaSkip(missing.join(' & ') + ' OFF');
+
+                                let skipReason = 'CEX Wallet OFF: ' + missing.join(' & ');
+                                if (missing.length === 1) {
+                                    skipReason = wdPair === false
+                                        ? `CEX Wallet OFF: WD ${sym1Meta} - Tidak bisa kirim Pair dari CEX ke DEX`
+                                        : `CEX Wallet OFF: DP ${sym2Meta} - Tidak bisa setor Token hasil swap kembali ke CEX`;
+                                }
+                                markMetaSkip(skipReason);
                                 return;
                             }
                         }

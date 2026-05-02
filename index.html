@@ -735,22 +735,23 @@
                   <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
                       name="sync-price-filter" value="with-price" class="uk-radio"> Berharga</label>
                   <span style="color:#ddd; margin:0 2px;">|</span>
-                  <span class="uk-text-bold" style="font-size:11px;">Wallet CEX:</span>
-                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;">
-                    <input type="checkbox" id="sync-wallet-filter" class="uk-checkbox"> WD &amp; DP <span
-                      class="uk-text-bolder uk-text-success">[ON]</span>
+                  <span class="uk-text-bold" style="font-size:11px;">Wallet [ON/OFF]:</span>
+                  <label class="uk-text-small uk-margin-remove sync-wallet-label" style="font-size:11px;" title="Filter Withdraw ON (aktif setelah Snapshot Update)">
+                    <input type="checkbox" id="sync-wd-filter" class="uk-checkbox" disabled> WD
+                  </label>
+                  <label class="uk-text-small uk-margin-remove sync-wallet-label" style="font-size:11px;" title="Filter Deposit ON (aktif setelah Snapshot Update)">
+                    <input type="checkbox" id="sync-dp-filter" class="uk-checkbox" disabled> DP
                   </label>
                 </div>
                 <div class="uk-flex uk-flex-middle" style="gap:8px;">
-                  <span class="uk-text-small uk-text-bold" style="font-size:10px;">Pilih:</span>
+                  <span class="uk-text-small uk-text-bold" style="font-size:10px;">Pilih KOIN:</span>
                   <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
                       name="sync-pick-mode" value="all" class="uk-radio"> Semua</label>
                   <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
                       name="sync-pick-mode" value="selected" class="uk-radio"> Dipilih</label>
                   <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
                       name="sync-pick-mode" value="snapshot" class="uk-radio"> Snapshot</label>
-                  <label class="uk-text-small uk-margin-remove" style="font-size:11px;"><input type="radio"
-                      name="sync-pick-mode" value="clear" class="uk-radio"> Batal</label>
+                  <button type="button" id="sync-clear-btn" class="sync-clear-btn" title="Batal semua pilihan">✕</button>
                 </div>
               </div>
 

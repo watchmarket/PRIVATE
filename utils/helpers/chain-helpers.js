@@ -130,9 +130,16 @@
             if (candidates.has(nk)) return walletInfo[k];
         }
         // loose contains match (e.g., BASEMAINNET contains BASE)
+        // ✅ PROTEKSI: Jangan lakukan loose match jika s sangat pendek (misal 'ETH') 
+        // agar 'LINEAETH' tidak kena match 'ETH'.
         for (const k of keys) {
             const nk = _normalizeChainLabel(k);
-            for (const s of candidates) { if (nk.includes(s)) return walletInfo[k]; }
+            for (const s of candidates) { 
+                if (s.length > 3 && nk.includes(s)) return walletInfo[k]; 
+                // Jika s <= 3 (seperti ETH, BSC), hanya match jika s adalah substring utuh 
+                // atau ada di akhir/awal dengan pemisah (tapi di sini pemisah sudah dibuang by _normalizeChainLabel)
+                // Jadi lebih aman gunakan exact match saja untuk s <= 3.
+            }
         }
         return null;
     }

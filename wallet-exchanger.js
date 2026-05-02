@@ -328,23 +328,23 @@
 
                         const feePair = normalizeFee(entry.feeWDs);
                         if (feePair !== undefined) {
-                            coin.feeWDPair = feePair;
-                            target.feeWDPair = feePair;
+                            coin.feeWDPair = feePair; // Root level
+                            target.feeWDPair = feePair; // Nested level
                         }
                     }
                 });
             });
 
-            // Second pass: jika CEX punya data untuk chain tertentu tapi token tidak ada
-            // di response → berarti CEX tidak support token di chain ini → CLOSED
+            /* 
+            // ⚠️ REMOVED: Logic ini terlalu agresif. Jika token tidak ada di respon, 
+            // jangan paksa jadi false karena bisa jadi datanya hanya sedang tidak dikirim oleh CEX.
+            
             merged.forEach((coin, idx) => {
                 if (!allowedCexByCoin[idx].has(cexUpper)) return;
                 const coinChainKey = normalizeChainKey(coin.chain, mode);
-                // Lewati jika CEX tidak mengembalikan data apapun untuk chain ini
                 if (!chainsWithData.has(coinChainKey)) return;
                 const tokenSymbol = String(coin.symbol_in || coin.tokenName || '').toUpperCase();
                 if (!tokenSymbol) return;
-                // Jika token tidak ada di data CEX untuk chain ini → CLOSED
                 if (!normalizedEntries.has(`${coinChainKey}:${tokenSymbol}`)) {
                     const target = ensureCexEntry(coin, cexUpper);
                     coin.withdrawToken = false;
@@ -353,6 +353,7 @@
                     target.depositToken = false;
                 }
             });
+            */
         });
 
         return merged;

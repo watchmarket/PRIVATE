@@ -3503,17 +3503,9 @@ async function deferredInit() {
                 cursor: 'not-allowed'
             });
 
-            // Reset checkbox Wallet Filter ke unchecked dan disabled (default: abaikan/tampilkan semua)
-            const $walletFilter = $('#sync-wallet-filter');
-            $walletFilter.prop('checked', false);
-            $walletFilter.prop('disabled', true);
-
-            // Visual feedback: disabled state
-            $walletFilter.closest('label').css({
-                opacity: '0.5',
-                pointerEvents: 'none',
-                cursor: 'not-allowed'
-            });
+            // Reset checkbox WD & DP filter ke unchecked dan disabled
+            $('#sync-wd-filter, #sync-dp-filter').prop('checked', false).prop('disabled', true)
+                .closest('label').css({ opacity: '0.5', pointerEvents: 'none', cursor: 'not-allowed' });
         } catch (_) { }
     }
 
@@ -4576,119 +4568,22 @@ async function deferredInit() {
         updateSyncSelectedCount();
     });
 
-    // Handler untuk Wallet CEX Filter checkbox change - Filter WD & DP ON
-    // ========== FIX v2.6: Auto-fetch ONLY WD|DP status (like Update Wallet Exchanger) ==========
-    $(document).on('change', '#sync-wallet-filter', async function () {
+    // Handler untuk checkbox filter WD dan DP - re-render tabel sesuai status checked
+    $(document).on('change', '#sync-wd-filter, #sync-dp-filter', function () {
         if (!activeSingleChainKey) return;
+        renderSyncTable(activeSingleChainKey);
+        updateSyncSelectedCount();
+    });
 
-        const isChecked = $(this).is(':checked');
-        console.log('[Wallet Filter] Changed to:', isChecked ? 'Hanya WD & DP ON' : 'Abaikan (semua)');
-
-        // ========== FIX v2.6: Fetch ONLY WD|DP status saat checkbox di-CHECK ==========
-        if (isChecked) {
-            // Get selected CEX dari checkboxes
-            const selectedCexs = $('#sync-filter-cex input:checked').map(function () {
-                return $(this).val();
-            }).get();
-
-            if (selectedCexs.length === 0) {
-                if (typeof toast !== 'undefined' && toast.warning) {
-                    toast.warning('Pilih minimal 1 CEX terlebih dahulu untuk fetch WD|DP status');
-                }
-                // Uncheck kembali jika tidak ada CEX dipilih
-                $(this).prop('checked', false);
-                return;
-            }
-
-            // Show loading state
-            if (typeof toast !== 'undefined' && toast.info) {
-                toast.info(`Mengambil status WD|DP dari ${selectedCexs.join(', ')}...`);
-            }
-
-            try {
-                const $modal = $('#sync-modal');
-                const remoteRaw = $modal.data('remote-raw') || [];
-                let totalUpdated = 0;
-
-                console.log('[WalletFilter] Fetching WD|DP status (ONLY wallet data) for:', selectedCexs.join(', '));
-
-                // Fetch WD|DP ONLY dari setiap CEX (seperti Update Wallet Exchanger)
-                // TIDAK melakukan: validasi Web3, cek SC, cek DATAJSON, dll
-                for (const cex of selectedCexs) {
-                    try {
-                        console.log(`[WalletFilter] Fetching ${cex} wallet status...`);
-
-                        // Gunakan HANYA fetchWalletStatus dari services/cex.js (wallet status ONLY)
-                        if (typeof window.App?.Services?.CEX?.fetchWalletStatus === 'function') {
-                            const walletData = await window.App.Services.CEX.fetchWalletStatus(cex);
-
-                            if (Array.isArray(walletData) && walletData.length > 0) {
-                                // Update HANYA WD|DP status di remoteRaw
-                                walletData.forEach(walletItem => {
-                                    const cexUp = String(cex || '').toUpperCase();
-                                    const symbolIn = String(walletItem.tokenName || '').toUpperCase();
-
-                                    // Cari existing token di remoteRaw
-                                    const existing = remoteRaw.find(t =>
-                                        String(t.cex || '').toUpperCase() === cexUp &&
-                                        String(t.symbol_in || '').toUpperCase() === symbolIn
-                                    );
-
-                                    if (existing) {
-                                        // Update HANYA WD|DP status (bukan SC, harga, dll)
-                                        const oldWd = existing.withdraw;
-                                        const oldDp = existing.deposit;
-
-                                        existing.withdraw = walletItem.withdrawEnable ? '1' : '0';
-                                        existing.deposit = walletItem.depositEnable ? '1' : '0';
-                                        existing.withdrawEnable = walletItem.withdrawEnable;
-                                        existing.depositEnable = walletItem.depositEnable;
-                                        existing.feeWD = walletItem.feeWDs || existing.feeWD || 0;
-
-                                        totalUpdated++;
-                                        console.log(`[WalletFilter] Updated ${cexUp}/${symbolIn}: WD=${existing.withdraw}(was ${oldWd}), DP=${existing.deposit}(was ${oldDp})`);
-                                    }
-                                });
-
-                                console.log(`[WalletFilter] ${cex}: Updated ${walletData.length} tokens`);
-                            }
-                        } else {
-                            console.warn('[WalletFilter] fetchWalletStatus not available, skipping', cex);
-                        }
-
-                    } catch (cexError) {
-                        console.error(`[WalletFilter] Error fetching ${cex} wallet status:`, cexError.message);
-                        // Continue dengan CEX berikutnya (tidak stop)
-                    }
-
-                    // Small delay untuk avoid rate limit
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                }
-
-                // Re-render table dengan WD|DP status terbaru
-                renderSyncTable(activeSingleChainKey);
-                updateSyncSelectedCount();
-
-                if (typeof toast !== 'undefined' && toast.success) {
-                    toast.success(`✅ Status WD|DP berhasil di-update: ${totalUpdated} koin dari ${selectedCexs.join(', ')}`);
-                }
-
-                console.log('[WalletFilter] Total tokens updated with latest WD|DP:', totalUpdated);
-
-            } catch (error) {
-                console.error('[WalletFilter] Error fetching WD|DP status:', error);
-                if (typeof toast !== 'undefined' && toast.error) {
-                    toast.error('Gagal fetch status WD|DP: ' + (error.message || 'Unknown error'));
-                }
-                // Uncheck jika error
-                $(this).prop('checked', false);
-            }
-        } else {
-            // Jika di-uncheck, langsung re-render tanpa fetch
-            renderSyncTable(activeSingleChainKey);
-            updateSyncSelectedCount();
-        }
-        // ===========================================================================
+    // Handler untuk tombol Clear (✕) - batal semua pilihan
+    $(document).on('click', '#sync-clear-btn', function () {
+        const $allBoxes = $('#sync-modal-tbody .sync-token-checkbox');
+        if (typeof window.setSyncBulkSelecting === 'function') window.setSyncBulkSelecting(true);
+        $allBoxes.prop('checked', false);
+        $('input[name="sync-pick-mode"]').prop('checked', false);
+        if (typeof window.setSyncBulkSelecting === 'function') window.setSyncBulkSelecting(false);
+        updateSyncSelectedCount();
+        updateAddTokenButtonState();
     });
 
     // ========== REFACTOR: Handler untuk Pair radio button change ==========
@@ -4769,8 +4664,10 @@ async function deferredInit() {
                 const scDisplay = scRaw ? (scRaw.length > 12 ? `${scRaw.slice(0, 6)}...${scRaw.slice(-4)}` : scRaw) : '?';
 
                 // ========== WALLET STATUS: WITHDRAW & DEPOSIT ==========
-                const depositStatus = parseSnapshotStatus(token.deposit || token.depositEnable);
-                const withdrawStatus = parseSnapshotStatus(token.withdraw || token.withdrawEnable);
+                // INDODAX: no REST API for wallet status → always ON
+                const _isIndodax = cex === 'INDODAX';
+                const depositStatus = _isIndodax ? true : parseSnapshotStatus(token.deposit || token.depositEnable);
+                const withdrawStatus = _isIndodax ? true : parseSnapshotStatus(token.withdraw || token.withdrawEnable);
 
                 // Format display untuk WITHDRAW status (urutan pertama)
                 const wdStatusText = withdrawStatus === true ? 'ON' : (withdrawStatus === false ? 'OFF' : '?');
@@ -4821,7 +4718,7 @@ async function deferredInit() {
         try {
             // Note: Don't call showSyncOverlay here - processSnapshotForCex handles its own overlay
             const snapshotModule = await ensureSnapshotModuleLoaded();
-            await snapshotModule.processSnapshotForCex(
+            const snapshotResult = await snapshotModule.processSnapshotForCex(
                 activeSingleChainKey,
                 selectedCexs,
                 (tokenOrArray) => {
@@ -4849,12 +4746,27 @@ async function deferredInit() {
                 }
             );
 
-            // ========== FIX v2.4: Set flag EARLY setelah CEX fetch berhasil ==========
-            // Data WD/DP sudah di-fetch dari CEX API, jadi kita bisa set flag sekarang
-            // Ini akan enable checkbox WD|DP lebih cepat (tidak menunggu IndexedDB reload)
-            syncSnapshotFetched = true;
-            console.log('[Refresh Snapshot] CEX data fetched successfully - syncSnapshotFetched = true ✅');
-            // ===========================================================================
+            // Set flag setelah CEX fetch berhasil (enable WD/DP filter)
+            // Jika ada CEX yang partial gagal, tetap set true tapi warning ke user
+            const failedCexes = snapshotResult?.failedCexes || [];
+            if (failedCexes.length > 0 && failedCexes.length < selectedCexs.length) {
+                // Partial failure: beberapa CEX sukses, beberapa gagal
+                if (typeof toast !== 'undefined' && toast.warning) {
+                    toast.warning(`⚠️ Gagal cek status wallet dari: ${failedCexes.join(', ')}. Status WD/DP mungkin tidak akurat untuk CEX tersebut.`);
+                }
+                syncSnapshotFetched = true; // Masih bisa filter dari CEX yang sukses
+            } else if (failedCexes.length === selectedCexs.length) {
+                // Semua CEX gagal
+                syncSnapshotFetched = false;
+                $('#sync-wd-filter, #sync-dp-filter').prop('checked', false).prop('disabled', true)
+                    .closest('label').css({ opacity: '0.5', pointerEvents: 'none', cursor: 'not-allowed' });
+                if (typeof toast !== 'undefined' && toast.error) {
+                    toast.error(`❌ Semua CEX gagal cek status wallet. Filter WD/DP tidak dapat digunakan.`);
+                }
+            } else {
+                syncSnapshotFetched = true;
+            }
+            console.log('[Refresh Snapshot] CEX fetch done - fetched:', syncSnapshotFetched, '- failed:', failedCexes);
 
             // Reload snapshot data from IndexedDB and update UI
             try {
@@ -4895,31 +4807,18 @@ async function deferredInit() {
                         window.renderSyncTable(activeSingleChainKey);
                     }
 
-                    // ========== FIX v2.4: Refresh WD|DP checkbox enable/disable state ==========
-                    // Setelah render table, kita perlu explicitly enable/disable wallet filter checkbox
-                    // berdasarkan apakah ada data dan snapshot fetch berhasil
+                    // Refresh checkbox WD/DP enable/disable setelah snapshot update
                     setTimeout(() => {
                         try {
                             const hasTableData = $('#sync-modal-tbody tr').length > 0;
-                            const $walletFilter = $('#sync-wallet-filter');
-                            if ($walletFilter.length) {
-                                const walletFilterEnabled = hasTableData && syncSnapshotFetched;
-                                $walletFilter.prop('disabled', !walletFilterEnabled);
-
-                                // Visual feedback: opacity untuk label
-                                $walletFilter.closest('label').css({
-                                    opacity: walletFilterEnabled ? '1' : '0.5',
-                                    pointerEvents: walletFilterEnabled ? 'auto' : 'none',
-                                    cursor: walletFilterEnabled ? 'pointer' : 'not-allowed'
-                                });
-
-                                console.log('[Refresh Snapshot] Wallet filter checkbox:', walletFilterEnabled ? 'ENABLED ✅' : 'DISABLED', '- Data:', hasTableData, '- FetchedFlag:', syncSnapshotFetched);
-                            }
+                            const cbEnabled = hasTableData && syncSnapshotFetched;
+                            $('#sync-wd-filter, #sync-dp-filter').prop('disabled', !cbEnabled)
+                                .closest('label').css({ opacity: cbEnabled ? '1' : '0.5', pointerEvents: cbEnabled ? 'auto' : 'none', cursor: cbEnabled ? 'pointer' : 'not-allowed' });
+                            console.log('[Refresh Snapshot] WD/DP checkboxes:', cbEnabled ? 'ENABLED ✅' : 'DISABLED');
                         } catch (e) {
-                            console.error('[Refresh Snapshot] Error refreshing wallet filter state:', e);
+                            console.error('[Refresh Snapshot] Error refreshing checkbox state:', e);
                         }
                     }, 100);
-                    // ==========================================================================
 
                     // Re-apply selection mode if it was set before
                     if (currentMode) {
@@ -4954,10 +4853,14 @@ async function deferredInit() {
                 );
             }
         } catch (error) {
-            // console.error('Refresh snapshot failed:', error);
+            // Reset flag dan disable filter WD/DP karena data tidak valid
+            syncSnapshotFetched = false;
+            $('#sync-wd-filter, #sync-dp-filter').prop('checked', false).prop('disabled', true)
+                .closest('label').css({ opacity: '0.5', pointerEvents: 'none', cursor: 'not-allowed' });
+
             SnapshotOverlay.showError(error.message || 'Unknown error');
             if (typeof toast !== 'undefined' && toast.error) {
-                toast.error(`Gagal refresh: ${error.message || 'Unknown error'}`);
+                toast.error(`❌ Snapshot gagal: ${error.message || 'Unknown error'}. Status WD/DP tidak dapat digunakan.`);
             }
 
             // Log ke history: Update Koin error
@@ -5156,22 +5059,40 @@ async function deferredInit() {
                 depositToken: _indodaxOn, withdrawToken: _indodaxOn,
                 depositPair: _indodaxOn, withdrawPair: _indodaxOn
             };
-            if (isSnapshot) {
-                const feeSnapshot = parseFloat(tok.feeWDToken ?? tok.feeWD);
-                if (Number.isFinite(feeSnapshot) && feeSnapshot >= 0) {
-                    baseCexInfo.feeWDToken = feeSnapshot;
-                }
+            // Selalu apply WD/DP status dari data token jika tersedia
+            // INDODAX: no REST API for wallet status → keep default true, skip snapshot override
+            const feeSnapshot = parseFloat(tok.feeWDToken ?? tok.feeWD);
+            if (Number.isFinite(feeSnapshot) && feeSnapshot >= 0) {
+                baseCexInfo.feeWDToken = feeSnapshot;
+            }
+            if (cexUpper !== 'INDODAX') {
                 const depositSnap = parseSnapshotStatus(tok.depositToken ?? tok.deposit);
                 if (depositSnap !== null) {
                     baseCexInfo.depositToken = depositSnap;
-                    baseCexInfo.depositPair = depositSnap;
                 }
                 const withdrawSnap = parseSnapshotStatus(tok.withdrawToken ?? tok.withdraw);
                 if (withdrawSnap !== null) {
                     baseCexInfo.withdrawToken = withdrawSnap;
-                    baseCexInfo.withdrawPair = withdrawSnap;
                 }
             }
+
+            // ✅ FIX: Cari status WD/DP untuk Pair (USDT/BNB/dll) dari snapshot data
+            // (Mencegah status Pair mengikuti status koin utama)
+            const pairTok = remoteTokens.find(t => 
+                String(t.cex || '').toUpperCase().trim() === cexUpper &&
+                String(t.symbol_in || '').toUpperCase().trim() === symbolOut
+            );
+            if (pairTok) {
+                const depPairSnap = parseSnapshotStatus(pairTok.depositToken ?? pairTok.deposit);
+                if (depPairSnap !== null) baseCexInfo.depositPair = depPairSnap;
+                
+                const wdPairSnap = parseSnapshotStatus(pairTok.withdrawToken ?? pairTok.withdraw);
+                if (wdPairSnap !== null) baseCexInfo.withdrawPair = wdPairSnap;
+
+                const feePairSnap = parseFloat(pairTok.feeWDToken ?? pairTok.feeWD);
+                if (Number.isFinite(feePairSnap) && feePairSnap >= 0) baseCexInfo.feeWDPair = feePairSnap;
+            }
+            
             dataCexs[cexUpper] = baseCexInfo;
 
             if (!scIn || isAddrInvalid(scIn)) scIn = tok.sc_in || tok.contract_in || '';
@@ -5197,7 +5118,14 @@ async function deferredInit() {
                 selectedDexs,
                 dataDexs,
                 dataCexs,
-                cex: cexUpper
+                cex: cexUpper,
+                // ✅ Tambahkan status di root level agar renderer tabel utama bisa menampilkan badge WD/DP
+                withdrawToken: baseCexInfo.withdrawToken,
+                depositToken: baseCexInfo.depositToken,
+                withdrawPair: baseCexInfo.withdrawPair,
+                depositPair: baseCexInfo.depositPair,
+                feeWDToken: baseCexInfo.feeWDToken,
+                feeWDPair: baseCexInfo.feeWDPair
             };
             selectedTokens.push(tokenObj);
         });
@@ -6236,13 +6164,14 @@ $(document).ready(function () {
                     if (priceFilter === 'with-price' && !hasPrice) return false;
                 }
 
-                // Filter Wallet CEX (WD & DP ON)
-                const walletFilterOn = $('#sync-wallet-filter').is(':checked');
-                if (walletFilterOn) {
-                    const depositStatus = parseSnapshotStatus(t.deposit || t.depositEnable);
+                // Filter Wallet CEX: checkbox WD dan DP independen
+                const wdFilterOn = $('#sync-wd-filter').is(':checked');
+                const dpFilterOn = $('#sync-dp-filter').is(':checked');
+                if (wdFilterOn || dpFilterOn) {
                     const withdrawStatus = parseSnapshotStatus(t.withdraw || t.withdrawEnable);
-                    // Hanya tampilkan jika KEDUA status adalah ON (true)
-                    if (depositStatus !== true || withdrawStatus !== true) return false;
+                    const depositStatus = parseSnapshotStatus(t.deposit || t.depositEnable);
+                    if (wdFilterOn && withdrawStatus !== true) return false;
+                    if (dpFilterOn && depositStatus !== true) return false;
                 }
 
                 return true;
@@ -6593,23 +6522,11 @@ $(document).ready(function () {
                 console.log('[renderSyncTable] Radio buttons:', hasTableData ? 'ENABLED' : 'DISABLED', '- Table rows:', $('#sync-modal-tbody tr').length);
             }
 
-            // ========== ENABLE/DISABLE WALLET FILTER CHECKBOX BERDASARKAN DATA TABEL ==========
-            // FIX v2.5: Checkbox WD/DP SELALU AKTIF jika ada data
-            // Saat checkbox di-check, otomatis fetch WD|DP status dari CEX terpilih
-            const $walletFilter = $('#sync-wallet-filter');
-            if ($walletFilter.length) {
-                const walletFilterEnabled = hasTableData; // ✅ FIX v2.5: Remove syncSnapshotFetched requirement
-                $walletFilter.prop('disabled', !walletFilterEnabled);
-
-                // Visual feedback: opacity untuk label
-                $walletFilter.closest('label').css({
-                    opacity: walletFilterEnabled ? '1' : '0.5',
-                    pointerEvents: walletFilterEnabled ? 'auto' : 'none',
-                    cursor: walletFilterEnabled ? 'pointer' : 'not-allowed'
-                });
-
-                console.log('[renderSyncTable] Wallet filter checkbox:', walletFilterEnabled ? 'ENABLED ✅' : 'DISABLED', '- hasTableData:', hasTableData);
-            }
+            // Checkbox WD/DP hanya aktif setelah user klik SNAPSHOT [UPDATE]
+            const cbEnabled = hasTableData && syncSnapshotFetched;
+            $('#sync-wd-filter, #sync-dp-filter').prop('disabled', !cbEnabled)
+                .closest('label').css({ opacity: cbEnabled ? '1' : '0.5', pointerEvents: cbEnabled ? 'auto' : 'none', cursor: cbEnabled ? 'pointer' : 'not-allowed' });
+            console.log('[renderSyncTable] WD/DP checkboxes:', cbEnabled ? 'ENABLED ✅' : 'DISABLED', '- hasTableData:', hasTableData, '- fetched:', syncSnapshotFetched);
 
             // Update price filter state (enable/disable berdasarkan data tabel)
             if (typeof window.updatePriceFilterState === 'function') {

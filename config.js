@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
-        //NAME: "PENCARI SELISIH",
-        NAME: "PRIVATE_NOCORS",
+        NAME: "OPIT_HUNTER",
+        //NAME: "PRIVATE_NOCORS",
         VERSION: "05.01",
         SCAN_LIMIT: false,
         AUTORUN: true,
@@ -350,8 +350,9 @@ const CONFIG_CHAINS = {
             OKX: { address: '0xA0420C29B214d09b9ec751aa1f592c7b1fa77dA3', chainCEX: 'BNB Chain' },
         },
         PAIRDEXS: {
-            "BNB": { symbolPair: "BNB", scAddressPair: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", desPair: "18" },
             "USDT": { symbolPair: "USDT", scAddressPair: "0x55d398326f99059fF775485246999027B3197955", desPair: "18" },
+
+            "BNB": { symbolPair: "BNB", scAddressPair: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", desPair: "18" },
             "NON": { symbolPair: "NON", scAddressPair: "0x", desPair: "18" }
         }
     },
@@ -372,14 +373,14 @@ const CONFIG_CHAINS = {
         WALLET_CEX: {
             GATE: { address: '0x0D0707963952f2fBA59dD06f2b425ace40b492Fe', chainCEX: 'MATIC' },
             BINANCE: { address: '0x290275e3db66394C52272398959845170E4DCb88', address2: '0xe7804c37c13166fF0b37F5aE0BB07A3aEbb6e245', chainCEX: 'MATIC' },
-             MEXC: { address: '0x51E3D44172868Acc60D68ca99591Ce4230bc75E0', chainCEX: 'MATIC' },
-             KUCOIN: { address: '0x9AC5637d295FEA4f51E086C329d791cC157B1C84', address2: '0xD6216fC19DB775Df9774a6E33526131dA7D19a2c', chainCEX: 'Polygon POS' },
-             BITGET: { address: '0x0639556F03714A74a5fEEaF5736a4A64fF70D206', address2: '0x51971c86b04516062c1e708CDC048CB04fbe959f', address3: '0xBDf5bAfEE1291EEc45Ae3aadAc89BE8152D4E673', chainCEX: 'Polygon' },
-             BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Polygon PoS' },
-             INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6', address2: '0x91Dca37856240E5e1906222ec79278b16420Dc92', chainCEX: 'POLYGON' },
-             HTX: { address: '0x9a7ffd7f6c42ab805e0edf16c25101964c6326b6', chainCEX: 'MATIC' },
-             OKX: { address: '0x343d752bB710c5575E417edB3F9FA06241A4749A', chainCEX: 'Polygon' },
-         },
+            MEXC: { address: '0x51E3D44172868Acc60D68ca99591Ce4230bc75E0', chainCEX: 'MATIC' },
+            KUCOIN: { address: '0x9AC5637d295FEA4f51E086C329d791cC157B1C84', address2: '0xD6216fC19DB775Df9774a6E33526131dA7D19a2c', chainCEX: 'Polygon POS' },
+            BITGET: { address: '0x0639556F03714A74a5fEEaF5736a4A64fF70D206', address2: '0x51971c86b04516062c1e708CDC048CB04fbe959f', address3: '0xBDf5bAfEE1291EEc45Ae3aadAc89BE8152D4E673', chainCEX: 'Polygon' },
+            BYBIT: { address: '0xf89d7b9c864f589bbF53a82105107622B35EaA40', chainCEX: 'Polygon PoS' },
+            INDODAX: { address: '0x3C02290922a3618A4646E3BbCa65853eA45FE7C6', address2: '0x91Dca37856240E5e1906222ec79278b16420Dc92', chainCEX: 'POLYGON' },
+            HTX: { address: '0x9a7ffd7f6c42ab805e0edf16c25101964c6326b6', chainCEX: 'MATIC' },
+            OKX: { address: '0x343d752bB710c5575E417edB3F9FA06241A4749A', chainCEX: 'Polygon' },
+        },
         PAIRDEXS: {
             "USDT": { symbolPair: 'USDT', scAddressPair: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', desPair: '6' },
             "USDC": { symbolPair: 'USDC', scAddressPair: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359', desPair: '6' },
@@ -412,8 +413,9 @@ const CONFIG_CHAINS = {
             OKX: { address: '0xAfEE421482FAEa92292ED3ffE29371742542AD72', chainCEX: 'Arbitrum One' },
         },
         PAIRDEXS: {
-            "ETH": { symbolPair: 'ETH', scAddressPair: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', desPair: '18' },
             "USDT": { symbolPair: 'USDT', scAddressPair: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', desPair: '6' },
+
+            "ETH": { symbolPair: 'ETH', scAddressPair: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', desPair: '18' },
             "NON": { symbolPair: "NON", scAddressPair: "0x", desPair: "18" }
         },
     },
@@ -443,9 +445,8 @@ const CONFIG_CHAINS = {
             OKX: { address: '0x91D40E4818F4D4C57b4578d9ECa6AFc92aC8DEbE', chainCEX: 'Ethereum' },
         },
         PAIRDEXS: {
-            "ETH": { symbolPair: 'ETH', scAddressPair: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', desPair: '18' },
             "USDT": { symbolPair: 'USDT', scAddressPair: '0xdAC17F958D2ee523a2206206994597C13D831ec7', desPair: '6' },
-            "BNT": { symbolPair: 'BNT', scAddressPair: '0x1F573D6Fb3F13d689FF844B4cE37794d79a7FF1C', desPair: '18' },
+            "ETH": { symbolPair: 'ETH', scAddressPair: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', desPair: '18' },
             "NON": { symbolPair: "NON", scAddressPair: "0x", desPair: "18" }
         }
     },
@@ -476,8 +477,9 @@ const CONFIG_CHAINS = {
             OKX: { address: '', chainCEX: 'Base' },
         },
         PAIRDEXS: {
-            "ETH": { symbolPair: 'ETH', scAddressPair: '0x4250000000000000000000000000000000000006', desPair: '18' },
             "USDC": { symbolPair: 'USDC', scAddressPair: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', desPair: '6' },
+            "ETH": { symbolPair: 'ETH', scAddressPair: '0x4200000000000000000000000000000000000006', desPair: '18' },
+
             "NON": { symbolPair: "NON", scAddressPair: "0x", desPair: "18" }
         }
     },
@@ -522,7 +524,7 @@ const CONFIG_CHAINS = {
         DEFAULT_RPC: 'https://rpc.llama-rpc.com/avax?source=llamaswap', // Avalanche Foundation public RPC
         FALLBACK_RPCS: ['https://avalanche-mainnet.wallet.brave.com'],
         BADGE_CLASS: 'bg-danger text-white',
-        SYNONYMS: ['AVAX', 'AVAXC', 'AVALANCHE', 'AVAX-C','AVAX_C', 'C-CHAIN', 'AVAX C-CHAIN', 'AVAXCCHAIN', 'AVALANCHE C-CHAIN', 'AVAX C CHAIN', 'AVALANCHE CCHAIN','CAVAX','Avalanche C Chain(AVAX CCHAIN)','AVAX_CCHAIN'],
+        SYNONYMS: ['AVAX', 'AVAXC', 'AVALANCHE', 'AVAX-C', 'AVAX_C', 'C-CHAIN', 'AVAX C-CHAIN', 'AVAXCCHAIN', 'AVALANCHE C-CHAIN', 'AVAX C CHAIN', 'AVALANCHE CCHAIN', 'CAVAX', 'Avalanche C Chain(AVAX CCHAIN)', 'AVAX_CCHAIN'],
         LINKS: {
             explorer: {
                 token: (address) => `https://snowscan.xyz/token/${address}`,
@@ -779,12 +781,19 @@ const CONFIG_DEXS = {
         supportsSolana: true,  // Matcha supports Solana via 0x API
         warna: "#61ee73ff", // hitam abu-abu (Matcha/0x)
         builder: ({ chainName, tokenAddress, pairAddress, chainCode }) => {
-            const isSolana = String(chainName || '').toLowerCase() === 'solana';
+            const chain = String(chainName || '').toLowerCase();
+            const isSolana = chain === 'solana';
             if (isSolana) {
                 const solChainId = 1399811149;
                 return `https://matcha.xyz/tokens/solana/${tokenAddress}?buyChain=${solChainId}&buyAddress=${pairAddress}&sellChain=${solChainId}&sellAddress=${tokenAddress}`;
             }
-            return `https://matcha.xyz/tokens/${chainName}/${String(tokenAddress || '').toLowerCase()}?buyChain=${chainCode}&buyAddress=${String(pairAddress || '').toLowerCase()}`;
+            // Matcha.xyz menggunakan slug berbeda dari key chain internal kita
+            const matchaChainSlug = {
+                avax: 'avalanche',
+                bsc: 'bnb',  // BSC = "bnb" di Matcha
+            };
+            const slug = matchaChainSlug[chain] || chain;
+            return `https://matcha.xyz/tokens/${slug}/${String(tokenAddress || '').toLowerCase()}?buyChain=${chainCode}&buyAddress=${String(pairAddress || '').toLowerCase()}`;
         },
         // ⚡ CHAIN-SPECIFIC STRATEGY: Solana uses direct endpoint, EVM uses proxies
         fetchdex: {

@@ -1828,7 +1828,7 @@ function DisplayPNL(data) {
               <a class="monitor-line uk-text-danger dex-price-link" href="${sellLink}" target="_blank" rel="noopener" title="${tipFull}">⬇ ${fmtUSD(sellPrice)}</a>
               <span class="monitor-line">${feeLabel1}</span>
               <span class="monitor-line uk-text-dark" title="${divTitle}">💸 SW: ${feeSwap.toFixed(4)}$  </span>
-              <span class="monitor-line uk-text-danger" title="BRUTO ~ TOTAL FEE">[${subBruto.toFixed(2)} ~ <b style="font-size: larger;">${subTotalFee.toFixed(2)}</b>]</span>
+              <span class="monitor-line" title="BRUTO ~ TOTAL FEE">[<span class="${subBruto >= 0 ? 'uk-text-success' : 'uk-text-danger'}">${subBruto.toFixed(2)}</span> ~ <b class="uk-text-danger" style="font-size: larger;">${subTotalFee.toFixed(2)}</b>]</span>
               <span class="monitor-line ${pnlClass}" title="PROFIT / LOSS" style="font-weight: bold;">🤑 PNL: ${subPnl.toFixed(2)}</span>
             </span>
           </div>
@@ -2305,7 +2305,8 @@ function DisplayPNL(data) {
 
   // Highlight + UIkit
   const netClass = (pnl >= 0.02) ? 'uk-text-success' : 'uk-text-danger';
-  const bracket = `[${bruto.toFixed(2)} ~ <b style="font-size: larger;">${feeAll.toFixed(2)}</b>]`;
+  const brutColor = bruto >= 0 ? 'uk-text-success' : 'uk-text-danger';
+  const bracket = `[<span class="${brutColor}">${bruto.toFixed(2)}</span> ~ <b class="uk-text-danger" style="font-size: larger;">${feeAll.toFixed(2)}</b>]`;
 
   // Background hijau muncul setiap ada sinyal selisih (PNL > 0)
   // Sesuai request: Konsisten dengan MetaDEX (JUMPX) yang tetap ijo walau volume kurang/di bawah filter
@@ -2333,7 +2334,7 @@ function DisplayPNL(data) {
   const lineSell = `<a class="monitor-line uk-text-danger  dex-price-link" href="${sellLink}" target="_blank" rel="noopener" title="${tipSell}">⬇ ${fmtUSD(sellPrice)}</a>`;
   const feeBlock1 = `<span class="monitor-line">${feeLine}</span>`;
   const feeBlock2 = `<span class="monitor-line">${swapLine}</span>`; // ← baris terpisah
-  const lineBrut = `<span class="monitor-line uk-text-danger" title="BRUTO ~ TOTAL FEE">${bracket}</span>`;
+  const lineBrut = `<span class="monitor-line" title="BRUTO ~ TOTAL FEE">${bracket}</span>`;
   const linePNL = `<span class="monitor-line ${netClass}" title="PROFIT / LOSS">🤑 PNL: ${pnl.toFixed(2)}</span>`;
 
   // Icon multi-tab: hanya muncul saat ada sinyal (bg hijau / PNL > 0)
