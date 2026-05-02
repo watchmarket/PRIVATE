@@ -1,7 +1,7 @@
 const CONFIG_APP = {
     APP: {
-        NAME: "OPIT_HUNTER",
-        //NAME: "PRIVATE_NOCORS",
+       // NAME: "OPIT_HUNTER",
+        NAME: "PRIVATE_NOCORS",
         VERSION: "05.01",
         SCAN_LIMIT: false,
         AUTORUN: true,
